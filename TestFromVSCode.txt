@@ -1,1 +1,0 @@
-Cái này để test thử nếu từ VSCode mà đẩy thẳng lên GitHub thì như thế nào
