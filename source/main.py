@@ -24,9 +24,6 @@ def home():
     latest_papers = Paper.query.order_by(Paper.date_added.desc()).limit(5).all()
     return render_template('index.html', papers=latest_papers)
 
-from flask import jsonify, request, render_template
-# ... các phần khác giữ nguyên ...
-
 @app.route('/load-more')
 def load_more():
     # Lấy vị trí bắt đầu từ tham số 'offset' trên URL (mặc định là 5 vì trang đầu đã load 5 bài)
