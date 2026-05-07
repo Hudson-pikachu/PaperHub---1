@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div id="paper-feed" class="space-y-6">
+        {% for paper in papers %}
+        <article class="paper-card rounded-xl p-6 shadow-sm relative">
+            <span class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-bold px-3 py-1 rounded-tr-xl rounded-bl-xl uppercase tracking-tighter">
+                {{ paper.category }}
+            </span>
+
+            <div class="flex flex-col gap-3">
+                <h2 class="text-xl font-bold text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
+                    {{ paper.title }}
+                </h2>
+                
+                <div class="flex items-center gap-4 text-xs text-slate-500">
+                    <span class="font-semibold text-slate-700">{{ paper.authors }}</span>
+                    <span>•</span>
+                    <span>{{ paper.published_date }}</span>
+                </div>
+
+                <p class="text-slate-600 text-sm leading-relaxed border-l-4 border-slate-100 pl-4">
+                    {{ paper.abstract[:250] }}...
+                </p>
+
+                {% if paper.ai_summary %}
+                <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                    <h4 class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        AI Summary
+                    </h4>
+                    <p class="text-slate-700 text-sm italic">{{ paper.ai_summary }}</p>
+                </div>
+                {% endif %}
+
+                <div class="flex justify-between items-center pt-2">
+                    <span class="text-[10px] text-slate-400 font-mono">Source: {{ paper.publisher }}</span>
+                    <a href="{{ paper.link }}" target="_blank" class="px-4 py-2 bg-[#1A365D] text-white text-xs font-bold rounded hover:bg-[#2C5282] transition-all uppercase">
+                        View Full Paper
+                    </a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <div id="loading" class="text-center py-8 text-slate-400 hidden">
+        <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#1A365D]"></div>
+    </div>
+{% endblock %}

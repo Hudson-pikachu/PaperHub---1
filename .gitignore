@@ -3,6 +3,23 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Cấu hình IDE (tùy chọn)
+# Flask & SQLite
+instance/
+.webassets-cache
+# data.db  <-- Nếu bạn muốn mỗi máy tự tạo DB riêng thì bỏ dấu # ở đầu dòng này
+
+# Môi trường ảo (Virtual Environment)
+venv/
+env/
+ENV/
+
+# Cấu hình IDE
 .vscode/
 .idea/
+
+# Két sắt bảo mật (QUAN TRỌNG NHẤT)
+.env
+
+# Các file tạm khác
+.DS_Store
+*.log

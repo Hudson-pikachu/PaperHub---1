@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaperHub - Research Tracker</title>
+    
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #cecfd3;
+            color: #1A365D; /* Chữ màu xanh đậm theo logo */
+            font-family: 'Inter', sans-serif;
+        }
+        .paper-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            transition: all 0.2s ease;
+        }
+        .paper-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #3182CE;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-12 flex flex-col items-center">
+            <a href="/">
+                <img src="{{ url_for('static', filename='logo/logo.png') }}" alt="PaperHub Logo" class="h-14 mb-2">
+            </a>
+            <div class="h-1 w-20 bg-[#1A365D] rounded-full mb-2"></div>
+            <p class="text-slate-500 font-medium tracking-wide">Những người khổng lồ tiếp theo</p>
+        </header>
+
+        {% block content %}{% endblock %}
+
+        <footer class="mt-16 py-8 border-t border-slate-200 text-center text-slate-400 text-sm">
+            &copy; 2026 PaperHub System • HCMUS Project
+        </footer>
+    </div>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
