@@ -1,4 +1,19 @@
-#Họp nhóm Thứ 2 ngày 04/05/2026
+#Họp nhóm lần 03: Thứ 6 ngày 08/05/2026
+Record: 
+
+#Chốt hôm nay:
+- Chốt giao diện (dạng template) của: index, login, register, profile.
+- Chốt cấu trúc thư mục.
+- Chốt các thông tin cần thu thập khi đăng ký tài hoản: username, email, password.
+
+#Chuẩn bị buổi tiếp theo:
+- Frontend: Thủy, Mùa viết mô tả cho thư mục static và templates, final giao diện, commit trực tiếp lên github.
+- Backend: Quang, Linh viết mô tả lại cấu trúc và chức năng của từng thư mục, file .py
+
+
+
+#-----------------------------------
+#Họp nhóm lần 02: Thứ 2 ngày 04/05/2026
 Record: 
 
 #Chốt hôm nay:
@@ -10,8 +25,10 @@ Record:
 - Frontend: Chuẩn bị được giao diện (dạng template) của: index, login, register, profile
 - Backend: Chuẩn bị được 2 API (hoạt động được): fetch paper về, tóm tắt .pdf, lưu được vào cơ sở dữ liệu
 
+
+
 #-----------------------------------
-#Họp nhóm Chủ nhật ngày 26/04/2026
+#Họp nhóm lần 01: Chủ nhật ngày 26/04/2026
 Record: https://youtu.be/KuQmgtgzYTk
 
 #Chốt hôm nay:
