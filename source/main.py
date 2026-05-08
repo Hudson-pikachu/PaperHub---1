@@ -1,14 +1,16 @@
 import subprocess
 import sys
+import os
 from app import create_app
 
 
 def ensure_dependencies():
     """Kiểm tra và cài đặt các dependencies từ requirements.txt nếu chưa có."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     try:
         result = subprocess.run(
             [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
-            cwd=".",
+            cwd=script_dir,
             capture_output=True,
             text=True,
             timeout=300
