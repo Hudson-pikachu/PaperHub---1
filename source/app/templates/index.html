@@ -1,17 +1,3 @@
-<!-- file html này sử dụng object `papers` được truyền từ Flask để hiển thị danh sách các bài báo khoa học. Mỗi bài báo được trình bày trong một thẻ `<article>` 
-    với các thông tin như tiêu đề, tác giả, ngày xuất bản, tóm tắt và nguồn. 
-    Nếu bài báo có tóm tắt AI, nó sẽ được hiển thị trong một khung riêng biệt. 
-    Ngoài ra, mỗi bài báo còn có một nút "ĐỌC BÀI" để người dùng có thể truy cập vào
-     liên kết gốc của bài báo.
-Các thuộc tính của bài báo được truy cập thông qua:
-{{ paper.title }}, 
-{{ paper.authors }}, 
-{{ paper.published_date }}, 
-{{ paper.abstract }}, 
-{{ paper.ai_summary }}, 
-{{ paper.publisher }}, 
-{{ paper.link }} -->
-
 {% extends "base.html" %}
 
     {% block content %}
