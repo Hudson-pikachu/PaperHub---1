@@ -7,7 +7,7 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def home():
     latest_papers = Paper.query.filter_by(status='posted').join(Category).order_by(Paper.date_added.desc()).limit(5).all()
-    return render_template('index.html', papers=latest_papers)
+    return render_template('pages/index.html', papers=latest_papers)
 
 @main_bp.route('/load-more')
 def load_more():
