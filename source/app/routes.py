@@ -22,7 +22,7 @@ def load_more():
             "title": p.title,
             "authors": p.authors,
             "published_date": p.published_date,
-            "abstract": p.abstract[:250] + "..." if p.abstract else "",
+            "abstract": p.abstract,
             "ai_summary": p.ai_summary,
             "status": p.status,
             "category": p.category_name,

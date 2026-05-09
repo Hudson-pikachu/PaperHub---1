@@ -79,27 +79,34 @@
         displayCount.textContent = `Đang hiển thị ${count} bài`;
     }
 
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     function renderPaperCard(paper) {
         return `
             <article class="paper-card rounded-xl p-6 shadow-sm relative">
                 <span class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-bold px-3 py-1 rounded-tr-xl rounded-bl-xl uppercase tracking-tighter" style="font-family: 'Inter', sans-serif;">
-                    ${paper.category}
+                    ${escapeHtml(paper.category)}
                 </span>
                 <div class="flex flex-col gap-3">
                     <h2 class="text-xl font-bold text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer" style="font-family: 'Inter', sans-serif;">
-                        ${paper.title}
+                        ${escapeHtml(paper.title)}
                     </h2>
                     <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500" style="font-family: 'Inter', sans-serif;">
-                        <span class="font-semibold text-slate-700">${paper.authors}</span>
+                        <span class="font-semibold text-slate-700">${escapeHtml(paper.authors)}</span>
                         <span>•</span>
-                        <span>${paper.published_date}</span>
+                        <span>${escapeHtml(paper.published_date)}</span>
                     </div>
                     <div class="relative">
                         <p class="abstract-text text-slate-600 text-sm leading-relaxed border-l-4 border-slate-100 pl-4 overflow-hidden transition-all duration-300" style="font-family: 'Inter', sans-serif; max-height: 4.75rem;" aria-expanded="false">
-                            ${paper.abstract}
+                            ${escapeHtml(paper.abstract)}
                         </p>
-                        <div class="abstract-overlay absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950/90 to-transparent backdrop-blur-sm flex items-end justify-center pb-3 cursor-pointer" data-action="expand">
-                            <span class="inline-flex items-center gap-2 rounded-full bg-slate-900/90 px-4 py-2 text-white text-xs font-semibold">
+                        <div class="abstract-overlay absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white/95 to-transparent backdrop-blur-sm flex items-end justify-center pb-2 cursor-pointer border-t border-slate-200" data-action="expand">
+                            <span class="inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-slate-700 text-xs font-semibold border border-slate-200 shadow-sm">
                                 Xem thêm
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd" /></svg>
                             </span>
@@ -110,11 +117,11 @@
                     </div>
                     ${paper.ai_summary ? `
                     <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                        <h4 class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-1" style="font-family: 'Inter', sans-serif;">
+                        <h4 class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-1 flex items-center gap-1" style="font-family: 'Inter', sans-serif;">
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             AI Tóm tắt
                         </h4>
-                        <p class="text-slate-700 text-sm italic" style="font-family: 'Inter', sans-serif;">${paper.ai_summary}</p>
+                        <p class="text-slate-700 text-sm italic" style="font-family: 'Inter', sans-serif;">${escapeHtml(paper.ai_summary)}</p>
                     </div>
                     ` : ''}
                     <div class="flex justify-between items-center pt-2">
@@ -161,7 +168,10 @@
     }
 
     function initializeAbstracts() {
-        feed.querySelectorAll('article.paper-card').forEach(initializeAbstractCard);
+        feed.querySelectorAll('article.paper-card:not([data-initialized])').forEach(card => {
+            card.setAttribute('data-initialized', 'true');
+            initializeAbstractCard(card);
+        });
     }
 
     async function loadMore() {
