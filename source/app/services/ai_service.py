@@ -100,7 +100,7 @@ Trả về định dạng JSON sau:
     return paper
 
 
-def process_pending_papers(limit: int = 10, model: str = "gemini-2.5-flash-lite") -> int:
+def process_pending_papers(limit: int = 12, model: str = "gemini-2.5-flash-lite") -> int:
     """Process up to limit pending papers and mark them posted."""
     _get_client()  # Ensure client is initialized
     pending_papers = Paper.query.filter_by(status="pending").limit(limit).all()
