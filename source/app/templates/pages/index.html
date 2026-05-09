@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaperHub</title>
+    <link rel="icon" type="image/x-icon" href="../../static/favicon/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #F1F5F9;
+            color: #1A365D;
+            /* Chữ màu xanh đậm theo logo */
+            font-family: 'Inter', sans-serif;
+        }
+
+        .paper-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            transition: all 0.25s ease;
+        }
+
+        .paper-card:hover {
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            border-color: #3182CE;
+            transform: translateY(-2px);
+        }
+
+        .auth-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            transition: all 0.25s ease;
+        }
+
+        .auth-card:hover {
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .auth-input {
+            transition: all 0.2s ease;
+        }
+
+        .auth-input:focus {
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+        }
+    </style>
+</head>
+
+<body class="px-4 py-8 md:px-8 md:py-10">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header đã login -->
+        <header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
+            <div class="max-w-6xl mx-auto px-4 md:px-6 py-3">
+                <!-- MOBILE + DESKTOP LAYOUT -->
+                <div class="flex flex-col gap-4">
+                    <!-- TOP ROW -->
+                    <div class="flex items-center justify-between gap-4">
+                        <!-- Logo -->
+                        <a href="./index.html" class="shrink-0">
+                            <img src="../../static/images/logo/logo.png" alt="PaperHub Logo"
+                                class="h-10 md:h-14 w-auto object-contain">
+                        </a>
+
+                        <!-- DESKTOP SEARCH -->
+                        <div class="hidden lg:block flex-1 max-w-2xl">
+                            <div class="relative">
+
+                                <!-- Search Icon -->
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                <!-- Input -->
+                                <input type="text" placeholder="Tìm kiếm bài nghiên cứu..."
+                                    class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-12 pr-4 text-sm md:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- RIGHT ACTIONS -->
+                        <div class="flex items-center gap-3 shrink-0">
+                            <!-- Notification Bell -->
+                            <button
+                                class="relative w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#1A365D] hover:border-slate-300 hover:shadow-sm transition-all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+
+                                <!-- Notification Dot -->
+                                <span
+                                    class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white">
+                                </span>
+                            </button>
+
+                            <!-- USER -->
+                            <div class="flex items-center gap-3">
+                                <!-- Desktop User Info -->
+                                <div class="hidden lg:block text-right max-w-[160px]">
+                                    <p class="text-base font-semibold text-[#1A365D] truncate">
+                                        Jesse Leos
+                                    </p>
+                                    <p class="text-sm text-slate-500 truncate">
+                                        jese@flowbite.com
+                                    </p>
+                                </div>
+
+                                <!-- User Dropdown -->
+                                <div class="relative">
+                                    <button id="user-menu-btn"
+                                        class="w-11 h-11 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-lg font-bold shadow-sm hover:bg-[#2C5282] transition-all">
+                                        JL
+                                    </button>
+
+                                    <!-- Dropdown -->
+                                    <div id="user-dropdown"
+                                        class="hidden absolute right-0 z-50 mt-3 w-48 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+                                        <a href="./profile.html"
+                                            class="block px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                            Profile
+                                        </a>
+                                        <a href="#"
+                                            class="block px-5 py-3 text-sm text-red-500 border-t border-slate-100 hover:bg-red-50 transition-colors">
+                                            Logout
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MOBILE SEARCH -->
+                    <div class="lg:hidden">
+                        <div class="relative">
+
+                            <!-- Search Icon -->
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+
+                            <!-- Input -->
+                            <input type="text" placeholder="Tìm kiếm bài nghiên cứu..."
+                                class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-12 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main chứa bài viết -->
+        <main>
+            <!-- Filter -->
+            <div class="pt-5 pb-6 flex justify-center">
+                <div class="inline-flex items-center gap-1.5 bg-slate-100 rounded-full p-1 backdrop-blur-sm">
+
+                    <!-- Active -->
+                    <button
+                        class="px-6 py-2 bg-white text-slate-800 text-sm font-semibold rounded-full shadow-sm transition-all">
+                        Show all
+                    </button>
+
+                    <!-- Favorite -->
+                    <button
+                        class="px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all">
+                        Favorite
+                    </button>
+
+                    <!-- Daily -->
+                    <button
+                        class="px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all">
+                        Daily
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paper Feed -->
+            <section id="paper-feed" class="space-y-6">
+                <!-- Paper Card -->
+                <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
+                    <span
+                        class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
+                        Kiến Trúc Máy Tính
+                    </span>
+                    <div class="flex flex-col gap-3 pt-3 md:pt-0">
+                        <h2
+                            class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
+                            PoTAcc: Quy trình xử lý toàn diện cho việc tăng tốc mạng nơ-ron sâu lượng tử hóa theo lũy
+                            thừa của hai
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-slate-500">
+                            <span class="font-semibold text-slate-700">
+                                Rappy Saha, Jude Haris, Nicolas Bohm Agostini, David Kaeli, José Cano
+                            </span>
+                            <span>•</span>
+                            <span>2026-05-07</span>
+                        </div>
+                        <div class="relative">
+                            <p class="abstract-text text-slate-600 text-sm leading-7 border-l-2 border-slate-100 pl-4 overflow-hidden transition-all duration-300"
+                                style="max-height: 5.5rem;" aria-expanded="false">
+                                Lượng tử hóa theo lũy thừa của hai (PoT) giúp giảm đáng kể kích thước mạng nơ-ron sâu
+                                (DNN) và thay thế các phép nhân bằng các phép dịch bit trong quá trình suy luận. Các
+                                nghiên cứu trước đây đã chỉ ra rằng DNN được lượng tử hóa PoT có thể duy trì độ chính
+                                xác cho các tác vụ như phân loại ảnh; tuy nhiên, hiệu suất của chúng trên các thiết bị
+                                biên có tài nguyên hạn chế vẫn chưa được hiểu rõ. Mặc dù các CPU và GPU đa dụng trên
+                                thiết bị biên không cung cấp bộ hỗ trợ tối ưu cho các phép dịch bit, các bộ tăng tốc
+                                phần cứng tùy chỉnh có thể tận dụng tốt hơn lượng tử hóa PoT bằng cách triển khai các
+                                phần tử xử lý chuyên dụng dựa trên dịch chuyển. Tuy nhiên, việc triển khai các mô hình
+                                lượng tử hóa PoT trên các bộ tăng tốc như vậy gặp nhiều thách thức do sự hỗ trợ hạn chế
+                                trong các framework suy luận hiện có. Ngoài ra, tác động của các chiến lược lượng tử hóa
+                                PoT khác nhau lên thiết kế phần cứng, hiệu suất và hiệu quả năng lượng trong quá trình
+                                suy luận đầy đủ vẫn chưa được khám phá một cách có hệ thống. Để giải quyết những thách
+                                thức này, chúng tôi đề xuất PoTAcc, một quy trình xử lý toàn diện, mã nguồn mở, nhằm
+                                tăng tốc và đánh giá các DNN lượng tử hóa PoT trên các thiết bị biên có tài nguyên hạn
+                                chế. PoTAcc cho phép chuẩn bị và triển khai liền mạch các mô hình lượng tử hóa PoT thông
+                                qua TensorFlow Lite (TFLite) trên các nền tảng không đồng nhất, bao gồm các hệ thống chỉ
+                                dùng CPU và các hệ thống lai CPU-FPGA với các bộ tăng tốc tùy chỉnh. Chúng tôi thiết kế
+                                các bộ tăng tốc phần tử xử lý dựa trên dịch chuyển (shift-PE) cho ba phương pháp lượng
+                                tử hóa PoT và triển khai chúng trên hai nền tảng FPGA. Chúng tôi đánh giá độ chính xác,
+                                hiệu suất, hiệu quả năng lượng và việc sử dụng tài nguyên trên một loạt các mô hình, bao
+                                gồm cả kiến trúc dựa trên CNN và Transformer. Kết quả cho thấy thiết kế CPU-tăng tốc của
+                                chúng tôi đạt được tốc độ tăng lên đến 3,6 lần và giảm 78% năng lượng so với việc chỉ
+                                chạy trên CPU cho DNN lượng tử hóa PoT trên các bảng PYNQ-Z2 và Kria. Mã nguồn sẽ được
+                                phát hành công khai tại https://github.com/gicLAB/PoTAcc
+                            </p>
+
+                            <!-- Overlay -->
+                            <div
+                                class="abstract-overlay absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent flex items-end justify-center pb-2">
+                                <button type="button"
+                                    class="expand-btn inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
+                                    Xem thêm
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Collapse -->
+                            <button type="button"
+                                class="collapse-btn hidden mt-3 text-sm font-semibold text-[#1A365D] hover:text-[#2C5282] transition-colors">
+                                Thu gọn
+                            </button>
+                        </div>
+                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                            <h4
+                                class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                AI Tóm tắt
+                            </h4>
+                            <p class="text-slate-700 text-sm italic">
+                                Nghiên cứu giới thiệu PoTAcc, một quy trình toàn diện, mã nguồn mở, giúp tăng tốc và
+                                đánh giá hiệu quả các mạng nơ-ron sâu lượng tử hóa theo lũy thừa của hai (PoT) trên các
+                                thiết bị biên có tài nguyên hạn chế. PoTAcc cho phép triển khai liền mạch các mô hình
+                                PoT trên các nền tảng đa dạng, bao gồm cả hệ thống sử dụng bộ tăng tốc phần cứng tùy
+                                chỉnh trên FPGA. Kết quả cho thấy thiết kế này mang lại tốc độ xử lý nhanh hơn tới 3,6
+                                lần và giảm tới 78% năng lượng so với phương pháp chỉ sử dụng CPU, mở ra tiềm năng ứng
+                                dụng DNN hiệu quả trên các thiết bị có giới hạn về năng lượng và phần cứng.
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
+                            <a href="https://example.com/paper1" target="_blank"
+                                class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
+                                Đọc bài
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Paper Card -->
+                <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
+                    <span
+                        class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
+                        Kiến Trúc Máy Tính
+                    </span>
+                    <div class="flex flex-col gap-3 pt-3 md:pt-0">
+                        <h2
+                            class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
+                            Phát hiện cháy rừng thời gian thực trên quỹ đạo trong giới hạn phần cứng tàu vũ trụ
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-slate-500">
+                            <span class="font-semibold text-slate-700">
+                                Matthias Rötzer, Veronika Pörtge, Martin Ickerott, Jayendra Praveen Kumar Chorapalli,
+                                Dimitri Scheftelowitsch, Max Bereczky, Dmitry Rashkovetsky, Sai Manoj Appalla, Julia
+                                Gottfriedsen
+                            </span>
+                            <span>•</span>
+                            <span>2026-05-07</span>
+                        </div>
+                        <div class="relative">
+                            <p class="abstract-text text-slate-600 text-sm leading-7 border-l-2 border-slate-100 pl-4 overflow-hidden transition-all duration-300"
+                                style="max-height: 5.5rem;" aria-expanded="false">
+                                Chúng tôi trình bày một hệ thống đã được triển khai để phát hiện cháy rừng trên quỹ đạo,
+                                hoạt động trên một chòm sao gồm chín vệ tinh thương mại thu ảnh hồng ngoại nhiệt
+                                (thermal infrared), đáp ứng các yêu cầu khắt khe đồng thời: dung lượng mô hình dưới 1
+                                megabyte, thời gian suy luận TensorRT FP16 dưới 150 mili giây cho mỗi lô trên nền tảng
+                                NVIDIA Jetson Xavier NX, và quy trình cảnh báo đầu cuối nhằm mục tiêu dưới 10 phút từ
+                                khi vệ tinh đi qua đến khi thông báo sự kiện cháy. Hệ thống hoạt động trên ảnh hồng
+                                ngoại dải sóng trung (MWIR) đơn băng, chưa hiệu chỉnh, với độ phân giải mặt đất 200 m.
+                                Tại đây, các đám cháy thường xuất hiện dưới dạng bất thường nhiệt dưới điểm ảnh hoặc một
+                                điểm ảnh, với sự mất cân bằng lớp cực đoan – những thách thức mà các quy trình dựa trên
+                                ngưỡng nhiệt theo ngữ cảnh (MODIS, VIIRS) hiện đang thống trị việc giám sát cháy theo
+                                thời gian thực chưa giải quyết được. Chúng tôi trình bày một nghiên cứu thực nghiệm về
+                                học biểu diễn dày đặc (dense representation learning) hiệu quả về tài nguyên cho chế độ
+                                này, sử dụng bộ dữ liệu MWIR độc quyền từ chín vệ tinh. Chúng tôi so sánh phương pháp
+                                học tự giám sát mã hóa tự động che giấu dày đặc (DenseMAE) và một biến thể chưng cất lai
+                                (hybrid distillation) DenseMAE kết hợp với trung bình động hàm mũ (EMA), đồng thời đánh
+                                giá các biểu diễn thông qua phương pháp dò tuyến tính (linear probing) và điểm trung
+                                bình chính xác (AP) ở cấp độ điểm ảnh trên toàn bộ phân bố dưới điều kiện mất cân bằng
+                                lớp cực đoan. Huấn luyện trước (pretraining) với DenseMAE cho phép tạo ra các mô hình
+                                đích nhỏ gọn, nằm trên đường biên Pareto về độ trễ và độ chính xác: mô hình nhanh nhất
+                                của chúng tôi được huấn luyện trước bằng học tự giám sát đạt 0.640 AP thử nghiệm và 0.69
+                                Fire-F1 cấp sự kiện, với độ trễ 65.34 mili giây cho mỗi lô và dung lượng engine 0.52 MB,
+                                mà không cần tỉa (pruning) hoặc nén. Cấu hình tốt nhất đạt 0.699 AP và 0.744 Fire-F1
+                                dưới 1 MB, vượt trội hơn một mô hình cơ sở có giám sát (0.650 AP) trong điều kiện hạn
+                                chế tương đương.
+                            </p>
+
+                            <!-- Overlay -->
+                            <div
+                                class="abstract-overlay absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent flex items-end justify-center pb-2">
+                                <button type="button"
+                                    class="expand-btn inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
+                                    Xem thêm
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Collapse -->
+                            <button type="button"
+                                class="collapse-btn hidden mt-3 text-sm font-semibold text-[#1A365D] hover:text-[#2C5282] transition-colors">
+                                Thu gọn
+                            </button>
+                        </div>
+                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                            <h4
+                                class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                AI Tóm tắt
+                            </h4>
+                            <p class="text-slate-700 text-sm italic">
+                                Nghiên cứu giới thiệu một hệ thống phát hiện cháy rừng trên quỹ đạo, hoạt động hiệu quả
+                                với các ràng buộc phần cứng nghiêm ngặt (dung lượng mô hình < 1MB, suy luận nhanh). Hệ
+                                    thống xử lý ảnh MWIR đơn băng chưa hiệu chỉnh, giải quyết tốt các thách thức về bất
+                                    thường nhiệt nhỏ và mất cân bằng lớp nghiêm trọng. Phương pháp học biểu diễn dày đặc
+                                    (DenseMAE) cho phép phát triển các mô hình nhỏ gọn, đạt độ chính xác cao (AP ~0.7,
+                                    Fire-F1 ~0.74) với độ trễ thấp, vượt trội so với phương pháp có giám sát tiêu chuẩn.
+                                    </p>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
+                            <a href="https://example.com/paper1" target="_blank"
+                                class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
+                                Đọc bài
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Paper Card -->
+                <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
+                    <span
+                        class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
+                        Mạng Máy Tính
+                    </span>
+                    <div class="flex flex-col gap-3 pt-3 md:pt-0">
+                        <h2
+                            class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
+                            CCL-Bench 1.0: Bộ Tiêu Chuẩn Dựa Trên Dấu Vết Thực Thi Cho Hạ Tầng Mô Hình Ngôn Ngữ Lớn
+                            (LLM)
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-slate-500">
+                            <span class="font-semibold text-slate-700">
+                                Eric Ding, Byungsoo Oh, Bhaskar Kataria, Kaiwen Guo, Jelena Gvero, Abhishek Vijaya
+                                Kumar, Arjun Devraj, Lindsey Bowen, Atharv Sonwane, Emaad Manzoor, Rachee Singh
+                            </span>
+                            <span>•</span>
+                            <span>2026-05-07</span>
+                        </div>
+                        <div class="relative">
+                            <p class="abstract-text text-slate-600 text-sm leading-7 border-l-2 border-slate-100 pl-4 overflow-hidden transition-all duration-300"
+                                style="max-height: 5.5rem;" aria-expanded="false">
+                                Các đánh giá về hạ tầng cho Mô hình Ngôn ngữ Lớn (LLM) như "tác vụ X nhanh nhất trên
+                                phần cứng Y với phần mềm Z" phụ thuộc vào một không gian cấu hình phức tạp bao gồm bộ
+                                tăng tốc phần cứng, băng thông kết nối mạng, các khung phần mềm, kế hoạch song song hóa
+                                và các thư viện truyền thông. Các bộ tiêu chuẩn đánh giá hạ tầng hiện tại chỉ cung cấp
+                                một vài số liệu cuối cùng (end-to-end) mà không giải thích được tại sao một cấu hình lại
+                                hoạt động tốt hơn cấu hình khác. Chúng tôi giới thiệu CCL-Bench, một bộ tiêu chuẩn dựa
+                                trên dấu vết thực thi (trace-based), giải quyết những hạn chế của các bộ tiêu chuẩn hiện
+                                có bằng cách ghi lại bằng chứng tái sử dụng được cho mỗi tác vụ học máy (ML). Mỗi điểm
+                                dữ liệu đóng góp vào CCL-Bench bao gồm một dấu vết thực thi, một thẻ mô tả tác vụ bằng
+                                YAML và các tập lệnh khởi chạy. Chúng tôi đã phát triển một bộ công cụ có thể mở rộng
+                                bởi cộng đồng để tính toán các chỉ số hiệu quả chi tiết về tính toán, bộ nhớ và truyền
+                                thông từ các bằng chứng này. Sử dụng CCL-Bench, chúng tôi đưa ra ba kết luận mà các bộ
+                                tiêu chuẩn tóm tắt thông thường không thể hỗ trợ: (i) sự chồng lấn cao hơn giữa tính
+                                toán và truyền thông có thể trùng với thời gian bước huấn luyện dài hơn và tiết lộ các
+                                lựa chọn song song hóa kém hiệu quả, (ii) việc tăng gấp đôi băng thông kết nối mạng TPU
+                                mang lại sự cải thiện thời gian bước cuối cùng cao hơn đáng kể so với việc tăng gấp đôi
+                                băng thông kết nối mạng GPU trên các tác vụ nhỏ và trung bình, và (iii) cấu hình được
+                                tối ưu hóa tốt nhất trên một khung huấn luyện có thể chạy chậm hơn tới 3 lần so với cấu
+                                hình được tối ưu hóa tốt nhất trên một khung ngang hàng trên cùng một phần cứng.
+                            </p>
+
+                            <!-- Overlay -->
+                            <div
+                                class="abstract-overlay absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent flex items-end justify-center pb-2">
+                                <button type="button"
+                                    class="expand-btn inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
+                                    Xem thêm
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Collapse -->
+                            <button type="button"
+                                class="collapse-btn hidden mt-3 text-sm font-semibold text-[#1A365D] hover:text-[#2C5282] transition-colors">
+                                Thu gọn
+                            </button>
+                        </div>
+                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                            <h4
+                                class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                AI Tóm tắt
+                            </h4>
+                            <p class="text-slate-700 text-sm italic">
+                                CCL-Bench là một bộ tiêu chuẩn mới dựa trên dấu vết thực thi, cung cấp bằng chứng chi
+                                tiết cho phép phân tích sâu về hiệu suất hạ tầng LLM, vượt trội so với các phương pháp
+                                đánh giá truyền thống. Nghiên cứu đã chỉ ra rằng sự chồng lấn tính toán-truyền thông có
+                                thể ảnh hưởng tiêu cực đến hiệu quả, băng thông kết nối TPU có lợi thế hơn GPU đối với
+                                các tác vụ nhỏ/trung bình, và hiệu suất có thể chênh lệch lớn giữa các khung huấn luyện
+                                khác nhau ngay cả trên cùng phần cứng.
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
+                            <a href="https://example.com/paper1" target="_blank"
+                                class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
+                                Đọc bài
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Paper Card -->
+                <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
+                    <span
+                        class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
+                        Mạng Máy Tính
+                    </span>
+                    <div class="flex flex-col gap-3 pt-3 md:pt-0">
+                        <h2
+                            class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
+                            CLAD: Khung Học Liên Kết Phân Cụm Không Phụ Thuộc Nhãn để Phát Hiện Bất Thường và Phân Loại
+                            Tấn Công Đồng Thời
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-slate-500">
+                            <span class="font-semibold text-slate-700">
+                                Iason Ofeidis, Nikos Papadis, Randeep Bhatia, Leandros Tassiulas, TV Lakshman
+                            </span>
+                            <span>•</span>
+                            <span>2026-05-07</span>
+                        </div>
+                        <div class="relative">
+                            <p class="abstract-text text-slate-600 text-sm leading-7 border-l-2 border-slate-100 pl-4 overflow-hidden transition-all duration-300"
+                                style="max-height: 5.5rem;" aria-expanded="false">
+                                Sự bùng nổ nhanh chóng của Internet of Things (IoT) và Industrial IoT (IIoT) đã tạo ra
+                                một bề mặt tấn công khổng lồ, đa dạng, thách thức các cơ chế bảo mật mạng truyền thống.
+                                Mặc dù Học Liên Kết (FL) cung cấp một giải pháp thay thế bảo toàn quyền riêng tư cho các
+                                Hệ thống Phát Hiện Xâm Nhập (IDS) tập trung, các phương pháp tiêu chuẩn gặp khó khăn
+                                trong việc khái quát hóa trên các hành vi thiết bị đa dạng và thường không tận dụng được
+                                lượng lớn dữ liệu chưa được gán nhãn có trong môi trường biên thực tế. Để khắc phục
+                                những hạn chế này, chúng tôi đề xuất CLAD, một khung tổng thể tích hợp liền mạch Học
+                                Liên Kết Phân Cụm (CFL) với Kiến Trúc Vi Mô Chế Độ Kép (DM²A) mới. Phương pháp hợp nhất
+                                này đồng thời giải quyết hai nút thắt chính trong bảo mật IoT: sự đa dạng của thiết bị
+                                và sự khan hiếm nhãn. Thành phần DM²A bao gồm một bộ mã hóa dùng chung theo sau là hai
+                                nhánh, cho phép phát hiện bất thường không giám sát và phân loại tấn công có giám sát
+                                một cách đồng thời; điều này cho phép khung làm việc thu thập thông tin từ cả các máy
+                                khách có nhãn và không có nhãn. Song song đó, thành phần phân cụm nhóm động các thiết bị
+                                có các mẫu lưu lượng tương đồng, ngăn chặn sự phân kỳ của mô hình toàn cầu. Bằng cách
+                                kết hợp cẩn thận các yếu tố này, CLAD đảm bảo không có dữ liệu nào bị loại bỏ và các mẫu
+                                hoạt động riêng biệt được bảo tồn. Các đánh giá mở rộng cho thấy phương pháp tích hợp
+                                này vượt trội đáng kể so với các phương pháp cơ sở hiện đại, đạt được cải thiện hiệu
+                                suất phát hiện tương đối 30% trong các kịch bản có 80% máy khách chưa được gán nhãn, với
+                                chi phí giao tiếp chỉ bằng một nửa.
+                            </p>
+
+                            <!-- Overlay -->
+                            <div
+                                class="abstract-overlay absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent flex items-end justify-center pb-2">
+                                <button type="button"
+                                    class="expand-btn inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
+                                    Xem thêm
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Collapse -->
+                            <button type="button"
+                                class="collapse-btn hidden mt-3 text-sm font-semibold text-[#1A365D] hover:text-[#2C5282] transition-colors">
+                                Thu gọn
+                            </button>
+                        </div>
+                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                            <h4
+                                class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                AI Tóm tắt
+                            </h4>
+                            <p class="text-slate-700 text-sm italic">
+                                CLAD là một khung học liên kết mới, kết hợp Học Liên Kết Phân Cụm và Kiến Trúc Vi Mô Chế
+                                Độ Kép để giải quyết đồng thời hai thách thức lớn trong bảo mật IoT là sự đa dạng của
+                                thiết bị và khan hiếm nhãn. Khung này cho phép phát hiện bất thường và phân loại tấn
+                                công cùng lúc, tận dụng cả dữ liệu có nhãn và không có nhãn, đồng thời duy trì sự ổn
+                                định của mô hình toàn cầu bằng cách nhóm các thiết bị có hành vi tương tự. CLAD đã chứng
+                                minh hiệu quả vượt trội so với các phương pháp hiện có, đặc biệt trong các môi trường có
+                                nhiều dữ liệu chưa gán nhãn, với chi phí giao tiếp thấp hơn.
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
+                            <a href="https://example.com/paper1" target="_blank"
+                                class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
+                                Đọc bài
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Paper Card -->
+                <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
+                    <span
+                        class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
+                        Thị Giác Máy Tính
+                    </span>
+                    <div class="flex flex-col gap-3 pt-3 md:pt-0">
+                        <h2
+                            class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
+                            BAMI: Phương pháp giảm thiểu sai lệch trong định vị giao diện người dùng mà không cần huấn
+                            luyện
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-slate-500">
+                            <span class="font-semibold text-slate-700">
+                                Borui Zhang, Bo Zhang, Bo Wang, Wenzhao Zheng, Yuhao Cheng, Liang Tang, Yiqiang Yan, Jie
+                                Zhou, Jiwen Lu
+                            </span>
+                            <span>•</span>
+                            <span>2026-05-07</span>
+                        </div>
+                        <div class="relative">
+                            <p class="abstract-text text-slate-600 text-sm leading-7 border-l-2 border-slate-100 pl-4 overflow-hidden transition-all duration-300"
+                                style="max-height: 5.5rem;" aria-expanded="false">
+                                Định vị giao diện người dùng (GUI grounding) là một khả năng quan trọng cho phép các tác
+                                nhân GUI thực hiện các tác vụ như nhấp chuột và kéo thả. Tuy nhiên, trong các tình huống
+                                phức tạp như trên bộ dữ liệu kiểm tra ScreenSpot-Pro, các mô hình hiện tại thường gặp
+                                phải hiệu suất chưa tối ưu. Sử dụng phương pháp phân tích Masked Prediction Distribution
+                                (MPD) được đề xuất, chúng tôi xác định rằng hai nguồn lỗi chính là: độ phân giải hình
+                                ảnh cao (dẫn đến sai lệch về độ chính xác) và các yếu tố giao diện phức tạp (gây ra sai
+                                lệch về sự mơ hồ). Để giải quyết những thách thức này, chúng tôi giới thiệu phương pháp
+                                Bias-Aware Manipulation Inference (BAMI), bao gồm hai thao tác chính là tập trung từ
+                                tổng quát đến chi tiết và lựa chọn ứng viên, nhằm giảm thiểu hiệu quả các sai lệch này.
+                                Kết quả thực nghiệm sâu rộng của chúng tôi cho thấy BAMI cải thiện đáng kể độ chính xác
+                                của nhiều mô hình định vị GUI trong môi trường không cần huấn luyện thêm. Ví dụ, việc áp
+                                dụng phương pháp của chúng tôi cho mô hình TianXi-Action-7B đã tăng độ chính xác trên bộ
+                                dữ liệu ScreenSpot-Pro từ 51.9% lên 57.8%. Hơn nữa, các nghiên cứu cắt bỏ (ablation
+                                studies) xác nhận tính mạnh mẽ của phương pháp BAMI trên các cấu hình tham số đa dạng,
+                                làm nổi bật tính ổn định và hiệu quả của nó. Mã nguồn có sẵn tại
+                                https://github.com/Neur-IO/BAMI.
+                            </p>
+
+                            <!-- Overlay -->
+                            <div
+                                class="abstract-overlay absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent flex items-end justify-center pb-2">
+                                <button type="button"
+                                    class="expand-btn inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
+                                    Xem thêm
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Collapse -->
+                            <button type="button"
+                                class="collapse-btn hidden mt-3 text-sm font-semibold text-[#1A365D] hover:text-[#2C5282] transition-colors">
+                                Thu gọn
+                            </button>
+                        </div>
+                        <div class="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                            <h4
+                                class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                AI Tóm tắt
+                            </h4>
+                            <p class="text-slate-700 text-sm italic">
+                                Nghiên cứu giới thiệu phương pháp BAMI, một kỹ thuật mới giúp giảm thiểu sai lệch trong
+                                định vị giao diện người dùng (GUI grounding) mà không yêu cầu huấn luyện thêm. BAMI giải
+                                quyết hiệu quả các vấn đề về độ chính xác do độ phân giải cao và sự mơ hồ từ các yếu tố
+                                giao diện phức tạp. Phương pháp này đã cho thấy sự cải thiện đáng kể về độ chính xác
+                                trên các mô hình GUI grounding hiện có, điển hình là tăng hiệu suất của mô hình
+                                TianXi-Action-7B trên bộ dữ liệu ScreenSpot-Pro. Tính ổn định và hiệu quả của BAMI đã
+                                được xác nhận qua các thử nghiệm sâu rộng.
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
+                            <a href="https://example.com/paper1" target="_blank"
+                                class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
+                                Đọc bài
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Feed Footer-->
+            <section id="feed-footer" class="mt-10 text-center">
+                <div id="loading" class="text-center py-8 hidden">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#1A365D]">
+                        </div>
+                        <p class="text-sm text-slate-400">
+                            Đang tải thêm bài viết...
+                        </p>
+                    </div>
+                </div>
+                <p id="display-count" class="text-sm text-slate-500 mb-4">
+                    Đang hiển thị 5 bài
+                </p>
+                <button id="load-more-btn"
+                    class="inline-flex items-center justify-center px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] hover:scale-[1.02] transition-all tracking-wide">
+                    Xem thêm bài viết
+                </button>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer
+            class="mt-16 py-6 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+            <!-- Footer Navigation -->
+            <div class="flex items-center gap-5">
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    About
+                </a>
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    Contact
+                </a>
+            </div>
+
+            <!-- Copyright -->
+            <p class="text-center">
+                &copy; 2026 PaperHub System • HCMUS Project
+            </p>
+
+            <!-- Social Icons -->
+            <div class="flex items-center gap-4">
+                <!-- Facebook -->
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M22 12.07C22 6.48 17.52 2 11.93 2S2 6.48 2 12.07c0 5.02 3.66 9.19 8.44 9.93v-7.03H7.9v-2.9h2.54V9.41c0-2.5 1.5-3.88 3.78-3.88 1.1 0 2.25.2 2.25.2v2.48h-1.27c-1.25 0-1.64.78-1.64 1.57v1.88h2.8l-.45 2.9h-2.35V22c4.78-.74 8.44-4.91 8.44-9.93z" />
+                    </svg>
+                </a>
+
+                <!-- YouTube -->
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.4 31.4 0 000 12a31.4 31.4 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1A31.4 31.4 0 0024 12a31.4 31.4 0 00-.5-5.8zM9.75 15.5v-7l6 3.5-6 3.5z" />
+                    </svg>
+                </a>
+
+                <!-- X / Twitter -->
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.9-6.4L6.2 22H3l7.2-8.2L1 2h6.3l4.4 5.8L18.9 2zm-1.1 18h1.7L6.1 3.9H4.3L17.8 20z" />
+                    </svg>
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal"
+        class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+        <div class="relative w-full max-w-md">
+            <!-- Close -->
+            <button id="close-login-modal"
+                class="absolute -top-12 right-0 text-white text-sm font-semibold hover:opacity-80 transition-all">
+                Đóng
+            </button>
+            <!-- Login Card -->
+            <div class="auth-card rounded-2xl p-6 md:p-8 shadow-sm bg-white">
+                <!-- Title -->
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[#1A365D]">
+                        Chào mừng trở lại
+                    </h1>
+                    <p class="text-sm md:text-base text-slate-500 mt-3">
+                        Đăng nhập để tiếp tục với PaperHub
+                    </p>
+                </div>
+
+                <!-- Form -->
+                <form class="space-y-5">
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Email / Username
+                        </label>
+                        <input type="email" placeholder="you@example.com"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Mật khẩu
+                        </label>
+                        <input type="password" placeholder="••••••••"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit"
+                        class="w-full bg-[#1A365D] text-white py-3 rounded-2xl text-sm md:text-base font-semibold tracking-wide hover:bg-[#2C5282] transition-all">
+                        Đăng nhập
+                    </button>
+                </form>
+                <!-- Divider -->
+                <div class="flex items-center gap-4 my-7">
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                    <span class="text-xs text-slate-400 uppercase tracking-[0.2em]">
+                        PaperHub
+                    </span>
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                </div>
+                <!-- Register -->
+                <p class="text-sm text-center text-slate-500">
+                    Chưa có tài khoản?
+                    <a href="./register.html"
+                        class="text-[#1A365D] font-semibold hover:text-[#2C5282] transition-colors">
+                        Đăng ký
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal"
+        class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+        <div class="relative w-full max-w-md">
+            <!-- Close -->
+            <button id="close-register-modal"
+                class="absolute -top-12 right-0 text-white text-sm font-semibold hover:opacity-80 transition-all">
+                Đóng
+            </button>
+            <!-- Register Card -->
+            <div class="auth-card rounded-2xl p-6 md:p-8 shadow-sm bg-white">
+
+                <!-- Title -->
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[#1A365D]">
+                        Tạo tài khoản
+                    </h1>
+                    <p class="text-sm md:text-base text-slate-500 mt-3">
+                        Tham gia cộng đồng nghiên cứu cùng PaperHub
+                    </p>
+                </div>
+
+                <!-- Form -->
+                <form class="space-y-5">
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Username
+                        </label>
+                        <input type="text" placeholder="nguyenvanan"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Email
+                        </label>
+                        <input type="email" placeholder="nguyenvanan@example.com"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Mật khẩu
+                        </label>
+                        <input type="password" placeholder="••••••••"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Xác nhận mật khẩu
+                        </label>
+                        <input type="password" placeholder="••••••••"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Register Button -->
+                    <button type="submit"
+                        class="w-full bg-[#1A365D] text-white py-3 rounded-2xl text-sm md:text-base font-semibold tracking-wide hover:bg-[#2C5282] transition-all">
+                        Đăng ký
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="flex items-center gap-4 my-7">
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                    <span class="text-xs text-slate-400 uppercase tracking-[0.2em]">
+                        PaperHub
+                    </span>
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                </div>
+
+                <!-- Login -->
+                <p class="text-sm text-center text-slate-500">
+                    Đã có tài khoản?
+                    <a href="./login.html" class="text-[#1A365D] font-semibold hover:text-[#2C5282] transition-colors">
+                        Đăng nhập
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back To Top -->
+    <button id="back-to-top"
+        class="fixed bottom-5 left-5 md:bottom-6 md:left-6 z-50 hidden items-center justify-center w-12 h-12 rounded-full bg-[#1A365D] text-white shadow-lg hover:bg-[#2C5282] hover:scale-105 transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+
+    <!-- Nút "Xem thêm" trên article -->
+    <script>
+        document.querySelectorAll('.paper-card').forEach(card => {
+            const text = card.querySelector('.abstract-text');
+            const overlay = card.querySelector('.abstract-overlay');
+            const expandBtn = card.querySelector('.expand-btn');
+            const collapseBtn = card.querySelector('.collapse-btn');
+            if (!text || !overlay || !expandBtn || !collapseBtn) return;
+            expandBtn.addEventListener('click', () => {
+                text.style.maxHeight = `${text.scrollHeight}px`;
+                overlay.classList.add('hidden');
+                collapseBtn.classList.remove('hidden');
+                text.setAttribute('aria-expanded', 'true');
+            });
+            collapseBtn.addEventListener('click', () => {
+                text.style.maxHeight = '5.5rem';
+                overlay.classList.remove('hidden');
+                collapseBtn.classList.add('hidden');
+                text.setAttribute('aria-expanded', 'false');
+            });
+        });
+    </script>
+
+    <!-- Mở / đóng modal box login & register -->
+    <script>
+        //Lấy phần tử modal Login từ HTML
+        const loginModal = document.getElementById('login-modal');
+
+        //Lấy phần tử modal Register từ HTML
+        const registerModal = document.getElementById('register-modal');
+
+        //Bấm Esc đế đóng modal ()
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                loginModal.classList.add('hidden');
+                registerModal.classList.add('hidden');
+
+                loginModal.classList.remove('flex');
+                registerModal.classList.remove('flex');
+            }
+        });
+
+        //LOGIN MODAL
+        //Khi bấm nút "Login" trên navbar
+        document.getElementById('open-login-modal')
+            .addEventListener('click', () => {
+
+                //Hiển thị modal Login
+                loginModal.classList.remove('hidden');
+
+                //Thêm class flex để căn giữa modal
+                loginModal.classList.add('flex');
+
+            });
+
+        //Khi bấm nút "Đóng" trong modal Login
+        document.getElementById('close-login-modal')
+            .addEventListener('click', () => {
+                //Ẩn modal Login
+                loginModal.classList.add('hidden');
+
+                //Xóa class flex
+                loginModal.classList.remove('flex');
+            });
+
+        //Click backdrop để đóng modal login
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+                loginModal.classList.remove('flex');
+            }
+        });
+
+        //REGISTER MODAL
+        //Khi bấm nút "Register" trên navbar
+        document.getElementById('open-register-modal')
+            .addEventListener('click', () => {
+                //Hiển thị modal Register
+                registerModal.classList.remove('hidden');
+
+                //Thêm class flex để căn giữa modal
+                registerModal.classList.add('flex');
+            });
+
+        //Khi bấm nút "Đóng" trong modal Register
+        document.getElementById('close-register-modal')
+            .addEventListener('click', () => {
+                //Ẩn modal Register
+                registerModal.classList.add('hidden');
+
+                //Xóa class flex
+                registerModal.classList.remove('flex');
+            });
+
+        //Click backdrop để đóng modal register
+        registerModal.addEventListener('click', (e) => {
+            if (e.target === registerModal) {
+                registerModal.classList.add('hidden');
+                registerModal.classList.remove('flex');
+            }
+        });
+    </script>
+
+    <!-- Back to top -->
+    <script>
+        const backToTopBtn = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                backToTopBtn.classList.remove('hidden');
+                backToTopBtn.classList.add('flex');
+            } else {
+                backToTopBtn.classList.add('hidden');
+                backToTopBtn.classList.remove('flex');
+            }
+        });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+
+    <!-- Nhấp vào avatar để dropdown navigation -->
+    <script>
+        //User dropdown
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        //Toggle dropdown
+        userMenuBtn.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+
+        //Click outside để đóng dropdown
+        document.addEventListener('click', (e) => {
+            if (
+                !userMenuBtn.contains(e.target) &&
+                !userDropdown.contains(e.target)
+            ) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - PaperHub</title>
+    <link rel="icon" type="image/x-icon" href="../../static/favicon/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #F1F5F9;
+            color: #1A365D;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .paper-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            transition: all 0.25s ease;
+        }
+
+        .paper-card:hover {
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            border-color: #3182CE;
+            transform: translateY(-2px);
+        }
+
+        .auth-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            transition: all 0.25s ease;
+        }
+
+        .auth-card:hover {
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .auth-input {
+            transition: all 0.2s ease;
+        }
+
+        .auth-input:focus {
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+        }
+
+        .static-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+        }
+    </style>
+</head>
+
+<body class="px-4 py-8 md:px-8 md:py-10">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header chưa login -->
+        <header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
+            <div class="max-w-6xl mx-auto px-4 md:px-6 py-3">
+                <!-- HEADER LAYOUT -->
+                <div class="flex flex-col gap-4">
+                    <!-- TOP ROW -->
+                    <div class="flex items-center justify-between gap-4">
+                        <!-- Logo -->
+                        <a href="./index.html" class="shrink-0">
+                            <img src="../../static/images/logo/logo.png" alt="PaperHub Logo"
+                                class="h-10 md:h-14 w-auto object-contain">
+                        </a>
+
+                        <!-- DESKTOP SEARCH -->
+                        <div class="hidden lg:block flex-1 max-w-2xl">
+                            <div class="relative">
+                                <!-- Search Icon -->
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+
+                                <!-- Search Input -->
+                                <input type="text" placeholder="Tìm kiếm bài nghiên cứu..."
+                                    class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-12 pr-4 text-sm md:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- RIGHT ACTIONS -->
+                        <div class="flex items-center gap-3 shrink-0">
+                            <!-- Desktop Buttons -->
+                            <div class="hidden lg:flex items-center gap-3">
+                                <!-- Login -->
+                                <button id="open-login-modal"
+                                    class="px-5 py-2 text-sm font-semibold text-[#1A365D] hover:text-[#2C5282] transition-colors">
+                                    Login
+                                </button>
+
+                                <!-- Register -->
+                                <button id="open-register-modal"
+                                    class="px-5 py-2.5 bg-[#1A365D] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#2C5282] transition-all">
+                                    Register
+                                </button>
+                            </div>
+
+                            <!-- Mobile Guest Menu -->
+                            <div class="relative lg:hidden">
+                                <!-- Avatar Button -->
+                                <button id="guest-menu-btn"
+                                    class="w-11 h-11 rounded-full bg-[#1A365D] text-white flex items-center justify-center shadow-sm hover:bg-[#2C5282] transition-all">
+                                    <!-- User Icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M5.121 17.804A9 9 0 1118.88 17.8M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </button>
+
+                                <!-- Dropdown -->
+                                <div id="guest-dropdown"
+                                    class="hidden absolute right-0 z-50 mt-3 w-48 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+                                    <button id="mobile-login-btn"
+                                        class="w-full text-left px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+                                        Login
+                                    </button>
+                                    <button id="mobile-register-btn"
+                                        class="w-full text-left px-5 py-3 text-sm text-[#1A365D] border-t border-slate-100 hover:bg-slate-50 transition-colors">
+                                        Register
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MOBILE SEARCH -->
+                    <div class="lg:hidden">
+                        <div class="relative">
+                            <!-- Search Icon -->
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+
+                            <!-- Search Input -->
+                            <input type="text" placeholder="Tìm kiếm bài nghiên cứu..."
+                                class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-12 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main -->
+        <main>
+            <!-- Profile + Following Topics -->
+            <section class="static-card rounded-2xl p-6 md:p-8 shadow-sm mb-8 mt-6 md:mt-8">
+                <!-- Profile Info -->
+                <div class="flex flex-col items-center text-center">
+                    <!-- Avatar -->
+                    <div
+                        class="w-32 h-32 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-4xl font-bold shadow-sm ring-2 ring-slate-100">
+                        Q
+                    </div>
+
+                    <!-- Username -->
+                    <h1 class="mt-6 text-3xl md:text-4xl font-semibold tracking-tight text-[#1A365D]">
+                        tranvanquy
+                    </h1>
+
+                    <!-- Email -->
+                    <p class="mt-3 text-sm md:text-base text-slate-400">
+                        tranvanquy@example.com
+                    </p>
+                </div>
+
+                <!-- Divider -->
+                <div class="max-w-3xl mx-auto h-px bg-slate-200 my-10"></div>
+
+                <!-- Following Topics -->
+                <div>
+                    <!-- Section Header -->
+                    <div class="text-center mb-6">
+                        <h2 class="text-xl md:text-2xl font-bold text-[#1A365D]">
+                            Chủ đề theo dõi
+                        </h2>
+                        <p class="text-sm text-slate-400 mt-2">
+                            6 chủ đề
+                        </p>
+                    </div>
+
+                    <!-- Topic Tags -->
+                    <div class="flex flex-wrap justify-center gap-3">
+
+                        <!-- Selected -->
+                        <span
+                            class="px-4 py-2 rounded-full bg-[#1A365D] text-white text-sm font-semibold shadow-sm hover:bg-[#2C5282] hover:shadow-md transition-all duration-200 cursor-pointer">
+                            AI Agents
+                        </span>
+
+                        <!-- Selected -->
+                        <span
+                            class="px-4 py-2 rounded-full bg-[#1A365D] text-white text-sm font-semibold shadow-sm hover:bg-[#2C5282] hover:shadow-md transition-all duration-200 cursor-pointer">
+                            Machine Learning
+                        </span>
+
+                        <!-- Unselected -->
+                        <span
+                            class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
+                            NLP
+                        </span>
+
+                        <!-- Unselected -->
+                        <span
+                            class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
+                            RAG Systems
+                        </span>
+
+                        <!-- Unselected -->
+                        <span
+                            class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
+                            Data Science
+                        </span>
+
+                        <!-- Unselected -->
+                        <span
+                            class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
+                            Research AI
+                        </span>
+
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer
+            class="mt-16 py-6 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+            <!-- Footer Navigation -->
+            <div class="flex items-center gap-5">
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    About
+                </a>
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    Contact
+                </a>
+            </div>
+
+            <!-- Copyright -->
+            <p class="text-center">
+                &copy; 2026 PaperHub System • HCMUS Project
+            </p>
+
+            <!-- Social Icons -->
+            <div class="flex items-center gap-4">
+                <!-- Facebook -->
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M22 12.07C22 6.48 17.52 2 11.93 2S2 6.48 2 12.07c0 5.02 3.66 9.19 8.44 9.93v-7.03H7.9v-2.9h2.54V9.41c0-2.5 1.5-3.88 3.78-3.88 1.1 0 2.25.2 2.25.2v2.48h-1.27c-1.25 0-1.64.78-1.64 1.57v1.88h2.8l-.45 2.9h-2.35V22c4.78-.74 8.44-4.91 8.44-9.93z" />
+                    </svg>
+                </a>
+
+                <!-- YouTube -->
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.4 31.4 0 000 12a31.4 31.4 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1A31.4 31.4 0 0024 12a31.4 31.4 0 00-.5-5.8zM9.75 15.5v-7l6 3.5-6 3.5z" />
+                    </svg>
+                </a>
+
+                <!-- X / Twitter -->
+                <a href="#" class="hover:text-[#1A365D] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M18.9 2H22l-6.8 7.8L23 22h-6.2l-4.9-6.4L6.2 22H3l7.2-8.2L1 2h6.3l4.4 5.8L18.9 2zm-1.1 18h1.7L6.1 3.9H4.3L17.8 20z" />
+                    </svg>
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal"
+        class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+        <div class="relative w-full max-w-md">
+            <!-- Close -->
+            <button id="close-login-modal"
+                class="absolute -top-12 right-0 text-white text-sm font-semibold hover:opacity-80 transition-all">
+                Đóng
+            </button>
+            <!-- Login Card -->
+            <div class="auth-card rounded-2xl p-6 md:p-8 shadow-sm bg-white">
+                <!-- Title -->
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[#1A365D]">
+                        Chào mừng trở lại
+                    </h1>
+                    <p class="text-sm md:text-base text-slate-500 mt-3">
+                        Đăng nhập để tiếp tục với PaperHub
+                    </p>
+                </div>
+
+                <!-- Form -->
+                <form class="space-y-5">
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Email / Username
+                        </label>
+                        <input type="email" placeholder="you@example.com"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Mật khẩu
+                        </label>
+                        <input type="password" placeholder="••••••••"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit"
+                        class="w-full bg-[#1A365D] text-white py-3 rounded-2xl text-sm md:text-base font-semibold tracking-wide hover:bg-[#2C5282] transition-all">
+                        Đăng nhập
+                    </button>
+                </form>
+                <!-- Divider -->
+                <div class="flex items-center gap-4 my-7">
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                    <span class="text-xs text-slate-400 uppercase tracking-[0.2em]">
+                        PaperHub
+                    </span>
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                </div>
+                <!-- Register -->
+                <p class="text-sm text-center text-slate-500">
+                    Chưa có tài khoản?
+                    <a href="./register.html"
+                        class="text-[#1A365D] font-semibold hover:text-[#2C5282] transition-colors">
+                        Đăng ký
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal"
+        class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+        <div class="relative w-full max-w-md">
+            <!-- Close -->
+            <button id="close-register-modal"
+                class="absolute -top-12 right-0 text-white text-sm font-semibold hover:opacity-80 transition-all">
+                Đóng
+            </button>
+            <!-- Register Card -->
+            <div class="auth-card rounded-2xl p-6 md:p-8 shadow-sm bg-white">
+
+                <!-- Title -->
+                <div class="text-center mb-8">
+                    <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[#1A365D]">
+                        Tạo tài khoản
+                    </h1>
+                    <p class="text-sm md:text-base text-slate-500 mt-3">
+                        Tham gia cộng đồng nghiên cứu cùng PaperHub
+                    </p>
+                </div>
+
+                <!-- Form -->
+                <form class="space-y-5">
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Username
+                        </label>
+                        <input type="text" placeholder="nguyenvanan"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Email
+                        </label>
+                        <input type="email" placeholder="nguyenvanan@example.com"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Mật khẩu
+                        </label>
+                        <input type="password" placeholder="••••••••"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                            Xác nhận mật khẩu
+                        </label>
+                        <input type="password" placeholder="••••••••"
+                            class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Register Button -->
+                    <button type="submit"
+                        class="w-full bg-[#1A365D] text-white py-3 rounded-2xl text-sm md:text-base font-semibold tracking-wide hover:bg-[#2C5282] transition-all">
+                        Đăng ký
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="flex items-center gap-4 my-7">
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                    <span class="text-xs text-slate-400 uppercase tracking-[0.2em]">
+                        PaperHub
+                    </span>
+                    <div class="flex-1 h-px bg-slate-200"></div>
+                </div>
+
+                <!-- Login -->
+                <p class="text-sm text-center text-slate-500">
+                    Đã có tài khoản?
+                    <a href="./login.html" class="text-[#1A365D] font-semibold hover:text-[#2C5282] transition-colors">
+                        Đăng nhập
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back To Top -->
+    <button id="back-to-top"
+        class="fixed bottom-5 left-5 md:bottom-6 md:left-6 z-50 hidden items-center justify-center w-12 h-12 rounded-full bg-[#1A365D] text-white shadow-lg hover:bg-[#2C5282] hover:scale-105 transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+
+    <!-- Mở / đóng modal box login & register -->
+    <script>
+        //Lấy phần tử modal Login từ HTML
+        const loginModal = document.getElementById('login-modal');
+
+        //Lấy phần tử modal Register từ HTML
+        const registerModal = document.getElementById('register-modal');
+
+        //Guest dropdown menu
+        const guestMenuBtn = document.getElementById('guest-menu-btn');
+        const guestDropdown = document.getElementById('guest-dropdown');
+
+        //Toggle dropdown
+        guestMenuBtn.addEventListener('click', () => {
+            guestDropdown.classList.toggle('hidden');
+        });
+
+        //Open login modal from mobile dropdown
+        document.getElementById('mobile-login-btn')
+            .addEventListener('click', () => {
+                guestDropdown.classList.add('hidden');
+                loginModal.classList.remove('hidden');
+                loginModal.classList.add('flex');
+            });
+
+        //Open register modal from mobile dropdown
+        document.getElementById('mobile-register-btn')
+            .addEventListener('click', () => {
+                guestDropdown.classList.add('hidden');
+                registerModal.classList.remove('hidden');
+                registerModal.classList.add('flex');
+            });
+
+        //Click outside to close dropdown
+        document.addEventListener('click', (e) => {
+            if (
+                !guestMenuBtn.contains(e.target) &&
+                !guestDropdown.contains(e.target)
+            ) {
+                guestDropdown.classList.add('hidden');
+            }
+        });
+
+        //Bấm Esc đế đóng modal ()
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                loginModal.classList.add('hidden');
+                registerModal.classList.add('hidden');
+
+                loginModal.classList.remove('flex');
+                registerModal.classList.remove('flex');
+            }
+        });
+
+        //LOGIN MODAL
+        //Khi bấm nút "Login" trên navbar
+        document.getElementById('open-login-modal')
+            .addEventListener('click', () => {
+
+                //Hiển thị modal Login
+                loginModal.classList.remove('hidden');
+
+                //Thêm class flex để căn giữa modal
+                loginModal.classList.add('flex');
+
+            });
+
+        //Khi bấm nút "Đóng" trong modal Login
+        document.getElementById('close-login-modal')
+            .addEventListener('click', () => {
+                //Ẩn modal Login
+                loginModal.classList.add('hidden');
+
+                //Xóa class flex
+                loginModal.classList.remove('flex');
+            });
+
+        //Click backdrop để đóng modal login
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+                loginModal.classList.remove('flex');
+            }
+        });
+
+        //REGISTER MODAL
+        //Khi bấm nút "Register" trên navbar
+        document.getElementById('open-register-modal')
+            .addEventListener('click', () => {
+                //Hiển thị modal Register
+                registerModal.classList.remove('hidden');
+
+                //Thêm class flex để căn giữa modal
+                registerModal.classList.add('flex');
+            });
+
+        //Khi bấm nút "Đóng" trong modal Register
+        document.getElementById('close-register-modal')
+            .addEventListener('click', () => {
+                //Ẩn modal Register
+                registerModal.classList.add('hidden');
+
+                //Xóa class flex
+                registerModal.classList.remove('flex');
+            });
+
+        //Click backdrop để đóng modal register
+        registerModal.addEventListener('click', (e) => {
+            if (e.target === registerModal) {
+                registerModal.classList.add('hidden');
+                registerModal.classList.remove('flex');
+            }
+        });
+    </script>
+
+    <!-- Back to top -->
+    <script>
+        const backToTopBtn = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                backToTopBtn.classList.remove('hidden');
+                backToTopBtn.classList.add('flex');
+            } else {
+                backToTopBtn.classList.add('hidden');
+                backToTopBtn.classList.remove('flex');
+            }
+        });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+
+</html>
