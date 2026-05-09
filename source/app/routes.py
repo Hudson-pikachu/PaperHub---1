@@ -9,6 +9,10 @@ def home():
     latest_papers = Paper.query.filter_by(status='posted').join(Category).order_by(Paper.date_added.desc()).limit(5).all()
     return render_template('pages/index.html', papers=latest_papers)
 
+@main_bp.route('/profile')
+def profile():
+    return render_template('pages/profile.html')
+
 @main_bp.route('/load-more')
 def load_more():
     offset = request.args.get('offset', default=5, type=int)

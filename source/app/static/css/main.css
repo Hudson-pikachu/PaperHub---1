@@ -35,3 +35,8 @@ body {
 .auth-input:focus {
     box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
 }
+
+.static-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+}
