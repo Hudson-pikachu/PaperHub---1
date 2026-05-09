@@ -16,17 +16,14 @@ document.addEventListener('keydown', (e) => {
 });
 
 //LOGIN MODAL
-//Khi bấm nút "Login" trên navbar
-document.getElementById('open-login-modal')
-    .addEventListener('click', () => {
+const openLoginBtn = document.getElementById('open-login-modal');
 
-        //Hiển thị modal Login
+if (openLoginBtn) {
+    openLoginBtn.addEventListener('click', () => {
         loginModal.classList.remove('hidden');
-
-        //Thêm class flex để căn giữa modal
         loginModal.classList.add('flex');
-
     });
+}
 
 //Khi bấm nút "Đóng" trong modal Login
 document.getElementById('close-login-modal')
@@ -47,15 +44,14 @@ loginModal.addEventListener('click', (e) => {
 });
 
 //REGISTER MODAL
-//Khi bấm nút "Register" trên navbar
-document.getElementById('open-register-modal')
-    .addEventListener('click', () => {
-        //Hiển thị modal Register
-        registerModal.classList.remove('hidden');
+const openRegisterBtn = document.getElementById('open-register-modal');
 
-        //Thêm class flex để căn giữa modal
+if (openRegisterBtn) {
+    openRegisterBtn.addEventListener('click', () => {
+        registerModal.classList.remove('hidden');
         registerModal.classList.add('flex');
     });
+}
 
 //Khi bấm nút "Đóng" trong modal Register
 document.getElementById('close-register-modal')
