@@ -29,20 +29,10 @@
 
     <!-- Paper Feed -->
     <section id="paper-feed" class="space-y-6">
+        {% for paper in papers %}
         <!-- Paper Card -->
         {% include 'components/paper_card.html' %}
-
-        <!-- Paper Card -->
-        {% include 'components/paper_card.html' %}
-
-        <!-- Paper Card -->
-        {% include 'components/paper_card.html' %}
-
-        <!-- Paper Card -->
-        {% include 'components/paper_card.html' %}
-
-        <!-- Paper Card -->
-        {% include 'components/paper_card.html' %}
+        {% endfor %}
     </section>
 
     <!-- Feed Footer-->
