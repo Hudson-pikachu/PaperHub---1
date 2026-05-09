@@ -1,47 +1,47 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PaperHub</title>
-    
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
-    
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            background-color: #cecfd3;
-            color: #1A365D; /* Chữ màu xanh đậm theo logo */
-            font-family: 'Inter', sans-serif;
-        }
-        .paper-card {
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            transition: all 0.2s ease;
-        }
-        .paper-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-color: #3182CE;
-        }
-    </style>
-    {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-4xl mx-auto">
-        <header class="mb-12 flex flex-col items-center">
-            <a href="/">
-                <img src="{{ url_for('static', filename='logo/logo.png') }}" alt="PaperHub Logo" class="h-14 mb-2">
-            </a>
-            <div class="h-1 w-20 bg-[#1A365D] rounded-full mb-2"></div>
-            <p class="text-slate-1000 font-medium tracking-wide">Những người khổng lồ tiếp theo</p>
-        </header>
 
-        {% block content %}{% endblock %}
+<body class="px-4 py-8 md:px-8 md:py-10">
+    <div class="max-w-6xl mx-auto">
+        <!-- User Header -->
+        {% include 'components/header/user_header.html' %}
 
-        <footer class="mt-16 py-8 border-t border-slate-200 text-center text-slate-1000 text-sm">
-            &copy; 2026 PaperHub System • HCMUS Project
-        </footer>
+        {% block content %}
+        {% endblock %}
+
+        <!-- Footer -->
+        {% include 'components/footer.html' %}
     </div>
-    {% block extra_js %}{% endblock %}
+
+    <!-- Login Modal -->
+    {% include 'components/auth/login_modal.html' %}
+
+    <!-- Register Modal -->
+    {% include 'components/auth/register_modal.html' %}
+
+    <!-- Back To Top -->
+    <button id="back-to-top"
+        class="fixed bottom-5 left-5 md:bottom-6 md:left-6 z-50 hidden items-center justify-center w-12 h-12 rounded-full bg-[#1A365D] text-white shadow-lg hover:bg-[#2C5282] hover:scale-105 transition-all duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dropdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/back-to-top.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/paper-expand.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
+
 </html>
