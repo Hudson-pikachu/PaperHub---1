@@ -1,0 +1,37 @@
+body {
+    background-color: #F1F5F9;
+    color: #1A365D;
+    /* Chữ màu xanh đậm theo logo */
+    font-family: 'Inter', sans-serif;
+}
+
+.paper-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    transition: all 0.25s ease;
+}
+
+.paper-card:hover {
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    border-color: #3182CE;
+    transform: translateY(-2px);
+}
+
+.auth-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    transition: all 0.25s ease;
+}
+
+.auth-card:hover {
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+}
+
+.auth-input {
+    transition: all 0.2s ease;
+}
+
+.auth-input:focus {
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+}
