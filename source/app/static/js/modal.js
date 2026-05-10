@@ -74,48 +74,48 @@ if (closeRegisterBtn) {
         //Xóa class flex
         registerModal.classList.remove('flex');
     });
+}
 
-    //Click backdrop để đóng modal register
-    if (registerModal) {
-        registerModal.addEventListener('click', (e) => {
-            if (e.target === registerModal) {
-                registerModal.classList.add('hidden');
-                registerModal.classList.remove('flex');
-            }
-        });
-    }
-
-    //Switch Login -> Register
-    const switchToRegisterBtn = document.getElementById('switch-to-register-modal');
-
-    if (switchToRegisterBtn) {
-
-        switchToRegisterBtn.addEventListener('click', () => {
-
-            loginModal.classList.add('hidden');
-            loginModal.classList.remove('flex');
-
-            registerModal.classList.remove('hidden');
-            registerModal.classList.add('flex');
-
-        });
-
-    }
-
-    //Switch Register -> Login
-    const switchToLoginBtn = document.getElementById('switch-to-login-modal');
-
-    if (switchToLoginBtn) {
-
-        switchToLoginBtn.addEventListener('click', () => {
-
+//Click backdrop để đóng modal register
+if (registerModal) {
+    registerModal.addEventListener('click', (e) => {
+        if (e.target === registerModal) {
             registerModal.classList.add('hidden');
             registerModal.classList.remove('flex');
+        }
+    });
+}
 
-            loginModal.classList.remove('hidden');
-            loginModal.classList.add('flex');
+//Switch Login -> Register
+const switchToRegisterBtn = document.getElementById('switch-to-register-modal');
 
-        });
+if (switchToRegisterBtn) {
 
-    }
+    switchToRegisterBtn.addEventListener('click', () => {
+
+        loginModal.classList.add('hidden');
+        loginModal.classList.remove('flex');
+
+        registerModal.classList.remove('hidden');
+        registerModal.classList.add('flex');
+
+    });
+
+}
+
+//Switch Register -> Login
+const switchToLoginBtn = document.getElementById('switch-to-login-modal');
+
+if (switchToLoginBtn) {
+
+    switchToLoginBtn.addEventListener('click', () => {
+
+        registerModal.classList.add('hidden');
+        registerModal.classList.remove('flex');
+
+        loginModal.classList.remove('hidden');
+        loginModal.classList.add('flex');
+
+    });
+
 }
