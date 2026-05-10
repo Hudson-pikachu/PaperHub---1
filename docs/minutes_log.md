@@ -1,5 +1,5 @@
 #Họp nhóm lần 03: Thứ 6 ngày 08/05/2026
-Record: 
+Record: https://youtu.be/EtO4IdXOViU
 
 #Chốt hôm nay:
 - Chốt giao diện (dạng template) của: index, login, register, profile.
@@ -14,7 +14,7 @@ Record:
 
 #-----------------------------------
 #Họp nhóm lần 02: Thứ 2 ngày 04/05/2026
-Record: 
+Record: https://youtu.be/SbTQy3CPaWE
 
 #Chốt hôm nay:
 - Chia 2 team backend: Quang, Linh; frontend: Thủy, Mùa

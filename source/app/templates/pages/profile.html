@@ -48,18 +48,13 @@ PaperHub | {{ current_user.username }}
         </div>
 
         <!-- Topic Tags (danh mục từ hệ thống) -->
-        <div class="flex flex-wrap justify-center gap-3">
+        <div id="category-tags" class="flex flex-wrap justify-center gap-3">
             {% for cat in categories %}
-<<<<<<< HEAD
             <button type="button"
                 class="follow-btn px-4 py-2 rounded-full border font-semibold text-sm transition-all duration-200 cursor-pointer bg-slate-100 border-slate-200 text-slate-500"
                 data-category-id="{{ cat.id }}" data-followed="false">
-=======
-            <span
-                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-[#1A365D] hover:text-white hover:border-[#1A365D] hover:shadow-md transition-all duration-200 cursor-pointer">
->>>>>>> 0ada4595d61a8f0bf36cb0d2398f625a6043f165
                 {{ cat.name }}
-            </span>
+            </button>
             {% else %}
             <p class="text-slate-400 text-sm">Chưa có chủ đề nào.</p>
             {% endfor %}
@@ -67,4 +62,92 @@ PaperHub | {{ current_user.username }}
     </div>
 </section>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tagsContainer = document.getElementById('category-tags');
+    if (!tagsContainer) return;
+
+    const ACTIVE_CLASSES = ['bg-[#1A365D]', 'border-[#1A365D]', 'text-white', 'shadow-md'];
+    const INACTIVE_CLASSES = ['bg-slate-100', 'border-slate-200', 'text-slate-500'];
+
+    function setBtnActive(btn) {
+        btn.setAttribute('data-followed', 'true');
+        btn.classList.remove(...INACTIVE_CLASSES);
+        btn.classList.add(...ACTIVE_CLASSES);
+    }
+
+    function setBtnInactive(btn) {
+        btn.setAttribute('data-followed', 'false');
+        btn.classList.remove(...ACTIVE_CLASSES);
+        btn.classList.add(...INACTIVE_CLASSES);
+    }
+
+    // ── Load current followed categories on page load ──
+    async function loadFollowedStatus() {
+        try {
+            const resp = await fetch('/followed-categories');
+            if (resp.redirected) {
+                window.location.href = resp.url;
+                return;
+            }
+            const data = await resp.json();
+            const followedIds = data.followed_ids || [];
+            tagsContainer.querySelectorAll('.follow-btn').forEach(function(btn) {
+                const cid = parseInt(btn.getAttribute('data-category-id'));
+                if (followedIds.includes(cid)) {
+                    setBtnActive(btn);
+                }
+            });
+        } catch (err) {
+            console.error('Failed to load followed status:', err);
+        }
+    }
+
+    loadFollowedStatus();
+
+    // ── Click handler for follow/unfollow ──
+    tagsContainer.addEventListener('click', async function(e) {
+        const btn = e.target.closest('.follow-btn');
+        if (!btn) return;
+
+        const categoryId = parseInt(btn.getAttribute('data-category-id'));
+        if (!categoryId) return;
+
+        btn.disabled = true;
+
+        try {
+            const resp = await fetch('/toggle-follow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category_id: categoryId })
+            });
+
+            if (resp.redirected) {
+                window.location.href = resp.url;
+                return;
+            }
+
+            const data = await resp.json();
+            if (!data.success) {
+                alert(data.message || 'Có lỗi xảy ra.');
+                return;
+            }
+
+            if (data.followed) {
+                setBtnActive(btn);
+            } else {
+                setBtnInactive(btn);
+            }
+        } catch (err) {
+            console.error('Toggle follow error:', err);
+            alert('Có lỗi kết nối, vui lòng thử lại.');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+});
+</script>
 {% endblock %}

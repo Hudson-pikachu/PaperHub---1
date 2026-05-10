@@ -7,19 +7,19 @@ Mục tiêu có được Prototype giao diện web hiển thị danh sách paper
     ✓ 6. Hiển thị danh sách paper mới
     ✓ 8. Xem chi tiết paper
 + Chức năng nâng cao sẽ hoàn thành:
-    2*. Phát hiện paper trùng hoặc gần giống
+    ✓ 2*. Phát hiện paper trùng hoặc gần giống -> trùng thì phát hiện rồi, gần giống chưa phát hiện ra
 
 #Giai đoạn 2: 
 Mục tiêu Prototype có thêm chức năng tự động quét dữ liệu từ 1 đến 3 nguồn bài báo khoa học để nạp vào cơ sở dữ liệu, cấu trúc nạp vào được chuẩn hóa theo cấu trúc của cơ sở dữ liệu. Có thêm chức năng login, phân biệt các người dùng khác nhau để bổ sung các chức năng cá nhân hóa trải nghiệm bao gồm cả thông báo cho người dùng khi có paper mới.
 + Chức năng cơ bản sẽ hoàn thành:
     ✓ 3. Tự động lấy paper mới theo chủ đề
     ✓ Đăng ký, đăng nhập
-    2. Thêm, sửa, xóa chủ đề theo dõi
-    9. Lưu paper yêu thích
+    ✓ Thêm, sửa, xóa chủ đề theo dõi
+    ✓ Lưu paper yêu thích
 + Chức năng nâng cao sẽ hoàn thành:
-    3*. Gửi thông báo khi có paper mới
+    ✓ 3*. Gửi thông báo khi có paper mới
 + Kết quả mong muốn sẽ hoàn thành:
-    I. biết nhanh có paper mới nào
+    ✓ I. biết nhanh có paper mới nào
 
 #Giai đoạn 3: 
 Mục tiêu Prototype có thêm chức năng tóm tắt ý chính của từng papers và lưu tĩnh nội dung tóm tắt vào cơ sở dữ liệu. Khi hiển thị paper lên newsfeed sẽ hiển thị kèm cả tóm tắt. Bổ sung chức năng tìm kiếm paper có thể lọc theo từ khóa, hoặc chủ đề, hoặc từ nội dung tóm tắt.
@@ -27,7 +27,7 @@ Mục tiêu Prototype có thêm chức năng tóm tắt ý chính của từng p
     ✓ 5. Tóm tắt ngắn ý chính của paper từ abstract
     7. Tìm kiếm, lọc paper theo từ khóa hoặc chủ đề
 + Kết quả mong muốn sẽ hoàn thành:
-    II. đọc nhanh ý chính của paper
+    ✓ II. đọc nhanh ý chính của paper
     III. tìm được các paper phù hợp với chủ đề mình quan tâm
 
 #Giai đoạn 4: 
