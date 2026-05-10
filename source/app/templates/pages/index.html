@@ -241,7 +241,7 @@ PaperHub
             loadMoreBtn.addEventListener('click', function() {
                 if (currentFilter === 'newest') {
                     if (!IS_AUTHENTICATED) {
-                        showLoginRequired();
+                        openLoginModal();
                         return;
                     }
                     loadMore();
@@ -356,7 +356,22 @@ PaperHub
             });
         }
 
-        // ── Helper: show login-required message with button to open login modal ──
+        // ── Helper: open login modal with gate message ──
+        function openLoginModal() {
+            const loginModal = document.getElementById('login-modal');
+            if (!loginModal) return;
+
+            // Show gate message
+            const gateMsg = document.getElementById('login-gate-message');
+            if (gateMsg) {
+                gateMsg.classList.remove('hidden');
+            }
+
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+        }
+
+        // ── Helper: show login-required message (for Saved/Following tabs) ──
         function showLoginRequired() {
             feed.innerHTML = `
             <div class="text-center py-12">
@@ -373,13 +388,7 @@ PaperHub
 
             const inlineLoginBtn = document.getElementById('inline-open-login');
             if (inlineLoginBtn) {
-                inlineLoginBtn.addEventListener('click', function() {
-                    const loginModal = document.getElementById('login-modal');
-                    if (loginModal) {
-                        loginModal.classList.remove('hidden');
-                        loginModal.classList.add('flex');
-                    }
-                });
+                inlineLoginBtn.addEventListener('click', openLoginModal);
             }
         }
 
