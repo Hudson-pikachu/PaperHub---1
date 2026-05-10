@@ -23,6 +23,12 @@ if (article) {
 
 {% block content %}
 
+{% set lang = session.get('lang', 'vi') %}
+{% set display_title = paper.title_en if lang == 'en' and paper.title_en else paper.title %}
+{% set display_abstract = paper.abstract_en if lang == 'en' and paper.abstract_en else paper.abstract %}
+{% set display_ai_summary = paper.ai_summary_en if lang == 'en' and paper.ai_summary_en else paper.ai_summary %}
+{% set has_summary = display_ai_summary and display_ai_summary|trim != '' %}
+
 <!-- Back Button -->
 <div class="mb-6 mt-6 md:mt-8">
     <a href="/"
@@ -30,7 +36,7 @@ if (article) {
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Quay lại
+        {{ 'Back' if lang == 'en' else 'Quay lại' }}
     </a>
 </div>
 
@@ -43,7 +49,7 @@ if (article) {
 
     <!-- Title -->
     <h1 class="text-xl md:text-2xl font-bold leading-snug text-[#1A365D] mb-4">
-        {{ paper.title }}
+        {{ display_title }}
     </h1>
 
     <!-- Meta -->
@@ -53,29 +59,29 @@ if (article) {
         <span>{{ paper.published_date }}</span>
         {% if paper.cited_count %}
         <span>•</span>
-        <span>{{ paper.cited_count }} lượt trích dẫn</span>
+        <span>{{ paper.cited_count }} {{ 'citations' if lang == 'en' else 'lượt trích dẫn' }}</span>
         {% endif %}
     </div>
 
     <!-- Abstract -->
     <div class="mb-6">
-        <h3 class="text-sm font-bold text-[#1A365D] uppercase tracking-wider mb-2">ABSTRACT</h3>
+        <h3 class="text-sm font-bold text-[#1A365D] uppercase tracking-wider mb-2">{{ 'ABSTRACT' if lang == 'en' else 'Abstract' }}</h3>
         <p class="text-slate-600 text-sm leading-7 border-l-2 border-slate-200 pl-4">
-            {{ paper.abstract }}
+            {{ display_abstract }}
         </p>
     </div>
 
-    {% if paper.ai_summary %}
+    {% if has_summary %}
     <!-- AI Summary -->
     <div class="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
         <h4 class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-2 flex items-center gap-1">
             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            AI Tóm tắt
+            {{ 'AI Summary' if lang == 'en' else 'AI Tóm tắt' }}
         </h4>
         <p class="text-slate-700 text-sm leading-7">
-            {{ paper.ai_summary }}
+            {{ display_ai_summary }}
         </p>
     </div>
     {% endif %}
@@ -87,9 +93,9 @@ if (article) {
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" />
             </svg>
-            Mở trên arXiv
+            {{ 'Open on arXiv' if lang == 'en' else 'Mở trên arXiv' }}
         </a>
-        <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
+        <span class="text-[10px] text-slate-400 font-mono">{{ 'Source: arXiv' if lang == 'en' else 'Nguồn: arXiv' }}</span>
     </div>
 
     <!-- PDF Viewer -->
@@ -107,10 +113,10 @@ if (article) {
     </div>
     {% else %}
     <div class="p-8 text-center text-slate-400">
-        <p>Không có liên kết PDF cho bài nghiên cứu này.</p>
+        <p>{{ 'No PDF link available for this paper.' if lang == 'en' else 'Không có liên kết PDF cho bài nghiên cứu này.' }}</p>
         <a href="{{ paper.link }}" target="_blank"
             class="text-[#1A365D] font-semibold underline mt-2 inline-block">
-            Mở trên arXiv
+            {{ 'Open on arXiv' if lang == 'en' else 'Mở trên arXiv' }}
         </a>
     </div>
     {% endif %}

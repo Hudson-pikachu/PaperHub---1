@@ -4,6 +4,8 @@
 PaperHub | {{ current_user.username }}
 {% endblock %}
 
+{% set lang = session.get('lang', 'vi') %}
+
 {% block content %}
 
 <!-- Profile + Following Topics -->
@@ -28,7 +30,7 @@ PaperHub | {{ current_user.username }}
 
         <!-- Ngày tham gia -->
         <p class="mt-1 text-xs text-slate-300">
-            Tham gia {{ current_user.created_at.strftime('%d/%m/%Y') if current_user.created_at else '' }}
+            {{ 'Joined' if lang == 'en' else 'Tham gia' }} {{ current_user.created_at.strftime('%d/%m/%Y') if current_user.created_at else '' }}
         </p>
     </div>
 
@@ -40,10 +42,10 @@ PaperHub | {{ current_user.username }}
         <!-- Section Header -->
         <div class="text-center mb-6">
             <h2 class="text-xl md:text-2xl font-bold text-[#1A365D]">
-                Chủ đề theo dõi
+                {{ 'Followed Topics' if lang == 'en' else 'Chủ đề theo dõi' }}
             </h2>
             <p class="text-sm text-slate-400 mt-2">
-                Chọn chủ đề bạn quan tâm
+                {{ 'Select topics you are interested in' if lang == 'en' else 'Chọn chủ đề bạn quan tâm' }}
             </p>
         </div>
 
@@ -53,10 +55,10 @@ PaperHub | {{ current_user.username }}
             <button type="button"
                 class="follow-btn px-4 py-2 rounded-full border font-semibold text-sm transition-all duration-200 cursor-pointer bg-slate-100 border-slate-200 text-slate-500"
                 data-category-id="{{ cat.id }}" data-followed="false">
-                {{ cat.name }}
+                {{ cat.display_name }}
             </button>
             {% else %}
-            <p class="text-slate-400 text-sm">Chưa có chủ đề nào.</p>
+            <p class="text-slate-400 text-sm">{{ 'No topics available.' if lang == 'en' else 'Chưa có chủ đề nào.' }}</p>
             {% endfor %}
         </div>
     </div>

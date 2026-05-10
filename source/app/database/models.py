@@ -10,7 +10,16 @@ class Category(db.Model):
     # Bảng danh mục bài viết
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
+    name_en = db.Column(db.String(100))
     description = db.Column(db.String(500))
+    
+    @property
+    def display_name(self):
+        from flask import session
+        lang = session.get('lang', 'vi') if session else 'vi'
+        if lang == 'en' and self.name_en:
+            return self.name_en
+        return self.name
     
     def __repr__(self):
         return f'<Category {self.name}>'
@@ -27,6 +36,8 @@ class Paper(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # 2. Tiêu đề bài viết
     title = db.Column(db.String(500), nullable=False)
+    # 2b. Tiêu đề tiếng Anh
+    title_en = db.Column(db.String(500))
     # 3. Ngày xuất bản (Lưu dạng chuỗi hoặc ngày tháng)
     published_date = db.Column(db.String(100))
     # 4. Tác giả (Lưu dạng chuỗi, có thể phân cách bằng dấu phẩy)
@@ -35,12 +46,16 @@ class Paper(db.Model):
     publisher = db.Column(db.String(200))
     # 6. Tóm tắt gốc (Abstracts) - Dùng Text vì nội dung thường rất dài
     abstract = db.Column(db.Text)
+    # 6b. Abstract tiếng Anh
+    abstract_en = db.Column(db.Text)
     # 7. Link trực tiếp
     link = db.Column(db.String(500), unique=True)
     # 8. Số lượt trích dẫn (Cited by)
     cited_count = db.Column(db.Integer, default=0)
-    # 9. Nội dung tóm tắt bằng AI (Sau này bạn sẽ dùng Faster-Whisper hoặc GPT để điền vào đây)
+    # 9. Nội dung tóm tắt bằng AI
     ai_summary = db.Column(db.Text)
+    # 9b. AI summary (English)
+    ai_summary_en = db.Column(db.Text)
     # 10. Hiện trạng nội dung
     status = db.Column(db.String(20), default='pending', nullable=False)
     # 11. Thể loại - khóa ngoại tới bảng Category
@@ -52,7 +67,9 @@ class Paper(db.Model):
     
     @property
     def category_name(self):
-        return self.category.name if self.category else "Chờ phân loại"
+        if not self.category:
+            return "Chờ phân loại"
+        return self.category.display_name
 
     def __repr__(self):
         return f'<Paper {self.title[:30]}...>'

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, current_app, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, current_app, redirect, url_for, session
 from flask_login import login_required, current_user
 from .database.models import db, Paper, Category, SchedulerState, SavedPaper, UserCategory, UserPaperRead
 from datetime import datetime, timedelta
@@ -53,15 +53,19 @@ def load_more():
         output.append({
             "id": p.id,
             "title": p.title,
+            "title_en": p.title_en,
             "authors": p.authors,
             "published_date": p.published_date,
             "abstract": p.abstract,
+            "abstract_en": p.abstract_en,
             "ai_summary": p.ai_summary,
+            "ai_summary_en": p.ai_summary_en,
             "status": p.status,
             "category": p.category_name,
             "link": p.link,
             "publisher": p.publisher,
-            "cited_count": p.cited_count
+            "cited_count": p.cited_count,
+            "is_saved": False
         })
     
     # Kiểm tra xem còn bài nào nữa không
@@ -130,10 +134,13 @@ def saved_papers():
         papers.append({
             "id": p.id,
             "title": p.title,
+            "title_en": p.title_en,
             "authors": p.authors,
             "published_date": p.published_date,
             "abstract": p.abstract,
+            "abstract_en": p.abstract_en,
             "ai_summary": p.ai_summary,
+            "ai_summary_en": p.ai_summary_en,
             "status": p.status,
             "category": p.category_name,
             "link": p.link,
@@ -194,10 +201,13 @@ def following_papers():
         output.append({
             "id": p.id,
             "title": p.title,
+            "title_en": p.title_en,
             "authors": p.authors,
             "published_date": p.published_date,
             "abstract": p.abstract,
+            "abstract_en": p.abstract_en,
             "ai_summary": p.ai_summary,
+            "ai_summary_en": p.ai_summary_en,
             "status": p.status,
             "category": p.category_name,
             "link": p.link,
@@ -273,6 +283,7 @@ def new_papers():
         output.append({
             "id": p.id,
             "title": p.title,
+            "title_en": p.title_en,
             "authors": p.authors,
             "published_date": p.published_date,
             "abstract": p.abstract[:150] + '...' if p.abstract and len(p.abstract) > 150 else (p.abstract or ''),
@@ -315,3 +326,11 @@ def mark_paper_read():
     unread_count = remaining.count()
 
     return jsonify({'success': True, 'unread_count': unread_count})
+
+@main_bp.route('/set-language/<lang>')
+def set_language(lang):
+    """Lưu ngôn ngữ vào session và redirect về trang trước."""
+    if lang in ('vi', 'en'):
+        session['lang'] = lang
+    ref = request.referrer or url_for('main.home')
+    return redirect(ref)

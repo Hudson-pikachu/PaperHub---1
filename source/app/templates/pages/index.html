@@ -36,21 +36,21 @@ PaperHub
         <button id="filter-newest"
             class="filter-btn px-6 py-2 bg-white text-slate-800 text-sm font-semibold rounded-full shadow-sm transition-all"
             data-filter="newest">
-            Newest
+            {{ 'Newest' if session.get('lang', 'vi') == 'en' else 'Mới nhất' }}
         </button>
 
         <!-- Saved -->
         <button id="filter-saved"
             class="filter-btn px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"
             data-filter="saved">
-            Saved
+            {{ 'Saved' if session.get('lang', 'vi') == 'en' else 'Đã lưu' }}
         </button>
 
         <!-- Following -->
         <button id="filter-following"
             class="filter-btn px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"
             data-filter="following">
-            Following
+            {{ 'Following' if session.get('lang', 'vi') == 'en' else 'Đang theo dõi' }}
         </button>
     </div>
 </div>
@@ -89,7 +89,8 @@ PaperHub
 <!-- Load more papers functionality -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const IS_AUTHENTICATED = {{ 'true' if current_user.is_authenticated else 'false' }};
+        const IS_AUTHENTICATED = "{{ current_user.is_authenticated | lower }}" === "true";
+        const CURRENT_LANG = '{{ session.get('lang', 'vi') }}';
         const LIMIT = 5;
         const feed = document.getElementById('paper-feed');
         const displayCount = document.getElementById('display-count');
@@ -116,12 +117,25 @@ PaperHub
         }
 
         function getBookmarkSvg() {
-            return '<svg class="w-7 h-7" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>';
+            return '<svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>';
+        }
+
+        function t(viText, enText) {
+            return CURRENT_LANG === 'en' ? enText : viText;
+        }
+
+        function pickField(enField, viField) {
+            if (CURRENT_LANG === 'en' && enField && enField.trim() !== '') return enField;
+            return viField;
         }
 
         function createPaperCard(paper) {
-            const hasSummary = paper.ai_summary && paper.ai_summary.trim() !== '';
+            const displayTitle = pickField(paper.title_en, paper.title);
+            const displayAbstract = pickField(paper.abstract_en, paper.abstract);
+            const displayAiSummary = pickField(paper.ai_summary_en, paper.ai_summary);
+            const hasSummary = displayAiSummary && displayAiSummary.trim() !== '';
             const pid = paper.id;
+            const isSaved = paper.is_saved;
             return `
         <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
             <span class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
@@ -130,7 +144,7 @@ PaperHub
             <div class="flex flex-col gap-3 pt-3 md:pt-0">
                 <a href="/read/${pid}" class="block">
                     <h2 class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
-                        ${escapeHtml(paper.title)}
+                        ${escapeHtml(displayTitle)}
                     </h2>
                 </a>
                 <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-slate-500">
@@ -139,15 +153,15 @@ PaperHub
                     <span>${escapeHtml(paper.published_date)}</span>
                 </div>
                 <div class="relative">
-                    <span class="text-xs font-bold text-[#1A365D] uppercase tracking-wider block mb-1">ABSTRACT</span>
+                    <span class="text-xs font-bold text-[#1A365D] uppercase tracking-wider block mb-1">${t('Abstract', 'ABSTRACT')}</span>
                     <p class="abstract-text text-slate-600 text-sm leading-7 border-l-2 border-slate-100 pl-4 overflow-hidden transition-all duration-300"
                         style="max-height: 5.5rem;" aria-expanded="false">
-                        ${escapeHtml(paper.abstract)}
+                        ${escapeHtml(displayAbstract)}
                     </p>
                     <div class="abstract-overlay absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/90 to-transparent flex items-end justify-center pb-2">
                         <button type="button"
                             class="expand-btn inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-all">
-                            Xem thêm
+                            ${t('Xem thêm', 'Show more')}
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clip-rule="evenodd" />
                             </svg>
@@ -155,7 +169,7 @@ PaperHub
                     </div>
                     <button type="button"
                         class="collapse-btn hidden mt-3 text-sm font-semibold text-[#1A365D] hover:text-[#2C5282] transition-colors">
-                        Thu gọn
+                        ${t('Thu gọn', 'Collapse')}
                     </button>
                 </div>
                 ${hasSummary ? `
@@ -164,22 +178,29 @@ PaperHub
                         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        AI Tóm tắt
+                        ${t('AI Tóm tắt', 'AI Summary')}
                     </h4>
-                    <p class="text-slate-700 text-sm italic">${escapeHtml(paper.ai_summary)}</p>
+                    <p class="text-slate-700 text-sm italic">${escapeHtml(displayAiSummary)}</p>
                 </div>
                 ` : ''}
                 <div class="flex justify-between items-center pt-2">
-                    <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
-                    <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-slate-400 font-mono">${t('Nguồn: arXiv', 'Source: arXiv')}</span>
+                    <div class="flex items-center gap-4">
                         <button type="button"
-                            class="bookmark-btn inline-flex items-center justify-center text-xl transition-all text-slate-300"
-                            data-paper-id="${pid}" aria-label="Lưu bài nghiên cứu" title="Lưu bài nghiên cứu">
-                            ${getBookmarkSvg()}
+                            class="bookmark-btn inline-flex items-center text-sm font-semibold transition-all
+                            ${isSaved ? 'bookmark-active text-[#1A365D]' : 'text-slate-300 hover:text-[#1A365D]'}"
+                            data-paper-id="${pid}"
+                            aria-label="${t('Lưu bài nghiên cứu', 'Save paper')}"
+                            title="${t('Lưu bài nghiên cứu', 'Save paper')}">
+                            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                            </svg>
+                            <span>${t('Lưu', 'Save')}</span>
                         </button>
+
                         <a href="/read/${pid}"
                             class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
-                            Đọc bài
+                            ${t('Đọc bài', 'Read')}
                         </a>
                     </div>
                 </div>
@@ -196,7 +217,7 @@ PaperHub
             isLoading = true;
             loading.classList.remove('hidden');
             loadMoreBtn.disabled = true;
-            loadMoreBtn.textContent = 'Đang tải...';
+            loadMoreBtn.textContent = t('Đang tải...', 'Loading...');
 
             try {
                 const offset = getCurrentCount();
@@ -207,7 +228,10 @@ PaperHub
 
                 if (papers.length === 0) {
                     loadMoreBtn.classList.add('hidden');
-                    displayCount.textContent = `Bạn đã xem hết ${getCurrentCount()} bài nghiên cứu`;
+                    displayCount.textContent = t(
+                        `Bạn đã xem hết ${getCurrentCount()} bài nghiên cứu`,
+                        `You have viewed all ${getCurrentCount()} papers`
+                    );
                     return;
                 }
 
@@ -220,19 +244,25 @@ PaperHub
                 }
 
                 const newCount = getCurrentCount();
-                displayCount.textContent = `Đang hiển thị ${newCount} bài nghiên cứu`;
+                displayCount.textContent = t(
+                    `Đang hiển thị ${newCount} bài nghiên cứu`,
+                    `Showing ${newCount} papers`
+                );
 
                 if (!hasMore) {
                     loadMoreBtn.classList.add('hidden');
-                    displayCount.textContent = `Bạn đã xem hết ${newCount} bài nghiên cứu`;
+                    displayCount.textContent = t(
+                        `Bạn đã xem hết ${newCount} bài nghiên cứu`,
+                        `You have viewed all ${newCount} papers`
+                    );
                 } else {
                     loadMoreBtn.disabled = false;
-                    loadMoreBtn.textContent = 'Xem thêm bài nghiên cứu';
+                    loadMoreBtn.textContent = t('Xem thêm bài nghiên cứu', 'Load more papers');
                 }
             } catch (error) {
                 console.error(error);
                 loadMoreBtn.disabled = false;
-                loadMoreBtn.textContent = 'Xem thêm bài nghiên cứu';
+                loadMoreBtn.textContent = t('Xem thêm bài nghiên cứu', 'Load more papers');
             } finally {
                 loading.classList.add('hidden');
                 isLoading = false;
@@ -251,7 +281,7 @@ PaperHub
             });
         }
 
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             var link = e.target.closest('a[href^="/read/"]');
             if (!link) return;
             var match = link.getAttribute('href').match(/^\/read\/(\d+)$/);
@@ -264,29 +294,29 @@ PaperHub
                 keepalive: true,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paper_id: paperId })
-            }).then(function(r) { return r.json(); })
-              .then(function(d) {
-                if (d.success && d.unread_count !== undefined) {
-                    var notifDot = document.getElementById('notif-dot');
-                    if (notifDot) {
-                        if (d.unread_count > 0) {
-                            notifDot.classList.remove('hidden');
-                            notifDot.textContent = d.unread_count > 99 ? '99+' : d.unread_count;
-                            notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
-                            notifDot.style.minWidth = d.unread_count > 9 ? '18px' : '16px';
-                            notifDot.style.height = d.unread_count > 9 ? '18px' : '16px';
-                            notifDot.style.top = '-2px';
-                            notifDot.style.right = '-4px';
-                            notifDot.style.padding = '0 2px';
-                        } else {
-                            notifDot.classList.add('hidden');
-                            notifDot.textContent = '';
-                            notifDot.classList.remove('flex', 'items-center', 'justify-center');
-                            notifDot.style = '';
+            }).then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d.success && d.unread_count !== undefined) {
+                        var notifDot = document.getElementById('notif-dot');
+                        if (notifDot) {
+                            if (d.unread_count > 0) {
+                                notifDot.classList.remove('hidden');
+                                notifDot.textContent = d.unread_count > 99 ? '99+' : d.unread_count;
+                                notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
+                                notifDot.style.minWidth = d.unread_count > 9 ? '18px' : '16px';
+                                notifDot.style.height = d.unread_count > 9 ? '18px' : '16px';
+                                notifDot.style.top = '-2px';
+                                notifDot.style.right = '-4px';
+                                notifDot.style.padding = '0 2px';
+                            } else {
+                                notifDot.classList.add('hidden');
+                                notifDot.textContent = '';
+                                notifDot.classList.remove('flex', 'items-center', 'justify-center');
+                                notifDot.style = '';
+                            }
                         }
                     }
-                }
-              }).catch(function() {});
+                }).catch(function () { });
         });
 
         feed.addEventListener('click', async function (e) {
@@ -315,7 +345,7 @@ PaperHub
 
                 const data = await resp.json();
                 if (!data.success) {
-                    alert(data.message || 'Có lỗi xảy ra.');
+                    alert(data.message || t('Có lỗi xảy ra.', 'An error occurred.'));
                     return;
                 }
 
@@ -328,7 +358,7 @@ PaperHub
                 }
             } catch (err) {
                 console.error('Bookmark error:', err);
-                alert('Có lỗi kết nối, vui lòng thử lại.');
+                alert(t('Có lỗi kết nối, vui lòng thử lại.', 'Connection error, please try again.'));
             }
         });
 
@@ -351,7 +381,7 @@ PaperHub
             feed.innerHTML = '';
             loading.classList.remove('hidden');
             loadMoreBtn.classList.add('hidden');
-            displayCount.textContent = 'Đang tải...';
+            displayCount.textContent = t('Đang tải...', 'Loading...');
 
             try {
                 const resp = await fetch('/saved-papers');
@@ -360,7 +390,7 @@ PaperHub
                 const papers = data.papers || [];
 
                 if (papers.length === 0) {
-                    feed.innerHTML = '<p class="text-center text-slate-400 py-12">Bạn chưa lưu bài viết nào.</p>';
+                    feed.innerHTML = '<p class="text-center text-slate-400 py-12">' + t('Bạn chưa lưu bài viết nào.', 'You have not saved any papers.') + '</p>';
                     displayCount.textContent = '';
                 } else {
                     papers.forEach(function (paper) {
@@ -370,11 +400,14 @@ PaperHub
                         btn.classList.add('bookmark-active', 'text-[#1A365D]');
                         btn.classList.remove('text-slate-300');
                     });
-                    displayCount.textContent = `Hiển thị ${papers.length} bài đã lưu`;
+                    displayCount.textContent = t(
+                        `Hiển thị ${papers.length} bài đã lưu`,
+                        `Showing ${papers.length} saved papers`
+                    );
                 }
             } catch (err) {
                 console.error('Saved papers error:', err);
-                feed.innerHTML = '<p class="text-center text-red-400 py-12">Lỗi tải danh sách đã lưu.</p>';
+                feed.innerHTML = '<p class="text-center text-red-400 py-12">' + t('Lỗi tải danh sách đã lưu.', 'Error loading saved papers.') + '</p>';
                 displayCount.textContent = '';
             } finally {
                 loading.classList.add('hidden');
@@ -406,13 +439,13 @@ PaperHub
         function showLoginRequired() {
             feed.innerHTML = `
             <div class="text-center py-12">
-                <p class="text-slate-500 text-base mb-4">Vui lòng đăng nhập để sử dụng tính năng này.</p>
+                <p class="text-slate-500 text-base mb-4">${t('Vui lòng đăng nhập để sử dụng tính năng này.', 'Please login to use this feature.')}</p>
                 <button type="button" id="inline-open-login"
                     class="inline-flex items-center gap-2 px-4 py-2 bg-[#1A365D] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#2C5282] transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
-                    Đăng nhập
+                    ${t('Đăng nhập', 'Login')}
                 </button>
             </div>`;
             displayCount.textContent = '';
@@ -454,7 +487,7 @@ PaperHub
             feed.innerHTML = '';
             loading.classList.remove('hidden');
             loadMoreBtn.classList.add('hidden');
-            displayCount.textContent = 'Đang tải...';
+            displayCount.textContent = t('Đang tải...', 'Loading...');
 
             try {
                 const resp = await fetch('/following-papers');
@@ -465,20 +498,23 @@ PaperHub
 
                 if (papers.length === 0) {
                     if (topics.length === 0) {
-                        feed.innerHTML = '<p class="text-center text-slate-400 py-12">Bạn chưa theo dõi chủ đề nào. <a href="/profile" class="text-[#1A365D] font-semibold underline">Cài đặt tại Profile</a></p>';
+                        feed.innerHTML = '<p class="text-center text-slate-400 py-12">' + t('Bạn chưa theo dõi chủ đề nào. <a href="/profile" class="text-[#1A365D] font-semibold underline">Cài đặt tại Profile</a></p>', 'You are not following any topics. <a href="/profile" class="text-[#1A365D] font-semibold underline">Set up in Profile</a></p>') + '</p>';
                     } else {
-                        feed.innerHTML = '<p class="text-center text-slate-400 py-12">Chưa có bài viết nào trong các chủ đề bạn theo dõi.</p>';
+                        feed.innerHTML = '<p class="text-center text-slate-400 py-12">' + t('Chưa có bài viết nào trong các chủ đề bạn theo dõi.', 'No papers yet in your followed topics.') + '</p>';
                     }
                     displayCount.textContent = '';
                 } else {
                     papers.forEach(function (paper) {
                         feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
                     });
-                    displayCount.textContent = `Hiển thị ${papers.length} bài • Theo dõi: ${topics.join(', ')}`;
+                    displayCount.textContent = t(
+                        `Hiển thị ${papers.length} bài • Theo dõi: ${topics.join(', ')}`,
+                        `Showing ${papers.length} papers • Following: ${topics.join(', ')}`
+                    );
                 }
             } catch (err) {
                 console.error('Following papers error:', err);
-                feed.innerHTML = '<p class="text-center text-red-400 py-12">Lỗi tải danh sách bài viết.</p>';
+                feed.innerHTML = '<p class="text-center text-red-400 py-12">' + t('Lỗi tải danh sách bài viết.', 'Error loading papers.') + '</p>';
                 displayCount.textContent = '';
             } finally {
                 loading.classList.add('hidden');

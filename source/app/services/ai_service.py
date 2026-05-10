@@ -64,13 +64,18 @@ Tiếp theo, dịch abstract sau sang tiếng Việt tự nhiên, hấp dẫn, d
 Abstract gốc:
 {paper.abstract}
 
-Cuối cùng, tóm tắt ý quan trọng nhất của abstract bằng một đoạn văn ngắn gọn, rõ ràng, thiên về kết quả và đóng góp.
+Cuối cùng, tóm tắt ý quan trọng nhất của abstract bằng một đoạn văn ngắn gọn, rõ ràng, thiên về kết quả và đóng góp (bằng tiếng Việt).
+
+NGOÀI RA, cung cấp thêm phiên bản tiếng Anh của tiêu đề, abstract và tóm tắt (title_en, abstract_en, summary_en). Với tiêu đề và abstract tiếng Anh, giữ nguyên nội dung gốc nếu chúng đã là tiếng Anh tốt, chỉ cần làm sạch (loại bỏ ký hiệu LaTeX). Với summary_en, viết một bản tóm tắt ngắn gọn bằng tiếng Anh.
 
 Trả về định dạng JSON sau (KHÔNG có markdown code fence):
 {{
   "title": "...",
   "abstract": "...",
-  "summary": "..."
+  "summary": "...",
+  "title_en": "...",
+  "abstract_en": "...",
+  "summary_en": "..."
 }}
 """
 
@@ -98,10 +103,16 @@ Trả về định dạng JSON sau (KHÔNG có markdown code fence):
     title = output.get("title", paper.title).strip()
     abstract = output.get("abstract", paper.abstract).strip()
     summary = output.get("summary", "").strip()
+    title_en = output.get("title_en", "").strip()
+    abstract_en = output.get("abstract_en", "").strip()
+    summary_en = output.get("summary_en", "").strip()
 
     paper.title = title
     paper.abstract = abstract
     paper.ai_summary = summary
+    paper.title_en = title_en or paper.title_en
+    paper.abstract_en = abstract_en or paper.abstract_en
+    paper.ai_summary_en = summary_en or paper.ai_summary_en
     paper.status = "posted"
 
     db.session.add(paper)

@@ -46,10 +46,12 @@ def fetch_arxiv_papers(query: str = "Học Máy", max_results: int = 20) -> int:
 
         paper = Paper()
         paper.title = result.title
+        paper.title_en = result.title
         paper.published_date = result.published.strftime("%Y-%m-%d")
         paper.authors = ", ".join(author.name for author in result.authors)
         paper.publisher = result.primary_category
         paper.abstract = result.summary
+        paper.abstract_en = result.summary
         paper.link = result.pdf_url
         paper.category_id = category_id
         paper.cited_count = 0

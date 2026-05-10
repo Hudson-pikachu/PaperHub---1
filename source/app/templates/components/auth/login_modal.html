@@ -1,3 +1,4 @@
+{% set lang = session.get('lang', 'vi') %}
 <div id="login-modal"
     class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/40 backdrop-blur-sm px-4">
     <div class="relative w-full max-w-md">
@@ -14,10 +15,10 @@
             <!-- Title -->
             <div class="text-center mb-8">
                 <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[#1A365D]">
-                    Chào mừng trở lại
+                    {{ 'Welcome Back' if lang == 'en' else 'Chào mừng trở lại' }}
                 </h1>
                 <p class="text-sm md:text-base text-slate-500 mt-3">
-                    Đăng nhập để tiếp tục với PaperHub
+                    {{ 'Login to continue with PaperHub' if lang == 'en' else 'Đăng nhập để tiếp tục với PaperHub' }}
                 </p>
             </div>
 
@@ -29,7 +30,7 @@
             <!-- Gate message (shown when login is required for a feature) -->
             <div id="login-gate-message"
                 class="hidden mb-4 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700 text-center">
-                Vui lòng đăng nhập để sử dụng tính năng này.
+                {{ 'Please login to use this feature.' if lang == 'en' else 'Vui lòng đăng nhập để sử dụng tính năng này.' }}
             </div>
 
             <!-- Form -->
@@ -39,14 +40,14 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-2">
                         Email / Username
                     </label>
-                    <input id="login-identifier" type="text" placeholder="you@example.com hoặc username"
+                    <input id="login-identifier" type="text" placeholder="you@example.com {{ 'or username' if lang == 'en' else 'hoặc username' }}"
                         class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
                 <!-- Password -->
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">
-                        Mật khẩu
+                        {{ 'Password' if lang == 'en' else 'Mật khẩu' }}
                     </label>
                     <input id="login-password" type="password" placeholder="••••••••"
                         class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -56,14 +57,14 @@
                 <div class="flex items-center gap-2">
                     <input id="login-remember" type="checkbox" class="w-4 h-4 rounded accent-[#1A365D] cursor-pointer">
                     <label for="login-remember" class="text-sm text-slate-600 cursor-pointer select-none">
-                        Ghi nhớ đăng nhập
+                        {{ 'Remember me' if lang == 'en' else 'Ghi nhớ đăng nhập' }}
                     </label>
                 </div>
 
                 <!-- Login Button -->
                 <button id="login-submit" type="submit"
                     class="w-full bg-[#1A365D] text-white py-3 rounded-2xl text-sm md:text-base font-semibold tracking-wide hover:bg-[#2C5282] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
-                    Đăng nhập
+                    {{ 'Login' if lang == 'en' else 'Đăng nhập' }}
                 </button>
             </form>
 
@@ -76,10 +77,10 @@
 
             <!-- Register -->
             <p class="text-sm text-center text-slate-500">
-                Chưa có tài khoản?
+                {{ "Don't have an account?" if lang == 'en' else 'Chưa có tài khoản?' }}
                 <button type="button" id="switch-to-register-modal"
                     class="text-[#1A365D] font-semibold hover:text-[#2C5282] transition-colors">
-                    Đăng ký
+                    {{ 'Register' if lang == 'en' else 'Đăng ký' }}
                 </button>
             </p>
         </div>
