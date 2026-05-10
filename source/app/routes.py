@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, redirect, url_for, session
 from flask_login import login_required, current_user
 from .database.models import db, Paper, Category, SchedulerState, SavedPaper, UserCategory, UserPaperRead
+from sqlalchemy import or_, case
 from datetime import datetime, timedelta
 
 main_bp = Blueprint('main', __name__)
@@ -326,6 +327,62 @@ def mark_paper_read():
     unread_count = remaining.count()
 
     return jsonify({'success': True, 'unread_count': unread_count})
+
+@main_bp.route('/search')
+def search():
+    """Tìm kiếm bài nghiên cứu theo keyword (tiếng Việt + tiếng Anh), trả về tối đa 5 kết quả."""
+    q = request.args.get('q', default='', type=str).strip()
+    if not q or len(q) < 1:
+        return jsonify({'success': True, 'papers': []})
+
+    keyword = f'%{q}%'
+
+    # Ranking: title (5), abstract/ai_summary (3), authors (1)
+    score = case(
+        (Paper.title.ilike(keyword), 5),
+        (Paper.title_en.ilike(keyword), 5),
+        (Paper.abstract.ilike(keyword), 3),
+        (Paper.abstract_en.ilike(keyword), 3),
+        (Paper.ai_summary.ilike(keyword), 3),
+        (Paper.ai_summary_en.ilike(keyword), 3),
+        (Paper.authors.ilike(keyword), 1),
+        else_=0
+    )
+
+    results = (
+        Paper.query
+        .filter_by(status='posted')
+        .outerjoin(Category)
+        .filter(or_(
+            Paper.title.ilike(keyword),
+            Paper.title_en.ilike(keyword),
+            Paper.abstract.ilike(keyword),
+            Paper.abstract_en.ilike(keyword),
+            Paper.ai_summary.ilike(keyword),
+            Paper.ai_summary_en.ilike(keyword),
+            Paper.authors.ilike(keyword),
+        ))
+        .add_columns(score.label('match_score'))
+        .order_by(db.desc('match_score'), Paper.date_added.desc())
+        .limit(5)
+        .all()
+    )
+
+    papers = []
+    for paper, match_score in results:
+        papers.append({
+            'id': paper.id,
+            'title': paper.title,
+            'title_en': paper.title_en,
+            'authors': paper.authors,
+            'published_date': paper.published_date,
+            'category': paper.category_name,
+            'abstract': (paper.abstract or '')[:150] + ('...' if paper.abstract and len(paper.abstract) > 150 else ''),
+            'abstract_en': (paper.abstract_en or '')[:150] + ('...' if paper.abstract_en and len(paper.abstract_en) > 150 else ''),
+            'match_score': match_score,
+        })
+
+    return jsonify({'success': True, 'papers': papers})
 
 @main_bp.route('/set-language/<lang>')
 def set_language(lang):
