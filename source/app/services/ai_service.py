@@ -48,6 +48,14 @@ def translate_and_summarize_paper(paper_id: int, model: str = "gemini-2.5-flash-
 
     prompt = f"""
 Bạn là trợ lý dịch thuật kỹ thuật cho nội dung khoa học và AI.
+
+QUY TẮC BẮT BUỘC:
+- KHÔNG sử dụng bất kỳ ký hiệu toán học LaTeX nào (tuyệt đối không dùng $, $$, \\(...\\), \\[...\\], \\frac, \\sum, v.v.)
+- Thay thế mọi công thức, ký hiệu toán học bằng LỜI VĂN tiếng Việt tự nhiên, dễ hiểu.
+  Ví dụ: "$O(n \\log n)$" → "độ phức tạp O(n log n)" hoặc "thời gian chạy tỉ lệ với n nhân log n"
+  Ví dụ: "$k$-MSR" → "bài toán k-MSR" hoặc viết rõ tên đầy đủ
+- Giữ tên riêng, tên phương pháp, tên mô hình bằng tiếng Anh (ví dụ: GPT, BERT, Transformer)
+
 Hãy dịch và viết lại tiêu đề sau sang tiếng Việt chuẩn thuật ngữ, tự nhiên, hấp dẫn, giữ nguyên ý chính của bài nghiên cứu.
 Tiêu đề gốc:
 {paper.title}
@@ -57,7 +65,8 @@ Abstract gốc:
 {paper.abstract}
 
 Cuối cùng, tóm tắt ý quan trọng nhất của abstract bằng một đoạn văn ngắn gọn, rõ ràng, thiên về kết quả và đóng góp.
-Trả về định dạng JSON sau:
+
+Trả về định dạng JSON sau (KHÔNG có markdown code fence):
 {{
   "title": "...",
   "abstract": "...",

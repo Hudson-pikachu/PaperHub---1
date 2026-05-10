@@ -76,3 +76,16 @@ SECRET_KEY = 'paperhub-secret-key-2026-change-in-production'
 # --- SQLAlchemy settings (evaluated once at import time) ---
 SQLALCHEMY_DATABASE_URI = get_db_uri()
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# --- Connection pool settings (tránh lỗi "MySQL server has gone away") ---
+SQLALCHEMY_ENGINE_OPTIONS = {
+    # Tái tạo connection sau 280 giây (trước khi MySQL server đóng sau 300s idle)
+    'pool_recycle': 280,
+    # Kiểm tra connection còn sống không trước mỗi lần dùng (SELECT 1)
+    'pool_pre_ping': True,
+    # Timeout khi chờ lấy connection từ pool
+    'pool_timeout': 20,
+    # Số connection tối đa trong pool
+    'pool_size': 5,
+    'max_overflow': 10,
+}
