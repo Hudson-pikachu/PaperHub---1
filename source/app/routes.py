@@ -35,7 +35,14 @@ def load_more():
             "cited_count": p.cited_count
         })
     
-    return jsonify(output)
+    # Kiểm tra xem còn bài nào nữa không
+    total = Paper.query.filter_by(status='posted').join(Category).count()
+    has_more = (offset + limit) < total
+    
+    return jsonify({
+        "papers": output,
+        "has_more": has_more
+    })
 
 @main_bp.route('/scheduler-status')
 def scheduler_status():

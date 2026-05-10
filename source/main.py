@@ -3,7 +3,7 @@ import sys
 import os
 from app import create_app
 
-
+# Kiểm tra và cài đặt thư viện trước khi khởi động ứng dụng
 # def ensure_dependencies():
 #     """Kiểm tra và cài đặt các dependencies từ requirements.txt nếu chưa có."""
 #     script_dir = os.path.dirname(os.path.abspath(__file__))
