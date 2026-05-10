@@ -13,7 +13,7 @@ Mục tiêu có được Prototype giao diện web hiển thị danh sách paper
 Mục tiêu Prototype có thêm chức năng tự động quét dữ liệu từ 1 đến 3 nguồn bài báo khoa học để nạp vào cơ sở dữ liệu, cấu trúc nạp vào được chuẩn hóa theo cấu trúc của cơ sở dữ liệu. Có thêm chức năng login, phân biệt các người dùng khác nhau để bổ sung các chức năng cá nhân hóa trải nghiệm bao gồm cả thông báo cho người dùng khi có paper mới.
 + Chức năng cơ bản sẽ hoàn thành:
     ✓ 3. Tự động lấy paper mới theo chủ đề
-    1. Đăng ký, đăng nhập
+    ✓ Đăng ký, đăng nhập
     2. Thêm, sửa, xóa chủ đề theo dõi
     9. Lưu paper yêu thích
 + Chức năng nâng cao sẽ hoàn thành:
