@@ -11,16 +11,18 @@ PaperHub
 <div class="mb-6 flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm">
     <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
         <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
         </svg>
     </div>
     <div>
         <p class="text-sm font-semibold text-amber-800">Mất kết nối cơ sở dữ liệu</p>
         <p class="text-xs text-amber-600">Đang hiển thị dữ liệu demo. Vui lòng thử lại sau.</p>
     </div>
-    <button onclick="this.parentElement.remove()" class="ml-auto flex-shrink-0 w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors">
+    <button onclick="this.parentElement.remove()"
+        class="ml-auto flex-shrink-0 w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center hover:bg-amber-200 transition-colors">
         <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
     </button>
 </div>
@@ -73,7 +75,7 @@ PaperHub
     </p>
     <button id="load-more-btn"
         class="inline-flex items-center justify-center px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] hover:scale-[1.02] transition-all tracking-wide">
-        Xem thêm
+        Xem thêm Paper
     </button>
 </section>
 
@@ -82,25 +84,25 @@ PaperHub
 {% block extra_js %}
 <!-- Load more papers functionality -->
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const LIMIT = 5;
-    const feed = document.getElementById('paper-feed');
-    const displayCount = document.getElementById('display-count');
-    const loadMoreBtn = document.getElementById('load-more-btn');
-    const loading = document.getElementById('loading');
+    document.addEventListener('DOMContentLoaded', function () {
+        const LIMIT = 5;
+        const feed = document.getElementById('paper-feed');
+        const displayCount = document.getElementById('display-count');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const loading = document.getElementById('loading');
 
-    let isLoading = false;
+        let isLoading = false;
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-    function createPaperCard(paper) {
-        const hasSummary = paper.ai_summary && paper.ai_summary.trim() !== '';
-        return `
+        function createPaperCard(paper) {
+            const hasSummary = paper.ai_summary && paper.ai_summary.trim() !== '';
+            return `
         <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
             <span class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
                 ${escapeHtml(paper.category)}
@@ -153,66 +155,66 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
         </article>`;
-    }
-
-    function getCurrentCount() {
-        return feed.querySelectorAll('.paper-card').length;
-    }
-
-    async function loadMore() {
-        if (isLoading) return;
-        isLoading = true;
-
-        loading.classList.remove('hidden');
-        loadMoreBtn.disabled = true;
-        loadMoreBtn.textContent = 'Đang tải...';
-
-        try {
-            const offset = getCurrentCount();
-            const response = await fetch(`/load-more?offset=${offset}`);
-            const result = await response.json();
-            const papers = result.papers;
-            const hasMore = result.has_more;
-
-            if (papers.length === 0) {
-                loadMoreBtn.classList.add('hidden');
-                displayCount.textContent = `Bạn đã xem hết ${getCurrentCount()} bài nghiên cứu`;
-                return;
-            }
-
-            papers.forEach(paper => {
-                feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
-            });
-
-            // Re-render MathJax cho các paper card mới vừa thêm vào
-            if (window.MathJax && MathJax.typesetPromise) {
-                MathJax.typesetPromise([feed]).catch(err => console.warn('MathJax:', err));
-            }
-
-            const newCount = getCurrentCount();
-            displayCount.textContent = `Đang hiển thị ${newCount} bài nghiên cứu`;
-
-            if (!hasMore) {
-                loadMoreBtn.classList.add('hidden');
-                displayCount.textContent = `Bạn đã xem hết ${newCount} bài nghiên cứu`;
-            } else {
-                loadMoreBtn.disabled = false;
-                loadMoreBtn.textContent = 'Xem thêm bài viết';
-            }
-
-        } catch (error) {
-            console.error(error);
-            loadMoreBtn.disabled = false;
-            loadMoreBtn.textContent = 'Xem thêm bài viết';
-        } finally {
-            loading.classList.add('hidden');
-            isLoading = false;
         }
-    }
 
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', loadMore);
-    }
-});
+        function getCurrentCount() {
+            return feed.querySelectorAll('.paper-card').length;
+        }
+
+        async function loadMore() {
+            if (isLoading) return;
+            isLoading = true;
+
+            loading.classList.remove('hidden');
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.textContent = 'Đang tải...';
+
+            try {
+                const offset = getCurrentCount();
+                const response = await fetch(`/load-more?offset=${offset}`);
+                const result = await response.json();
+                const papers = result.papers;
+                const hasMore = result.has_more;
+
+                if (papers.length === 0) {
+                    loadMoreBtn.classList.add('hidden');
+                    displayCount.textContent = `Bạn đã xem hết ${getCurrentCount()} bài nghiên cứu`;
+                    return;
+                }
+
+                papers.forEach(paper => {
+                    feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
+                });
+
+                // Re-render MathJax cho các paper card mới vừa thêm vào
+                if (window.MathJax && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([feed]).catch(err => console.warn('MathJax:', err));
+                }
+
+                const newCount = getCurrentCount();
+                displayCount.textContent = `Đang hiển thị ${newCount} bài nghiên cứu`;
+
+                if (!hasMore) {
+                    loadMoreBtn.classList.add('hidden');
+                    displayCount.textContent = `Bạn đã xem hết ${newCount} bài nghiên cứu`;
+                } else {
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.textContent = 'Xem thêm Paper';
+                }
+
+            } catch (error) {
+                console.error(error);
+                loadMoreBtn.disabled = false;
+                loadMoreBtn.textContent = 'Xem thêm Paper';
+            } finally {
+                loading.classList.add('hidden');
+                isLoading = false;
+            }
+        }
+
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', loadMore);
+        }
+    });
 </script>
 {% endblock %}
