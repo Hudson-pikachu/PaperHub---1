@@ -65,21 +65,22 @@ PaperHub
 
 <!-- Feed Footer-->
 <section id="feed-footer" class="mt-10 text-center">
+    {% set lang = session.get('lang', 'vi') %}
     <div id="loading" class="text-center py-8 hidden">
         <div class="flex flex-col items-center gap-3">
             <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#1A365D]">
             </div>
             <p class="text-sm text-slate-400">
-                Đang tải thêm...
+                {{ 'Loading more...' if lang == 'en' else 'Đang tải thêm...' }}
             </p>
         </div>
     </div>
     <p id="display-count" class="text-sm text-slate-500 mb-4">
-        Đang hiển thị {{ papers|length }} bài
+        {{ ('Showing ' ~ papers|length ~ ' papers') if lang == 'en' else ('Đang hiển thị ' ~ papers|length ~ ' bài') }}
     </p>
     <button id="load-more-btn"
         class="inline-flex items-center justify-center px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] hover:scale-[1.02] transition-all tracking-wide">
-        Xem thêm bài nghiên cứu
+        {{ 'Load more papers' if lang == 'en' else 'Xem thêm bài nghiên cứu' }}
     </button>
 </section>
 

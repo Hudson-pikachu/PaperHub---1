@@ -1,12 +1,12 @@
-<!-- Language Switch: click 🇻🇳 → English, click 🇺🇸 → Vietnamese -->
+<!-- Language Switch: click 🇻🇳 (VN flag) → Vietnamese, click 🇺🇸 (US flag) → English -->
 {% set current_lang = session.get('lang', 'vi') %}
 <div class="inline-flex items-center rounded-full bg-white border border-slate-200 p-0.5 gap-0.5">
-    <a href="/set-language/en"
-        class="flex items-center justify-center w-8 h-8 rounded-full transition-all {{ 'bg-[#1A365D] shadow-sm scale-110' if current_lang == 'en' else 'opacity-40 hover:opacity-70' }}">
-        <span class="text-base leading-none">🇻🇳</span>
-    </a>
     <a href="/set-language/vi"
         class="flex items-center justify-center w-8 h-8 rounded-full transition-all {{ 'bg-[#1A365D] shadow-sm scale-110' if current_lang == 'vi' else 'opacity-40 hover:opacity-70' }}">
-        <span class="text-base leading-none">🇺🇸</span>
+        <img src="{{ url_for('static', filename='images/flags/vn.svg') }}" alt="VN" class="w-5 h-[15px] object-contain">
+    </a>
+    <a href="/set-language/en"
+        class="flex items-center justify-center w-8 h-8 rounded-full transition-all {{ 'bg-[#1A365D] shadow-sm scale-110' if current_lang == 'en' else 'opacity-40 hover:opacity-70' }}">
+        <img src="{{ url_for('static', filename='images/flags/us.svg') }}" alt="US" class="w-5 h-[15px] object-contain">
     </a>
 </div>
