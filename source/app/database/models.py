@@ -72,6 +72,11 @@ class User(db.Model, UserMixin):
     # Trạng thái tài khoản (UserMixin dùng is_active)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
+    def __init__(self, username: str, email: str, **kwargs):
+        super().__init__(**kwargs)
+        self.username = username
+        self.email = email
+
     def set_password(self, password: str):
         """Hash và lưu mật khẩu."""
         self.password_hash = generate_password_hash(password)
