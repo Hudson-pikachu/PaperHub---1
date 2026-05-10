@@ -77,15 +77,20 @@ SECRET_KEY = 'paperhub-secret-key-2026-change-in-production'
 SQLALCHEMY_DATABASE_URI = get_db_uri()
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-# --- Connection pool settings (tránh lỗi "MySQL server has gone away") ---
+# --- Connection pool settings ---
+# QUAN TRỌNG — Shared hosting thường giới hạn tổng connections MySQL (~25-50).
+# Với Gunicorn multi-worker (vd: 12 workers), mỗi worker cần pool riêng.
+# pool_size=2, max_overflow=2 → mỗi worker tối đa 4 connections.
+# 12 workers × 4 = 48 connections → an toàn với shared hosting.
+# Nếu host giới hạn thấp hơn, giảm pool_size xuống 1.
 SQLALCHEMY_ENGINE_OPTIONS = {
     # Tái tạo connection sau 280 giây (trước khi MySQL server đóng sau 300s idle)
     'pool_recycle': 280,
     # Kiểm tra connection còn sống không trước mỗi lần dùng (SELECT 1)
     'pool_pre_ping': True,
     # Timeout khi chờ lấy connection từ pool
-    'pool_timeout': 20,
-    # Số connection tối đa trong pool
-    'pool_size': 5,
-    'max_overflow': 10,
+    'pool_timeout': 10,
+    # Giảm pool_size để không vượt giới hạn connections của shared hosting
+    'pool_size': 2,
+    'max_overflow': 2,
 }

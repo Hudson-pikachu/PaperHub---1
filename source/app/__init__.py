@@ -157,6 +157,6 @@ def create_app():
             scheduler.start()
             print("[Scheduler] Đã start (production mode).")
     else:
-        print("[Scheduler] Đã TẮT. Set ENABLE_SCHEDULER=true trên host chính để bật.")
+        print("[Scheduler] DISABLED. Set ENABLE_SCHEDULER=true to ENABLE.")
 
     return app
