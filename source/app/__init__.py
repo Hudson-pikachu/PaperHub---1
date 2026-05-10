@@ -95,6 +95,6 @@ def create_app():
         hours=6,
         next_run_time=next_run,
     )
-    scheduler.start()
+    #scheduler.start()
 
     return app
