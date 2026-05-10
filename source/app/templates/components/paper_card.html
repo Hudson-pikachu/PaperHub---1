@@ -58,13 +58,14 @@
 
         <div class="flex justify-between items-center pt-2">
             <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-4">
                 <button type="button"
-                    class="bookmark-btn inline-flex items-center justify-center text-xl transition-all {% if paper.id in saved_paper_ids %}bookmark-active text-[#1A365D]{% else %}text-slate-300 hover:text-[#1A365D]{% endif %}"
+                    class="bookmark-btn inline-flex items-center text-sm font-semibold transition-all {% if paper.id in saved_paper_ids %}bookmark-active text-[#1A365D]{% else %}text-slate-300 hover:text-[#1A365D]{% endif %}"
                     data-paper-id="{{ paper.id }}" aria-label="Lưu bài nghiên cứu" title="Lưu bài nghiên cứu">
-                    <svg class="w-7 h-7" viewBox="0 0 20 20" fill="currentColor">
+                    <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                     </svg>
+                    <span>Lưu</span>
                 </button>
                 <a href="{{ paper.link }}" target="_blank"
                     class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
