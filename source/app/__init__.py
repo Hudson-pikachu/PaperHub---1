@@ -134,29 +134,35 @@ def create_app():
         replace_existing=True,
     )
 
-    # ── Bảo vệ: chỉ start scheduler khi được phép tường minh ──
+    # TODO: TẠM THỜI ép scheduler luôn chạy để test trên host.
+    # Sau khi test xong, xóa dòng force=True và bỏ comment đoạn logic bên dưới.
     #
-    # Vấn đề: nhiều instance app (host + các dev local) cùng chung 1 DB.
-    # Nếu tất cả đều start scheduler → cùng 1 lúc N job chạy song song
-    # → fetch arXiv + gọi Google AI N lần → ghi đè/trùng lặp vào DB.
-    #
-    # Giải pháp: scheduler MẶC ĐỊNH TẮT.
-    # Chỉ bật khi set env var ENABLE_SCHEDULER=true — chỉ host chính mới set cái này.
-    # Dev local không cần làm gì cả, scheduler tự động không chạy.
-    #
-    # Nếu host dùng Gunicorn multi-worker: chỉ set ENABLE_SCHEDULER=true
-    # trên đúng 1 worker (dùng --workers 1, hoặc tách process riêng).
-    enable_scheduler = os.environ.get('ENABLE_SCHEDULER', 'false').lower() == 'true'
+    # ── Cấu hình scheduler ──
+    #   - ENABLE_SCHEDULER=true   → bắt buộc bật (host chính production)
+    #   - ENABLE_SCHEDULER=false  → bắt buộc tắt (các worker phụ)
+    #   - Không set (None)        → tự động bật nếu debug=True, tắt nếu debug=False
+    force_scheduler = True  # ← TẠM THỜI: ép luôn chạy, bỏ qua env var
+
+    if force_scheduler:
+        enable_scheduler = True
+    else:
+        enable_scheduler_env = os.environ.get('ENABLE_SCHEDULER', None)
+        if enable_scheduler_env is not None:
+            enable_scheduler = enable_scheduler_env.lower() == 'true'
+        else:
+            enable_scheduler = app.debug
+
     if enable_scheduler:
         if app.debug:
-            # Flask debug mode: chỉ start trong process con của reloader (tránh chạy 2 lần)
             if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
                 scheduler.start()
-                print("[Scheduler] STARED (debug mode).")
+                print("[Scheduler] STARTED (debug mode, force=True).")
+            else:
+                print("[Scheduler] Waiting for reloader child process...")
         else:
             scheduler.start()
-            print("[Scheduler] STARED (production mode).")
+            print("[Scheduler] STARTED (production mode, force=True).")
     else:
-        print("[Scheduler] DISABLED. Set ENABLE_SCHEDULER=true to ENABLE.")
+        print("[Scheduler] DISABLED. Set ENABLE_SCHEDULER=true to enable.")
 
     return app

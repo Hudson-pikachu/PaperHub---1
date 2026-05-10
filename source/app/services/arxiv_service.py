@@ -1,7 +1,7 @@
 import arxiv
 from datetime import datetime
 from ..database.models import Paper, Category, db
-from .ai_service import translate_and_summarize_paper
+from .ai_service import batch_translate_and_summarize
 
 ARXIV_CATEGORY_MAP = {
     "Học Máy": "cs.LG",
@@ -27,8 +27,12 @@ def _resolve_category_id(query: str) -> int | None:
     return None
 
 
-def fetch_arxiv_papers(query: str = "Học Máy", max_results: int = 20) -> int:
-    """Lấy tối đa max_results bài viết mới nhất từ arXiv và lưu vào database."""
+def fetch_arxiv_papers(query: str = "Học Máy", max_results: int = 20) -> tuple[int, list[int]]:
+    """Lấy tối đa max_results bài viết mới nhất từ arXiv và lưu vào database.
+
+    Returns:
+        (số bài đã lưu, danh sách ID các bài mới tạo - status="pending")
+    """
     query_code = _resolve_arxiv_query(query)
     category_id = _resolve_category_id(query)
 
@@ -62,20 +66,27 @@ def fetch_arxiv_papers(query: str = "Học Máy", max_results: int = 20) -> int:
         saved += 1
 
     db.session.commit()
-
-    for paper_id in new_paper_ids:
-        try:
-            translate_and_summarize_paper(paper_id)
-        except Exception:
-            # Nếu Google AI lỗi thì giữ paper ở trạng thái pending và tiếp tục xử lý bài khác.
-            continue
-
-    return saved
+    return saved, new_paper_ids
 
 
 def fetch_arxiv_for_all_categories(per_category: int = 2) -> int:
-    """Lấy mỗi category trong ARXIV_CATEGORY_MAP per_category bài."""
+    """Lấy mỗi category trong ARXIV_CATEGORY_MAP per_category bài.
+
+    Gom TẤT CẢ bài mới từ mọi category, rồi gọi batch Google AI 1 lần duy nhất.
+    """
     total_saved = 0
+    all_new_ids = []
+
     for local_category in ARXIV_CATEGORY_MAP.keys():
-        total_saved += fetch_arxiv_papers(query=local_category, max_results=per_category)
+        saved, new_ids = fetch_arxiv_papers(query=local_category, max_results=per_category)
+        total_saved += saved
+        all_new_ids.extend(new_ids)
+
+    # Gọi batch Google AI 1 lần duy nhất cho tất cả bài mới
+    if all_new_ids:
+        try:
+            batch_translate_and_summarize(all_new_ids)
+        except Exception:
+            pass
+
     return total_saved
