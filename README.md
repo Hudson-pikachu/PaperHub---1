@@ -3,6 +3,6 @@ PaperHub là một nền tảng tổng hợp và quản lý tài liệu nghiên 
 */---------------/*
 # Cấu Trúc Mã Nguồn
 PaperHub được tổ chức theo mô hình Flask Application để tách biệt giữa cấu hình, dữ liệu và logic xử lý:
-* `main.py: Điểm khởi chạy ứng dụng (Entry Point). Thiết lập Host 0.0.0.0 hỗ trợ truy cập đa thiết bị.
+* `main.py`: Điểm khởi chạy ứng dụng (Entry Point). Thiết lập Host 0.0.0.0 hỗ trợ truy cập đa thiết bị.
 * 'config.py': Quản lý cấu hình hệ thống. Đặc biệt có cơ chế Auto-fallback: tự động chuyển sang dùng SQLite (data.db) nếu kết nối MySQL server thất bại.
 * 'requirements.txt': Danh sách toàn bộ thư viện cần thiết (Flask, SQLAlchemy, Google-GenAI, Arxiv API...).
