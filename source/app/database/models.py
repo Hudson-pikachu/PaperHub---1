@@ -92,3 +92,38 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f'<User {self.username}>'
+
+
+class SavedPaper(db.Model):
+    """Bảng lưu bài viết của người dùng (bookmark)."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    paper_id = db.Column(db.Integer, db.ForeignKey('paper.id', ondelete='CASCADE'), nullable=False)
+    saved_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    user = db.relationship('User', backref='saved_papers')
+    paper = db.relationship('Paper', backref='saved_by')
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'paper_id', name='uq_user_paper_save'),
+    )
+
+    def __repr__(self):
+        return f'<SavedPaper user={self.user_id} paper={self.paper_id}>'
+
+
+class UserCategory(db.Model):
+    """Bảng theo dõi chủ đề yêu thích của người dùng."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id', ondelete='CASCADE'), nullable=False)
+
+    user = db.relationship('User', backref='followed_categories')
+    category = db.relationship('Category', backref='followers')
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'category_id', name='uq_user_category_follow'),
+    )
+
+    def __repr__(self):
+        return f'<UserCategory user={self.user_id} category={self.category_id}>'

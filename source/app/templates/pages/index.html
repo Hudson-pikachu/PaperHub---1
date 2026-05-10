@@ -32,20 +32,18 @@ PaperHub
 <div class="pt-5 pb-6 flex justify-center">
     <div class="inline-flex items-center gap-1.5 bg-slate-100 rounded-full p-1 backdrop-blur-sm">
 
-        <!-- Active -->
-        <button class="px-6 py-2 bg-white text-slate-800 text-sm font-semibold rounded-full shadow-sm transition-all">
+        <!-- Newest -->
+        <button id="filter-newest" class="filter-btn px-6 py-2 bg-white text-slate-800 text-sm font-semibold rounded-full shadow-sm transition-all" data-filter="newest">
             Newest
         </button>
 
-        <!-- Favorite -->
-        <button
-            class="px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all">
+        <!-- Saved -->
+        <button id="filter-saved" class="filter-btn px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all" data-filter="saved">
             Saved
         </button>
 
-        <!-- Daily -->
-        <button
-            class="px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all">
+        <!-- Following -->
+        <button id="filter-following" class="filter-btn px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all" data-filter="following">
             Following
         </button>
     </div>
@@ -85,6 +83,7 @@ PaperHub
 <!-- Load more papers functionality -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const IS_AUTHENTICATED = {{ 'true' if current_user.is_authenticated else 'false' }};
         const LIMIT = 5;
         const feed = document.getElementById('paper-feed');
         const displayCount = document.getElementById('display-count');
@@ -92,6 +91,19 @@ PaperHub
         const loading = document.getElementById('loading');
 
         let isLoading = false;
+        let currentFilter = 'newest'; // 'newest' | 'saved' | 'following'
+
+        // ── Bookmark toggle styling ──
+        const BOOKMARK_ACTIVE_CLASS = 'text-[#1A365D] fill-[#1A365D] border-[#1A365D]';
+        const BOOKMARK_INACTIVE_CLASS = 'text-slate-300 fill-slate-300 border-slate-200';
+
+        // ── Filter button styling ──
+        const FILTER_ACTIVE = 'bg-white text-slate-800 font-semibold shadow-sm';
+        const FILTER_INACTIVE = 'text-slate-500 font-medium';
+
+        const filterNewest = document.getElementById('filter-newest');
+        const filterSaved = document.getElementById('filter-saved');
+        const filterFollowing = document.getElementById('filter-following');
 
         function escapeHtml(text) {
             if (!text) return '';
@@ -100,8 +112,13 @@ PaperHub
             return div.innerHTML;
         }
 
+        function getBookmarkSvg() {
+            return '<svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>';
+        }
+
         function createPaperCard(paper) {
             const hasSummary = paper.ai_summary && paper.ai_summary.trim() !== '';
+            const pid = paper.id;
             return `
         <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
             <span class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
@@ -148,10 +165,17 @@ PaperHub
                 ` : ''}
                 <div class="flex justify-between items-center pt-2">
                     <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
-                    <a href="${escapeHtml(paper.link)}" target="_blank"
-                        class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
-                        Đọc bài
-                    </a>
+                    <div class="flex items-center gap-2">
+                        <button type="button"
+                            class="bookmark-btn inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-300 hover:text-[#1A365D] hover:border-[#1A365D] transition-all"
+                            data-paper-id="${pid}" aria-label="Lưu bài viết" title="Lưu bài viết">
+                            ${getBookmarkSvg()}
+                        </button>
+                        <a href="${escapeHtml(paper.link)}" target="_blank"
+                            class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
+                            Đọc bài
+                        </a>
+                    </div>
                 </div>
             </div>
         </article>`;
@@ -161,6 +185,7 @@ PaperHub
             return feed.querySelectorAll('.paper-card').length;
         }
 
+        // ── Load more (newest) ──
         async function loadMore() {
             if (isLoading) return;
             isLoading = true;
@@ -186,7 +211,7 @@ PaperHub
                     feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
                 });
 
-                // Re-render MathJax cho các paper card mới vừa thêm vào
+                // Re-render MathJax
                 if (window.MathJax && MathJax.typesetPromise) {
                     MathJax.typesetPromise([feed]).catch(err => console.warn('MathJax:', err));
                 }
@@ -213,7 +238,215 @@ PaperHub
         }
 
         if (loadMoreBtn) {
-            loadMoreBtn.addEventListener('click', loadMore);
+            loadMoreBtn.addEventListener('click', function() {
+                if (currentFilter === 'newest') {
+                    loadMore();
+                }
+            });
+        }
+
+        // ── Bookmark toggle (event delegation) ──
+        feed.addEventListener('click', async function(e) {
+            const btn = e.target.closest('.bookmark-btn');
+            if (!btn) return;
+
+            const paperId = btn.getAttribute('data-paper-id');
+            if (!paperId) return;
+
+            try {
+                const resp = await fetch('/save-paper', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paper_id: parseInt(paperId) })
+                });
+
+                if (resp.redirected) {
+                    window.location.href = resp.url;
+                    return;
+                }
+
+                const data = await resp.json();
+                if (!data.success) {
+                    alert(data.message || 'Có lỗi xảy ra.');
+                    return;
+                }
+
+                // Update UI: toggle active state
+                if (data.saved) {
+                    btn.classList.add('bookmark-active', 'text-[#1A365D]', 'border-[#1A365D]');
+                    btn.classList.remove('text-slate-300', 'border-slate-200');
+                } else {
+                    btn.classList.remove('bookmark-active', 'text-[#1A365D]', 'border-[#1A365D]');
+                    btn.classList.add('text-slate-300', 'border-slate-200');
+                }
+            } catch (err) {
+                console.error('Bookmark error:', err);
+                alert('Có lỗi kết nối, vui lòng thử lại.');
+            }
+        });
+
+        // ── Filter switching ──
+        function setActiveFilter(filter) {
+            currentFilter = filter;
+            [filterNewest, filterSaved, filterFollowing].forEach(function(btn, i) {
+                if (!btn) return;
+                const filters = ['newest', 'saved', 'following'];
+                if (filters[i] === filter) {
+                    btn.className = 'filter-btn px-6 py-2 text-sm rounded-full transition-all ' + FILTER_ACTIVE;
+                } else {
+                    btn.className = 'filter-btn px-6 py-2 text-sm rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all ' + FILTER_INACTIVE;
+                }
+            });
+        }
+
+        async function loadSavedPapers() {
+            if (isLoading) return;
+            isLoading = true;
+
+            feed.innerHTML = '';
+            loading.classList.remove('hidden');
+            loadMoreBtn.classList.add('hidden');
+            displayCount.textContent = 'Đang tải...';
+
+            try {
+                const resp = await fetch('/saved-papers');
+                if (resp.redirected) {
+                    window.location.href = resp.url;
+                    return;
+                }
+                const data = await resp.json();
+                const papers = data.papers || [];
+
+                if (papers.length === 0) {
+                    feed.innerHTML = '<p class="text-center text-slate-400 py-12">Bạn chưa lưu bài viết nào.</p>';
+                    displayCount.textContent = '';
+                } else {
+                    papers.forEach(function(paper) {
+                        feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
+                    });
+                    feed.querySelectorAll('.bookmark-btn').forEach(function(btn) {
+                        btn.classList.add('bookmark-active', 'text-[#1A365D]', 'border-[#1A365D]');
+                        btn.classList.remove('text-slate-300', 'border-slate-200');
+                    });
+                    displayCount.textContent = `Hiển thị ${papers.length} bài đã lưu`;
+                }
+            } catch (err) {
+                console.error('Saved papers error:', err);
+                feed.innerHTML = '<p class="text-center text-red-400 py-12">Lỗi tải danh sách đã lưu.</p>';
+                displayCount.textContent = '';
+            } finally {
+                loading.classList.add('hidden');
+                isLoading = false;
+            }
+        }
+
+        async function loadNewestFeed() {
+            window.location.href = '/';
+        }
+
+        if (filterNewest) {
+            filterNewest.addEventListener('click', function() {
+                if (currentFilter === 'newest') return;
+                setActiveFilter('newest');
+                loadNewestFeed();
+            });
+        }
+
+        // ── Helper: show login-required message with button to open login modal ──
+        function showLoginRequired() {
+            feed.innerHTML = `
+            <div class="text-center py-12">
+                <p class="text-slate-500 text-base mb-4">Vui lòng đăng nhập để sử dụng tính năng này.</p>
+                <button type="button" id="inline-open-login"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    Đăng nhập
+                </button>
+            </div>`;
+            displayCount.textContent = '';
+
+            const inlineLoginBtn = document.getElementById('inline-open-login');
+            if (inlineLoginBtn) {
+                inlineLoginBtn.addEventListener('click', function() {
+                    const loginModal = document.getElementById('login-modal');
+                    if (loginModal) {
+                        loginModal.classList.remove('hidden');
+                        loginModal.classList.add('flex');
+                    }
+                });
+            }
+        }
+
+        if (filterSaved) {
+            filterSaved.addEventListener('click', function() {
+                if (currentFilter === 'saved') return;
+                setActiveFilter('saved');
+                if (!IS_AUTHENTICATED) {
+                    loadMoreBtn.classList.add('hidden');
+                    loading.classList.add('hidden');
+                    showLoginRequired();
+                    return;
+                }
+                loadSavedPapers();
+            });
+        }
+
+        if (filterFollowing) {
+            filterFollowing.addEventListener('click', function() {
+                if (currentFilter === 'following') return;
+                setActiveFilter('following');
+                if (!IS_AUTHENTICATED) {
+                    loadMoreBtn.classList.add('hidden');
+                    loading.classList.add('hidden');
+                    showLoginRequired();
+                    return;
+                }
+                loadFollowingPapers();
+            });
+        }
+
+        async function loadFollowingPapers() {
+            if (isLoading) return;
+            isLoading = true;
+
+            feed.innerHTML = '';
+            loading.classList.remove('hidden');
+            loadMoreBtn.classList.add('hidden');
+            displayCount.textContent = 'Đang tải...';
+
+            try {
+                const resp = await fetch('/following-papers');
+                if (resp.redirected) {
+                    window.location.href = resp.url;
+                    return;
+                }
+                const data = await resp.json();
+                const papers = data.papers || [];
+                const topics = data.followed_topics || [];
+
+                if (papers.length === 0) {
+                    if (topics.length === 0) {
+                        feed.innerHTML = '<p class="text-center text-slate-400 py-12">Bạn chưa theo dõi chủ đề nào. <a href="/profile" class="text-[#1A365D] font-semibold underline">Cài đặt tại Profile</a></p>';
+                    } else {
+                        feed.innerHTML = '<p class="text-center text-slate-400 py-12">Chưa có bài viết nào trong các chủ đề bạn theo dõi.</p>';
+                    }
+                    displayCount.textContent = '';
+                } else {
+                    papers.forEach(function(paper) {
+                        feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
+                    });
+                    displayCount.textContent = `Hiển thị ${papers.length} bài • Theo dõi: ${topics.join(', ')}`;
+                }
+            } catch (err) {
+                console.error('Following papers error:', err);
+                feed.innerHTML = '<p class="text-center text-red-400 py-12">Lỗi tải danh sách bài viết.</p>';
+                displayCount.textContent = '';
+            } finally {
+                loading.classList.add('hidden');
+                isLoading = false;
+            }
         }
     });
 </script>
