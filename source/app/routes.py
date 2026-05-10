@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, current_app, redirect, url_for
+from flask_login import login_required, current_user
 from .database.models import Paper, Category, SchedulerState
 from datetime import datetime, timedelta
 
@@ -6,19 +7,22 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def home():
-    latest_papers = Paper.query.filter_by(status='posted').join(Category).order_by(Paper.date_added.desc()).limit(5).all()
-    return render_template('pages/index.html', papers=latest_papers)
+    is_fallback = current_app.config.get('DB_FALLBACK', False)
+    latest_papers = Paper.query.filter_by(status='posted').outerjoin(Category).order_by(Paper.date_added.desc()).limit(5).all()
+    return render_template('pages/index.html', papers=latest_papers, db_fallback=is_fallback)
 
 @main_bp.route('/profile')
+@login_required
 def profile():
-    return render_template('pages/profile.html')
+    categories = Category.query.order_by(Category.name).all()
+    return render_template('pages/profile.html', categories=categories)
 
 @main_bp.route('/load-more')
 def load_more():
     offset = request.args.get('offset', default=5, type=int)
     limit = 5
     
-    papers = Paper.query.filter_by(status='posted').join(Category).order_by(Paper.date_added.desc()).offset(offset).limit(limit).all()
+    papers = Paper.query.filter_by(status='posted').outerjoin(Category).order_by(Paper.date_added.desc()).offset(offset).limit(limit).all()
     
     output = []
     for p in papers:
@@ -36,7 +40,7 @@ def load_more():
         })
     
     # Kiểm tra xem còn bài nào nữa không
-    total = Paper.query.filter_by(status='posted').join(Category).count()
+    total = Paper.query.filter_by(status='posted').outerjoin(Category).count()
     has_more = (offset + limit) < total
     
     return jsonify({

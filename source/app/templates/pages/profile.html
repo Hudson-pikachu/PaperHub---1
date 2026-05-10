@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-PaperHub | Your Profile
+PaperHub | {{ current_user.username }}
 {% endblock %}
 
 {% block content %}
@@ -13,17 +13,22 @@ PaperHub | Your Profile
         <!-- Avatar -->
         <div
             class="w-32 h-32 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-4xl font-bold shadow-sm ring-2 ring-slate-100">
-            Q
+            {{ current_user.initials }}
         </div>
 
         <!-- Username -->
         <h1 class="mt-6 text-3xl md:text-4xl font-semibold tracking-tight text-[#1A365D]">
-            tranvanquy
+            {{ current_user.username }}
         </h1>
 
         <!-- Email -->
         <p class="mt-3 text-sm md:text-base text-slate-400">
-            tranvanquy@example.com
+            {{ current_user.email }}
+        </p>
+
+        <!-- Ngày tham gia -->
+        <p class="mt-1 text-xs text-slate-300">
+            Tham gia {{ current_user.created_at.strftime('%d/%m/%Y') if current_user.created_at else '' }}
         </p>
     </div>
 
@@ -38,49 +43,20 @@ PaperHub | Your Profile
                 Chủ đề theo dõi
             </h2>
             <p class="text-sm text-slate-400 mt-2">
-                6 chủ đề
+                Chọn chủ đề bạn quan tâm
             </p>
         </div>
 
-        <!-- Topic Tags -->
+        <!-- Topic Tags (danh mục từ hệ thống) -->
         <div class="flex flex-wrap justify-center gap-3">
-
-            <!-- Selected -->
+            {% for cat in categories %}
             <span
-                class="px-4 py-2 rounded-full bg-[#1A365D] text-white text-sm font-semibold shadow-sm hover:bg-[#2C5282] hover:shadow-md transition-all duration-200 cursor-pointer">
-                AI Agents
+                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-[#1A365D] hover:text-white hover:border-[#1A365D] hover:shadow-md transition-all duration-200 cursor-pointer">
+                {{ cat.name }}
             </span>
-
-            <!-- Selected -->
-            <span
-                class="px-4 py-2 rounded-full bg-[#1A365D] text-white text-sm font-semibold shadow-sm hover:bg-[#2C5282] hover:shadow-md transition-all duration-200 cursor-pointer">
-                Machine Learning
-            </span>
-
-            <!-- Unselected -->
-            <span
-                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
-                NLP
-            </span>
-
-            <!-- Unselected -->
-            <span
-                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
-                RAG Systems
-            </span>
-
-            <!-- Unselected -->
-            <span
-                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
-                Data Science
-            </span>
-
-            <!-- Unselected -->
-            <span
-                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
-                Research AI
-            </span>
-
+            {% else %}
+            <p class="text-slate-400 text-sm">Chưa có chủ đề nào.</p>
+            {% endfor %}
         </div>
     </div>
 </section>
