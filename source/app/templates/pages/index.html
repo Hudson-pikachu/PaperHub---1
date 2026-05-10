@@ -240,6 +240,10 @@ PaperHub
         if (loadMoreBtn) {
             loadMoreBtn.addEventListener('click', function() {
                 if (currentFilter === 'newest') {
+                    if (!IS_AUTHENTICATED) {
+                        showLoginRequired();
+                        return;
+                    }
                     loadMore();
                 }
             });
