@@ -19,14 +19,19 @@
                 </p>
             </div>
 
+            <!-- Error Message -->
+            <div id="register-error"
+                class="hidden mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
+            </div>
+
             <!-- Form -->
-            <form class="space-y-5">
-                <!-- Full Name -->
+            <form id="register-form" class="space-y-5" novalidate>
+                <!-- Username -->
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-2">
                         Username
                     </label>
-                    <input type="text" placeholder="nguyenvanan"
+                    <input id="register-username" type="text" placeholder="nguyenvanan"
                         class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
@@ -35,7 +40,7 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-2">
                         Email
                     </label>
-                    <input type="email" placeholder="nguyenvanan@example.com"
+                    <input id="register-email" type="email" placeholder="nguyenvanan@example.com"
                         class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
@@ -44,7 +49,7 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-2">
                         Mật khẩu
                     </label>
-                    <input type="password" placeholder="••••••••"
+                    <input id="register-password" type="password" placeholder="Tối thiểu 6 ký tự"
                         class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
@@ -53,13 +58,13 @@
                     <label class="block text-sm font-semibold text-slate-700 mb-2">
                         Xác nhận mật khẩu
                     </label>
-                    <input type="password" placeholder="••••••••"
+                    <input id="register-confirm" type="password" placeholder="Nhập lại mật khẩu"
                         class="auth-input w-full bg-white border border-slate-200 rounded-2xl px-4 py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
 
                 <!-- Register Button -->
-                <button type="submit"
-                    class="w-full bg-[#1A365D] text-white py-3 rounded-2xl text-sm md:text-base font-semibold tracking-wide hover:bg-[#2C5282] transition-all">
+                <button id="register-submit" type="submit"
+                    class="w-full bg-[#1A365D] text-white py-3 rounded-2xl text-sm md:text-base font-semibold tracking-wide hover:bg-[#2C5282] transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                     Đăng ký
                 </button>
             </form>
@@ -67,9 +72,7 @@
             <!-- Divider -->
             <div class="flex items-center gap-4 my-7">
                 <div class="flex-1 h-px bg-slate-200"></div>
-                <span class="text-xs text-slate-400 uppercase tracking-[0.2em]">
-                    PaperHub
-                </span>
+                <span class="text-xs text-slate-400 uppercase tracking-[0.2em]">PaperHub</span>
                 <div class="flex-1 h-px bg-slate-200"></div>
             </div>
 

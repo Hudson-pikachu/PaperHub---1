@@ -1,4 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 # Khởi tạo đối tượng Database
@@ -54,3 +56,34 @@ class Paper(db.Model):
 
     def __repr__(self):
         return f'<Paper {self.title[:30]}...>'
+
+
+class User(db.Model, UserMixin):
+    """Bảng người dùng — hỗ trợ đăng nhập qua Flask-Login."""
+    id = db.Column(db.Integer, primary_key=True)
+    # Tên đăng nhập (duy nhất)
+    username = db.Column(db.String(80), nullable=False, unique=True)
+    # Email (duy nhất)
+    email = db.Column(db.String(200), nullable=False, unique=True)
+    # Mật khẩu đã hash
+    password_hash = db.Column(db.String(256), nullable=False)
+    # Ngày tạo tài khoản
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Trạng thái tài khoản (UserMixin dùng is_active)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+
+    def set_password(self, password: str):
+        """Hash và lưu mật khẩu."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        """Kiểm tra mật khẩu với hash đã lưu."""
+        return check_password_hash(self.password_hash, password)
+
+    @property
+    def initials(self) -> str:
+        """Trả về 2 ký tự đầu của username (viết hoa), dùng cho avatar."""
+        return self.username[:2].upper() if self.username else '??'
+
+    def __repr__(self):
+        return f'<User {self.username}>'
