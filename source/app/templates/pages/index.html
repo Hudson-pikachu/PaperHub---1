@@ -184,6 +184,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
             });
 
+            // Re-render MathJax cho các paper card mới vừa thêm vào
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise([feed]).catch(err => console.warn('MathJax:', err));
+            }
+
             const newCount = getCurrentCount();
             displayCount.textContent = `Đang hiển thị ${newCount} bài nghiên cứu`;
 
