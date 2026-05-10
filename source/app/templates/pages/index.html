@@ -75,7 +75,7 @@ PaperHub
     </p>
     <button id="load-more-btn"
         class="inline-flex items-center justify-center px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] hover:scale-[1.02] transition-all tracking-wide">
-        Xem thêm Paper
+        Xem thêm bài nghiên cứu
     </button>
 </section>
 
@@ -199,13 +199,13 @@ PaperHub
                     displayCount.textContent = `Bạn đã xem hết ${newCount} bài nghiên cứu`;
                 } else {
                     loadMoreBtn.disabled = false;
-                    loadMoreBtn.textContent = 'Xem thêm Paper';
+                    loadMoreBtn.textContent = 'Xem thêm bài nghiên cứu';
                 }
 
             } catch (error) {
                 console.error(error);
                 loadMoreBtn.disabled = false;
-                loadMoreBtn.textContent = 'Xem thêm Paper';
+                loadMoreBtn.textContent = 'Xem thêm bài nghiên cứu';
             } finally {
                 loading.classList.add('hidden');
                 isLoading = false;
