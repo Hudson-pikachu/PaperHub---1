@@ -152,10 +152,10 @@ def create_app():
             # Flask debug mode: chỉ start trong process con của reloader (tránh chạy 2 lần)
             if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
                 scheduler.start()
-                print("[Scheduler] Đã start (debug mode).")
+                print("[Scheduler] STARED (debug mode).")
         else:
             scheduler.start()
-            print("[Scheduler] Đã start (production mode).")
+            print("[Scheduler] STARED (production mode).")
     else:
         print("[Scheduler] DISABLED. Set ENABLE_SCHEDULER=true to ENABLE.")
 
