@@ -39,3 +39,41 @@ body {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
 }
+
+/* ── Hover chỉ trên thiết bị có chuột (không touch) ── */
+@media (hover: hover) {
+    .bookmark-btn:hover {
+        color: #1A365D !important;
+        border-color: #1A365D !important;
+    }
+
+    .bookmark-btn.bookmark-active:hover {
+        color: #1A365D !important;
+        border-color: #1A365D !important;
+    }
+
+    .follow-btn:hover {
+        background-color: #1A365D;
+        color: #fff;
+        border-color: #1A365D;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-btn:hover {
+        background-color: #fff;
+        color: #1e293b;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* ── Active feedback cho touch devices ── */
+.bookmark-btn:active {
+    color: #1A365D !important;
+    border-color: #1A365D !important;
+}
+
+.follow-btn:active {
+    background-color: #1A365D;
+    color: #fff;
+    border-color: #1A365D;
+}

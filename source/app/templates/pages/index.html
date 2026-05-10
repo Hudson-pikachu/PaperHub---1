@@ -125,15 +125,18 @@ PaperHub
                 ${escapeHtml(paper.category)}
             </span>
             <div class="flex flex-col gap-3 pt-3 md:pt-0">
-                <h2 class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
-                    ${escapeHtml(paper.title)}
-                </h2>
+                <a href="/read/${pid}" class="block">
+                    <h2 class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
+                        ${escapeHtml(paper.title)}
+                    </h2>
+                </a>
                 <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-slate-500">
                     <span class="font-semibold text-slate-700">${escapeHtml(paper.authors)}</span>
                     <span>•</span>
                     <span>${escapeHtml(paper.published_date)}</span>
                 </div>
                 <div class="relative">
+                    <span class="text-xs font-bold text-[#1A365D] uppercase tracking-wider block mb-1">ABSTRACT</span>
                     <p class="abstract-text text-slate-600 text-sm leading-7 border-l-2 border-slate-100 pl-4 overflow-hidden transition-all duration-300"
                         style="max-height: 5.5rem;" aria-expanded="false">
                         ${escapeHtml(paper.abstract)}
@@ -167,11 +170,11 @@ PaperHub
                     <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
                     <div class="flex items-center gap-2">
                         <button type="button"
-                            class="bookmark-btn inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 text-slate-300 hover:text-[#1A365D] hover:border-[#1A365D] transition-all"
+                            class="bookmark-btn inline-flex items-center justify-center text-xl rounded-xl border border-slate-200 text-slate-300 transition-all"
                             data-paper-id="${pid}" aria-label="Lưu bài nghiên cứu" title="Lưu bài nghiên cứu">
                             ${getBookmarkSvg()}
                         </button>
-                        <a href="${escapeHtml(paper.link)}" target="_blank"
+                        <a href="/read/${pid}"
                             class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
                             Đọc bài
                         </a>
@@ -248,6 +251,45 @@ PaperHub
                 }
             });
         }
+
+        // ── Mark paper read when clicking title or "Đọc bài" link (before navigating) ──
+        document.addEventListener('click', function(e) {
+            var link = e.target.closest('a[href^="/read/"]');
+            if (!link) return;
+            var match = link.getAttribute('href').match(/^\/read\/(\d+)$/);
+            if (!match) return;
+            var paperId = parseInt(match[1]);
+            if (!paperId) return;
+
+            fetch('/mark-paper-read', {
+                method: 'POST',
+                keepalive: true,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paper_id: paperId })
+            }).then(function(r) { return r.json(); })
+              .then(function(d) {
+                if (d.success && d.unread_count !== undefined) {
+                    var notifDot = document.getElementById('notif-dot');
+                    if (notifDot) {
+                        if (d.unread_count > 0) {
+                            notifDot.classList.remove('hidden');
+                            notifDot.textContent = d.unread_count > 99 ? '99+' : d.unread_count;
+                            notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
+                            notifDot.style.minWidth = d.unread_count > 9 ? '18px' : '16px';
+                            notifDot.style.height = d.unread_count > 9 ? '18px' : '16px';
+                            notifDot.style.top = '-2px';
+                            notifDot.style.right = '-4px';
+                            notifDot.style.padding = '0 2px';
+                        } else {
+                            notifDot.classList.add('hidden');
+                            notifDot.textContent = '';
+                            notifDot.classList.remove('flex', 'items-center', 'justify-center');
+                            notifDot.style = '';
+                        }
+                    }
+                }
+              }).catch(function() {});
+        });
 
         // ── Bookmark toggle (event delegation) ──
         feed.addEventListener('click', async function(e) {
@@ -382,8 +424,8 @@ PaperHub
             <div class="text-center py-12">
                 <p class="text-slate-500 text-base mb-4">Vui lòng đăng nhập để sử dụng tính năng này.</p>
                 <button type="button" id="inline-open-login"
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#1A365D] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#2C5282] transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                     </svg>
                     Đăng nhập

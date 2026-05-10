@@ -127,3 +127,21 @@ class UserCategory(db.Model):
 
     def __repr__(self):
         return f'<UserCategory user={self.user_id} category={self.category_id}>'
+
+
+class UserPaperRead(db.Model):
+    """Bảng theo dõi bài viết người dùng đã xem qua notification bell."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    paper_id = db.Column(db.Integer, db.ForeignKey('paper.id', ondelete='CASCADE'), nullable=False)
+    read_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    user = db.relationship('User', backref='read_papers')
+    paper = db.relationship('Paper')
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'paper_id', name='uq_user_paper_read'),
+    )
+
+    def __repr__(self):
+        return f'<UserPaperRead user={self.user_id} paper={self.paper_id}>'

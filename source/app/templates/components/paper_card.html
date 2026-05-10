@@ -4,10 +4,12 @@
         {{ paper.category_name }}
     </span>
     <div class="flex flex-col gap-3 pt-3 md:pt-0">
-        <h2
-            class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
-            {{ paper.title }}
-        </h2>
+        <a href="/read/{{ paper.id }}" class="block">
+            <h2
+                class="text-lg md:text-xl font-bold leading-snug text-[#1A365D] hover:text-[#3182CE] transition-colors cursor-pointer">
+                {{ paper.title }}
+            </h2>
+        </a>
         <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-slate-500">
             <span class="font-semibold text-slate-700">
                 {{ paper.authors }}
@@ -16,6 +18,7 @@
             <span>{{ paper.published_date }}</span>
         </div>
         <div class="relative">
+            <span class="text-xs font-bold text-[#1A365D] uppercase tracking-wider block mb-1">ABSTRACT</span>
             <p class="abstract-text text-slate-600 text-sm leading-7 border-l-2 border-slate-100 pl-4 overflow-hidden transition-all duration-300"
                 style="max-height: 5.5rem;" aria-expanded="false">
                 {{ paper.abstract }}
@@ -60,13 +63,13 @@
             <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
             <div class="flex items-center gap-2">
                 <button type="button"
-                    class="bookmark-btn inline-flex items-center justify-center text-xl transition-all {% if paper.id in saved_paper_ids %}bookmark-active text-[#1A365D]{% else %}text-slate-300 hover:text-[#1A365D]{% endif %}"
+                    class="bookmark-btn inline-flex items-center justify-center text-xl transition-all {% if paper.id in saved_paper_ids %}bookmark-active text-[#1A365D]{% else %}text-slate-300{% endif %}"
                     data-paper-id="{{ paper.id }}" aria-label="Lưu bài nghiên cứu" title="Lưu bài nghiên cứu">
                     <svg class="w-7 h-7" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                     </svg>
                 </button>
-                <a href="{{ paper.link }}" target="_blank"
+                <a href="/read/{{ paper.id }}"
                     class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
                     Đọc bài
                 </a>

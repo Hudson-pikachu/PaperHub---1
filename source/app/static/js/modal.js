@@ -7,9 +7,8 @@ const registerModal = document.getElementById('register-modal');
 //Bấm Esc đế đóng modal ()
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        if (loginModal) {
-            loginModal.classList.add('hidden');
-            loginModal.classList.remove('flex');
+        if (loginModal && !loginModal.classList.contains('hidden')) {
+            hideLoginModal();
         }
 
         if (registerModal) {
@@ -24,31 +23,40 @@ const openLoginBtn = document.getElementById('open-login-modal');
 
 if (openLoginBtn) {
     openLoginBtn.addEventListener('click', () => {
+        // Ẩn gate message nếu có (reset từ lần trước)
+        const gateMsg = document.getElementById('login-gate-message');
+        if (gateMsg) {
+            gateMsg.classList.add('hidden');
+        }
+
         loginModal.classList.remove('hidden');
         loginModal.classList.add('flex');
     });
+}
+
+function hideLoginModal() {
+    loginModal.classList.add('hidden');
+    loginModal.classList.remove('flex');
+
+    // Ẩn gate message khi đóng modal
+    const gateMsg = document.getElementById('login-gate-message');
+    if (gateMsg) {
+        gateMsg.classList.add('hidden');
+    }
 }
 
 //Khi bấm nút "Đóng" trong modal Login
 const closeLoginBtn = document.getElementById('close-login-modal');
 
 if (closeLoginBtn) {
-    closeLoginBtn.addEventListener('click', () => {
-        //Ẩn modal Login
-        loginModal.classList.add('hidden');
-
-        //Xóa class flex
-        loginModal.classList.remove('flex');
-    });
+    closeLoginBtn.addEventListener('click', hideLoginModal);
 }
 
 //Click backdrop để đóng modal login
 if (loginModal) {
-
     loginModal.addEventListener('click', (e) => {
         if (e.target === loginModal) {
-            loginModal.classList.add('hidden');
-            loginModal.classList.remove('flex');
+            hideLoginModal();
         }
     });
 }
@@ -93,8 +101,7 @@ if (switchToRegisterBtn) {
 
     switchToRegisterBtn.addEventListener('click', () => {
 
-        loginModal.classList.add('hidden');
-        loginModal.classList.remove('flex');
+        hideLoginModal();
 
         registerModal.classList.remove('hidden');
         registerModal.classList.add('flex');
@@ -112,6 +119,12 @@ if (switchToLoginBtn) {
 
         registerModal.classList.add('hidden');
         registerModal.classList.remove('flex');
+
+        // Ẩn gate message khi quay lại login từ register
+        const gateMsg = document.getElementById('login-gate-message');
+        if (gateMsg) {
+            gateMsg.classList.add('hidden');
+        }
 
         loginModal.classList.remove('hidden');
         loginModal.classList.add('flex');

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, redirect, url_for
 from flask_login import login_required, current_user
-from .database.models import db, Paper, Category, SchedulerState, SavedPaper, UserCategory
+from .database.models import db, Paper, Category, SchedulerState, SavedPaper, UserCategory, UserPaperRead
 from datetime import datetime, timedelta
 
 main_bp = Blueprint('main', __name__)
@@ -25,6 +25,21 @@ def home():
 def profile():
     categories = Category.query.order_by(Category.name).all()
     return render_template('pages/profile.html', categories=categories)
+
+@main_bp.route('/read/<int:paper_id>')
+def read_paper(paper_id):
+    """Trang đọc bài nghiên cứu với PDF viewer nhúng."""
+    paper = Paper.query.get_or_404(paper_id)
+    # Tạo PDF URL từ arXiv link
+    pdf_url = None
+    if paper.link:
+        # arXiv link: https://arxiv.org/abs/XXXX.XXXXX → PDF: https://arxiv.org/pdf/XXXX.XXXXX
+        if 'arxiv.org/abs/' in paper.link:
+            pdf_url = paper.link.replace('/abs/', '/pdf/')
+        else:
+            pdf_url = paper.link
+
+    return render_template('pages/read.html', paper=paper, pdf_url=pdf_url)
 
 @main_bp.route('/load-more')
 def load_more():
@@ -205,3 +220,98 @@ def followed_categories():
         UserCategory.query.filter_by(user_id=current_user.id).all()
     ]
     return jsonify({'success': True, 'followed_ids': followed_ids})
+
+@main_bp.route('/unread-count')
+@login_required
+def unread_count():
+    """Trả về số bài chưa đọc trong notification bell."""
+    since = current_user.created_at or datetime.utcnow()
+    read_ids = [
+        rp.paper_id for rp in
+        UserPaperRead.query.filter_by(user_id=current_user.id).all()
+    ]
+
+    query = Paper.query.filter(
+        Paper.status == 'posted',
+        Paper.date_added > since
+    )
+    if read_ids:
+        query = query.filter(~Paper.id.in_(read_ids))
+
+    count = query.count()
+    return jsonify({'success': True, 'unread_count': count})
+
+@main_bp.route('/new-papers')
+@login_required
+def new_papers():
+    """Trả về bài nghiên cứu mới phát sinh sau thời điểm người dùng đăng ký, trừ các bài đã xem."""
+    since = current_user.created_at or datetime.utcnow()
+
+    # Lấy danh sách ID bài đã đọc
+    read_ids = [
+        rp.paper_id for rp in
+        UserPaperRead.query.filter_by(user_id=current_user.id).all()
+    ]
+
+    query = Paper.query.filter(
+        Paper.status == 'posted',
+        Paper.date_added > since
+    )
+    if read_ids:
+        query = query.filter(~Paper.id.in_(read_ids))
+
+    papers = (
+        query
+        .outerjoin(Category)
+        .order_by(Paper.date_added.desc())
+        .limit(20)
+        .all()
+    )
+    count = len(papers)
+    output = []
+    for p in papers:
+        output.append({
+            "id": p.id,
+            "title": p.title,
+            "authors": p.authors,
+            "published_date": p.published_date,
+            "abstract": p.abstract[:150] + '...' if p.abstract and len(p.abstract) > 150 else (p.abstract or ''),
+            "category": p.category_name,
+            "link": p.link,
+            "date_added": p.date_added.isoformat() + 'Z' if p.date_added else None,
+        })
+    return jsonify({'success': True, 'papers': output, 'count': count})
+
+@main_bp.route('/mark-paper-read', methods=['POST'])
+@login_required
+def mark_paper_read():
+    """Đánh dấu một bài nghiên cứu là đã xem qua notification bell."""
+    data = request.get_json(silent=True) or {}
+    paper_id = data.get('paper_id')
+    if not paper_id:
+        return jsonify({'success': False, 'message': 'Thiếu paper_id.'}), 400
+
+    existing = UserPaperRead.query.filter_by(user_id=current_user.id, paper_id=paper_id).first()
+    if not existing:
+        read_entry = UserPaperRead(user_id=current_user.id, paper_id=paper_id)
+        db.session.add(read_entry)
+        db.session.commit()
+
+    # Trả về số bài chưa đọc còn lại
+    since = current_user.created_at or datetime.utcnow()
+    read_ids = [
+        rp.paper_id for rp in
+        UserPaperRead.query.filter_by(user_id=current_user.id).all()
+    ]
+    remaining = (
+        Paper.query
+        .filter(
+            Paper.status == 'posted',
+            Paper.date_added > since
+        )
+    )
+    if read_ids:
+        remaining = remaining.filter(~Paper.id.in_(read_ids))
+    unread_count = remaining.count()
+
+    return jsonify({'success': True, 'unread_count': unread_count})

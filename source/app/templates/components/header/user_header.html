@@ -29,18 +29,28 @@
 
                 <!-- RIGHT ACTIONS -->
                 <div class="flex items-center gap-3 shrink-0">
-                    <!-- Notification Bell -->
-                    <button
-                        class="relative w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#1A365D] hover:border-slate-300 hover:shadow-sm transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        <!-- Notification Dot -->
-                        <span
-                            class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                    </button>
+                    <!-- Notification Bell + Dropdown -->
+                    <div class="relative">
+                        <button id="notif-bell-btn"
+                            class="relative w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#1A365D] hover:border-slate-300 hover:shadow-sm transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <!-- Notification Dot -->
+                            <span id="notif-dot"
+                                class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></span>
+                        </button>
+
+                        <!-- Dropdown -->
+                        <div id="notif-dropdown"
+                            class="hidden absolute right-0 z-50 mt-3 w-96 max-h-[70vh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl">
+                            <div id="notif-list" class="divide-y divide-slate-100">
+                                <div class="px-5 py-8 text-center text-sm text-slate-400">Đang tải...</div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- USER -->
                     <div class="flex items-center gap-3">
@@ -97,3 +107,151 @@
         </div>
     </div>
 </header>
+
+<!-- Notification Bell JS -->
+<script>
+(function() {
+    const bellBtn = document.getElementById('notif-bell-btn');
+    const dropdown = document.getElementById('notif-dropdown');
+    const notifList = document.getElementById('notif-list');
+    const notifDot = document.getElementById('notif-dot');
+
+    if (!bellBtn || !dropdown || !notifList) return;
+
+    let isOpen = false;
+    let hasLoaded = false;
+
+    // ── Load badge count ngay khi trang load ──
+    (async function initBadge() {
+        try {
+            const resp = await fetch('/unread-count');
+            const data = await resp.json();
+            if (data.success) {
+                updateBadge(data.unread_count || 0);
+            }
+        } catch (e) {
+            // silently fail
+        }
+    })();
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    function updateBadge(count) {
+        if (!notifDot) return;
+        if (count > 0) {
+            notifDot.classList.remove('hidden');
+            notifDot.textContent = count > 99 ? '99+' : count;
+            notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
+            notifDot.style.minWidth = count > 9 ? '18px' : '16px';
+            notifDot.style.height = count > 9 ? '18px' : '16px';
+            notifDot.style.top = '-2px';
+            notifDot.style.right = '-4px';
+            notifDot.style.padding = '0 2px';
+        } else {
+            notifDot.classList.add('hidden');
+            notifDot.textContent = '';
+            notifDot.classList.remove('flex', 'items-center', 'justify-center');
+            notifDot.style = '';
+        }
+    }
+
+    async function loadNotifications() {
+        if (hasLoaded) return;
+        try {
+            const resp = await fetch('/new-papers');
+            const data = await resp.json();
+            const papers = data.papers || [];
+            const count = data.count || 0;
+
+            updateBadge(count);
+
+            if (papers.length === 0) {
+                notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-slate-400">Chưa có bài nghiên cứu mới.</div>';
+            } else {
+                notifList.innerHTML = papers.map(function(p) {
+                    return `
+                    <a href="/read/${p.id}" class="notif-item block px-5 py-3 hover:bg-slate-50 transition-colors" data-paper-id="${p.id}">
+                        <p class="text-sm leading-snug">
+                            <span class="text-[10px] bg-[#1A365D] text-white px-2 py-0.5 rounded-full font-semibold mr-2">${escapeHtml(p.category)}</span>
+                            <span class="font-semibold text-[#1A365D]">${escapeHtml(p.title.length > 60 ? p.title.substring(0, 60) + '...' : p.title)}</span>
+                        </p>
+                        <p class="text-xs text-slate-300 mt-1">${formatDate(p.published_date)}</p>
+                    </a>`;
+                }).join('');
+
+                // Mark paper as read when clicked
+                notifList.querySelectorAll('.notif-item').forEach(function(item) {
+                    item.addEventListener('click', function(e) {
+                        const paperId = parseInt(item.getAttribute('data-paper-id'));
+                        if (paperId) {
+                            fetch('/mark-paper-read', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ paper_id: paperId })
+                            }).then(function(r) { return r.json(); })
+                              .then(function(d) {
+                                if (d.success) {
+                                    updateBadge(d.unread_count || 0);
+                                    // Remove item with animation
+                                    item.style.transition = 'opacity 0.3s';
+                                    item.style.opacity = '0';
+                                    setTimeout(function() { item.remove(); }, 300);
+                                }
+                              })
+                              .catch(function() {});
+                        }
+                    });
+                });
+            }
+            hasLoaded = true;
+        } catch (err) {
+            notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-red-400">Lỗi tải thông báo.</div>';
+        }
+    }
+
+    function openDropdown() {
+        dropdown.classList.remove('hidden');
+        isOpen = true;
+        loadNotifications();
+    }
+
+    function closeDropdown() {
+        dropdown.classList.add('hidden');
+        isOpen = false;
+    }
+
+    bellBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (isOpen) {
+            closeDropdown();
+        } else {
+            openDropdown();
+        }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+        if (isOpen && !dropdown.contains(e.target) && e.target !== bellBtn) {
+            closeDropdown();
+        }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isOpen) {
+            closeDropdown();
+        }
+    });
+})();
+</script>

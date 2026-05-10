@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ paper.title[:60] }} | PaperHub
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Backup đánh dấu đã đọc khi vào trang (double guarantee)
+var article = document.querySelector('[data-paper-id]');
+if (article) {
+    var paperId = article.getAttribute('data-paper-id');
+    if (paperId) {
+        fetch('/mark-paper-read', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paper_id: parseInt(paperId) })
+        }).catch(function() {});
+    }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- Back Button -->
+<div class="mb-6 mt-6 md:mt-8">
+    <a href="/"
+        class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#1A365D] transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Quay lại
+    </a>
+</div>
+
+<!-- Paper Detail -->
+<article class="static-card rounded-2xl p-5 md:p-8 shadow-sm mb-8" data-paper-id="{{ paper.id }}">
+    <!-- Category Badge -->
+    <span class="inline-block bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-full mb-4">
+        {{ paper.category_name }}
+    </span>
+
+    <!-- Title -->
+    <h1 class="text-xl md:text-2xl font-bold leading-snug text-[#1A365D] mb-4">
+        {{ paper.title }}
+    </h1>
+
+    <!-- Meta -->
+    <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 mb-6">
+        <span class="font-semibold text-slate-700">{{ paper.authors }}</span>
+        <span>•</span>
+        <span>{{ paper.published_date }}</span>
+        {% if paper.cited_count %}
+        <span>•</span>
+        <span>{{ paper.cited_count }} lượt trích dẫn</span>
+        {% endif %}
+    </div>
+
+    <!-- Abstract -->
+    <div class="mb-6">
+        <h3 class="text-sm font-bold text-[#1A365D] uppercase tracking-wider mb-2">ABSTRACT</h3>
+        <p class="text-slate-600 text-sm leading-7 border-l-2 border-slate-200 pl-4">
+            {{ paper.abstract }}
+        </p>
+    </div>
+
+    {% if paper.ai_summary %}
+    <!-- AI Summary -->
+    <div class="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+        <h4 class="text-[10px] font-bold text-[#3182CE] uppercase tracking-widest mb-2 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            AI Tóm tắt
+        </h4>
+        <p class="text-slate-700 text-sm leading-7">
+            {{ paper.ai_summary }}
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="flex items-center gap-3 mb-6 pt-2 border-t border-slate-100">
+        <a href="{{ paper.link }}" target="_blank"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" />
+            </svg>
+            Mở trên arXiv
+        </a>
+        <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
+    </div>
+
+    <!-- PDF Viewer -->
+    {% if pdf_url %}
+    <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+        <iframe src="{{ pdf_url }}"
+            class="w-full"
+            style="height: 80vh; min-height: 400px;"
+            frameborder="0"
+            allowfullscreen
+            allow="fullscreen"
+            referrerpolicy="no-referrer"
+            loading="lazy">
+        </iframe>
+    </div>
+    {% else %}
+    <div class="p-8 text-center text-slate-400">
+        <p>Không có liên kết PDF cho bài nghiên cứu này.</p>
+        <a href="{{ paper.link }}" target="_blank"
+            class="text-[#1A365D] font-semibold underline mt-2 inline-block">
+            Mở trên arXiv
+        </a>
+    </div>
+    {% endif %}
+</article>
+
+{% endblock %}
