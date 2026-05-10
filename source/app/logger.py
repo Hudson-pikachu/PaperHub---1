@@ -12,7 +12,9 @@ import os
 from logging.handlers import RotatingFileHandler
 
 # Thư mục logs nằm ở source/logs/ (cùng cấp với source/app/)
-_LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+# Dùng abspath để luôn ra đường dẫn tuyệt đối, bất kể app chạy từ thư mục nào
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))   # .../source/app
+_LOG_DIR = os.path.normpath(os.path.join(_APP_DIR, '..', 'logs'))  # .../source/logs
 LOG_FILE = os.path.join(_LOG_DIR, 'app.log')
 
 _FORMATTER = logging.Formatter(
@@ -49,7 +51,7 @@ def setup_logging(app) -> str:
     if not any(isinstance(h, RotatingFileHandler) for h in root.handlers):
         root.addHandler(file_handler)
 
-    app.logger.info(f"[Logger] Log file: {LOG_FILE}")
+    app.logger.warning(f"[Logger] Logging started. File: {LOG_FILE}")
     return LOG_FILE
 
 
