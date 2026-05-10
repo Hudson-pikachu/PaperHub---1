@@ -12,5 +12,5 @@ Folder source sẽ có đầy đủ phần core code của PaperHub:
 *   `auth.py`: Xử lý Đăng ký / Đăng nhập
 *   `admin.py`: Phần dành cho quản trị viên
 *   `database`
-*       `models.py`: Cấu trúc dữ liệu của các bài báo cáo của người dùng
-*       `data.db`: Cơ sở dữ liệu của web (sử dụng SQLite)  
+*   `models.py`: Cấu trúc dữ liệu của các bài báo cáo của người dùng
+*   `data.db`: Cơ sở dữ liệu của web (sử dụng SQLite)  
