@@ -141,7 +141,7 @@ def create_app():
     #   - ENABLE_SCHEDULER=true   → bắt buộc bật (host chính production)
     #   - ENABLE_SCHEDULER=false  → bắt buộc tắt (các worker phụ)
     #   - Không set (None)        → tự động bật nếu debug=True, tắt nếu debug=False
-    force_scheduler = False  # ← TẠM THỜI: ép luôn chạy, bỏ qua env var
+    force_scheduler = False  # ← TẠM THỜI: true = ép luôn chạy, bỏ qua env var, false = như bình thường
 
     if force_scheduler:
         enable_scheduler = True
