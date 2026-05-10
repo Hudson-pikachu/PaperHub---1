@@ -1,10 +1,12 @@
 import os
-from flask import Flask
+import logging
+from flask import Flask, jsonify
 from flask_apscheduler import APScheduler
 from flask_login import LoginManager
 from datetime import datetime, timedelta
 from .database.models import db, SchedulerState, User
 from .services.arxiv_service import fetch_arxiv_for_all_categories
+from .logger import setup_logging
 
 # Flask-Login manager (global để có thể dùng ở nơi khác nếu cần)
 login_manager = LoginManager()
@@ -51,6 +53,9 @@ def create_app():
     from config import is_fallback
     app.config['DB_FALLBACK'] = is_fallback()
 
+    # ── Thiết lập Logging ra file ──
+    setup_logging(app)
+
     # ── Khởi tạo DB ──
     db.init_app(app)
     _ensure_db_schema(app)
@@ -71,6 +76,17 @@ def create_app():
     from .admin import admin_bp
     app.register_blueprint(admin_bp)
 
+    # ── Flask error handlers — ghi lỗi 500 ra file log ──
+    @app.errorhandler(500)
+    def internal_error(error):
+        app.logger.error(f"500 Internal Server Error: {error}", exc_info=True)
+        return jsonify({'success': False, 'message': 'Lỗi server nội bộ.'}), 500
+
+    @app.errorhandler(Exception)
+    def unhandled_exception(error):
+        app.logger.error(f"Unhandled Exception: {error}", exc_info=True)
+        return jsonify({'success': False, 'message': 'Đã xảy ra lỗi không xác định.'}), 500
+
     # ── Cấu hình định kỳ fetch arXiv mỗi 6 tiếng ──
     scheduler = APScheduler()
     scheduler.init_app(app)
@@ -79,12 +95,12 @@ def create_app():
         """Job chạy mỗi 6 tiếng: lấy bài mới từ arXiv và dịch bằng AI."""
         with app.app_context():
             try:
-                print(f"[Scheduler] Bắt đầu fetch arXiv lúc {datetime.utcnow().isoformat()}")
+                app.logger.warning(f"[Scheduler] Bắt đầu fetch arXiv lúc {datetime.utcnow().isoformat()}")
                 count = fetch_arxiv_for_all_categories(per_category=2)
                 _set_last_run(datetime.utcnow())
-                print(f"[Scheduler] Hoàn tất. Đã lưu {count} bài mới.")
+                app.logger.warning(f"[Scheduler] Hoàn tất. Đã lưu {count} bài mới.")
             except Exception as e:
-                print(f"[Scheduler] Lỗi trong scheduled_fetch: {e}")
+                app.logger.error(f"[Scheduler] Lỗi trong scheduled_fetch: {e}", exc_info=True)
 
     with app.app_context():
         last_run = _get_last_run()

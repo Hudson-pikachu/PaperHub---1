@@ -2,12 +2,13 @@
 Admin Blueprint — Route bí mật chỉ dành cho dev.
 Không được expose công khai. Bảo vệ bằng ADMIN_SECRET token.
 
-Cách dùng:
-  GET  /dev/run-fetch?secret=<ADMIN_SECRET>
+Routes:
+  GET  /dev/run-fetch?secret=<ADMIN_SECRET>              — Chạy fetch arXiv thủ công
   GET  /dev/run-fetch?secret=<ADMIN_SECRET>&per_category=5
-  POST /dev/run-fetch
-       Header: X-Admin-Secret: <ADMIN_SECRET>
-       Body (JSON, tuỳ chọn): {"per_category": 5}
+  POST /dev/run-fetch  (Header: X-Admin-Secret hoặc body JSON {"secret": ...})
+  GET  /dev/status?secret=<ADMIN_SECRET>                 — Xem trạng thái scheduler
+  GET  /dev/logs?secret=<ADMIN_SECRET>                   — Xem 100 dòng log cuối
+  GET  /dev/logs?secret=<ADMIN_SECRET>&lines=200         — Xem N dòng log cuối
 
 ADMIN_SECRET mặc định lấy từ env var ADMIN_SECRET.
 Nếu không set env var, dùng giá trị fallback trong code (chỉ cho dev local).
@@ -18,6 +19,7 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 from .database.models import db, SchedulerState
 from .services.arxiv_service import fetch_arxiv_for_all_categories
+from .logger import get_last_lines, get_log_stats
 
 # URL prefix không rõ ràng để tránh bị đoán
 admin_bp = Blueprint('admin', __name__, url_prefix='/dev')
@@ -91,12 +93,51 @@ def status():
     if not _check_secret():
         return jsonify({'success': False, 'message': '401 Unauthorized'}), 401
 
+    from datetime import timedelta
     state = SchedulerState.query.get(1)
     last_run = state.last_run if state else None
-    next_run = (last_run + __import__('datetime').timedelta(hours=6)) if last_run else None
+    next_run = (last_run + timedelta(hours=6)) if last_run else None
 
     return jsonify({
         'last_run': last_run.isoformat() if last_run else None,
         'next_run': next_run.isoformat() if next_run else None,
         'scheduler_enabled': os.environ.get('ENABLE_SCHEDULER', 'false').lower() == 'true',
+    })
+
+
+@admin_bp.route('/logs', methods=['GET'])
+def view_logs():
+    """
+    Xem N dòng cuối của file log.
+    Query params:
+      lines  — số dòng muốn xem (mặc định 100, tối đa 1000)
+      level  — lọc theo từ khóa: ERROR, WARNING, CRITICAL (tuỳ chọn)
+    """
+    if not _check_secret():
+        return jsonify({'success': False, 'message': '401 Unauthorized'}), 401
+
+    lines_count = min(request.args.get('lines', 100, type=int), 1000)
+    level_filter = request.args.get('level', '').upper()
+
+    stats = get_log_stats()
+    if not stats['exists']:
+        return jsonify({
+            'success': True,
+            'message': 'Chưa có file log nào. App chưa ghi lỗi nào hoặc chưa được khởi động đủ lâu.',
+            'stats': stats,
+            'lines': [],
+        })
+
+    raw_lines = get_last_lines(lines_count)
+
+    # Lọc theo level nếu có
+    if level_filter:
+        raw_lines = [l for l in raw_lines if level_filter in l]
+
+    return jsonify({
+        'success': True,
+        'stats': stats,
+        'filter': level_filter or 'ALL',
+        'showing': len(raw_lines),
+        'lines': raw_lines,
     })

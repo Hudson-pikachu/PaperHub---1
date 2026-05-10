@@ -23,3 +23,6 @@ ENV/
 # Các file tạm khác
 .DS_Store
 *.log
+
+# Log files của app (ghi bởi source/app/logger.py)
+source/logs/
