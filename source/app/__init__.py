@@ -6,7 +6,7 @@ from flask_login import LoginManager
 from datetime import datetime, timedelta
 from .database.models import db, SchedulerState, User
 from .services.arxiv_service import fetch_arxiv_for_all_categories
-from .logger import setup_logging
+from .logger import setup_logging, get_logger
 
 # Flask-Login manager (global để có thể dùng ở nơi khác nếu cần)
 login_manager = LoginManager()
@@ -77,15 +77,24 @@ def create_app():
     app.register_blueprint(admin_bp)
 
     # ── Flask error handlers — ghi lỗi 500 ra file log ──
+    # Dùng get_logger() thay vì app.logger để tránh bị Gunicorn override
+    _log = get_logger()
+
     @app.errorhandler(500)
     def internal_error(error):
-        app.logger.error(f"500 Internal Server Error: {error}", exc_info=True)
+        _log.error(f"500 Internal Server Error: {error}", exc_info=True)
         return jsonify({'success': False, 'message': 'Lỗi server nội bộ.'}), 500
 
     @app.errorhandler(Exception)
     def unhandled_exception(error):
-        app.logger.error(f"Unhandled Exception: {error}", exc_info=True)
+        _log.error(f"Unhandled Exception [{type(error).__name__}]: {error}", exc_info=True)
         return jsonify({'success': False, 'message': 'Đã xảy ra lỗi không xác định.'}), 500
+
+    @app.teardown_request
+    def log_teardown_error(error):
+        """Lưới an toàn thứ 2: bắt lỗi thoát khỏi error handlers."""
+        if error is not None:
+            _log.error(f"Teardown error [{type(error).__name__}]: {error}", exc_info=True)
 
     # ── Cấu hình định kỳ fetch arXiv mỗi 6 tiếng ──
     scheduler = APScheduler()
@@ -95,12 +104,12 @@ def create_app():
         """Job chạy mỗi 6 tiếng: lấy bài mới từ arXiv và dịch bằng AI."""
         with app.app_context():
             try:
-                app.logger.warning(f"[Scheduler] Bắt đầu fetch arXiv lúc {datetime.utcnow().isoformat()}")
+                _log.warning(f"[Scheduler] Bắt đầu fetch arXiv lúc {datetime.utcnow().isoformat()}")
                 count = fetch_arxiv_for_all_categories(per_category=2)
                 _set_last_run(datetime.utcnow())
-                app.logger.warning(f"[Scheduler] Hoàn tất. Đã lưu {count} bài mới.")
+                _log.warning(f"[Scheduler] Hoàn tất. Đã lưu {count} bài mới.")
             except Exception as e:
-                app.logger.error(f"[Scheduler] Lỗi trong scheduled_fetch: {e}", exc_info=True)
+                _log.error(f"[Scheduler] Lỗi trong scheduled_fetch: {e}", exc_info=True)
 
     with app.app_context():
         last_run = _get_last_run()

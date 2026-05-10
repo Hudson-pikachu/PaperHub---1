@@ -3,8 +3,12 @@ Logging module cho PaperHub.
 
 - Ghi tất cả WARNING / ERROR / CRITICAL ra file source/logs/app.log
 - RotatingFileHandler: tối đa 5 MB/file, giữ 5 bản backup
-- Format: [2026-05-10 07:38:25] ERROR in module: message
+- Format: [2026-05-10 07:38:25] ERROR    in module: message
 - Dev xem log qua route bí mật: GET /dev/logs?secret=<ADMIN_SECRET>
+
+THIẾT KẾ: Dùng dedicated named logger 'paperhub' thay vì app.logger.
+Lý do: app.logger bị Gunicorn/uWSGI override trong production → mất log.
+Logger 'paperhub' có propagate=False, hoàn toàn độc lập với config của host.
 """
 
 import logging
@@ -22,13 +26,19 @@ _FORMATTER = logging.Formatter(
     datefmt='%Y-%m-%d %H:%M:%S',
 )
 
+# Dedicated logger — singleton, khởi tạo 1 lần, dùng khắp app
+_paperhub_logger: logging.Logger | None = None
+
 
 def setup_logging(app) -> str:
     """
     Thiết lập ghi log ra file cho Flask app.
-    Gắn handler vào app.logger và root logger (để bắt cả APScheduler, SQLAlchemy...).
+    - Tạo dedicated logger 'paperhub' với RotatingFileHandler.
+    - Gắn thêm vào root logger để bắt lỗi từ thư viện ngoài (APScheduler, SQLAlchemy...).
     Trả về đường dẫn tuyệt đối tới file log.
     """
+    global _paperhub_logger
+
     os.makedirs(_LOG_DIR, exist_ok=True)
 
     file_handler = RotatingFileHandler(
@@ -40,19 +50,28 @@ def setup_logging(app) -> str:
     file_handler.setLevel(logging.WARNING)
     file_handler.setFormatter(_FORMATTER)
 
-    # Flask app logger
-    app.logger.setLevel(logging.WARNING)
-    if not any(isinstance(h, RotatingFileHandler) for h in app.logger.handlers):
-        app.logger.addHandler(file_handler)
+    # ── Dedicated 'paperhub' logger ──
+    # propagate=False: không đẩy lên root, tránh bị Gunicorn's logging intercept
+    _paperhub_logger = logging.getLogger('paperhub')
+    _paperhub_logger.setLevel(logging.WARNING)
+    _paperhub_logger.propagate = False
+    if not _paperhub_logger.handlers:
+        _paperhub_logger.addHandler(file_handler)
 
-    # Root logger — bắt lỗi từ thư viện ngoài (APScheduler, SQLAlchemy, arxiv, ...)
+    # ── Root logger ──
+    # Bắt lỗi từ thư viện ngoài (APScheduler, SQLAlchemy, arxiv, google-genai...)
     root = logging.getLogger()
     root.setLevel(logging.WARNING)
     if not any(isinstance(h, RotatingFileHandler) for h in root.handlers):
         root.addHandler(file_handler)
 
-    app.logger.warning(f"[Logger] Logging started. File: {LOG_FILE}")
+    _paperhub_logger.warning(f"[Logger] Logging started. File: {LOG_FILE}")
     return LOG_FILE
+
+
+def get_logger() -> logging.Logger:
+    """Trả về dedicated logger 'paperhub'. Luôn available sau khi setup_logging() được gọi."""
+    return _paperhub_logger or logging.getLogger('paperhub')
 
 
 def get_last_lines(n: int = 100) -> list[str]:
