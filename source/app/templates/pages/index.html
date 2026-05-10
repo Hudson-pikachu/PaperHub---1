@@ -117,12 +117,13 @@ PaperHub
         }
 
         function getBookmarkSvg() {
-            return '<svg class="w-7 h-7" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>';
+            return '<svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>';
         }
 
         function createPaperCard(paper) {
             const hasSummary = paper.ai_summary && paper.ai_summary.trim() !== '';
             const pid = paper.id;
+            const isSaved = paper.is_saved;
             return `
         <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
             <span class="absolute top-0 right-0 bg-[#1A365D] text-white text-[10px] font-semibold px-3 py-1 rounded-tr-xl rounded-bl-xl shadow-sm">
@@ -172,12 +173,19 @@ PaperHub
                 ` : ''}
                 <div class="flex justify-between items-center pt-2">
                     <span class="text-[10px] text-slate-400 font-mono">Nguồn: arXiv</span>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-4">
                         <button type="button"
-                            class="bookmark-btn inline-flex items-center justify-center text-xl transition-all text-slate-300"
-                            data-paper-id="${pid}" aria-label="Lưu bài nghiên cứu" title="Lưu bài nghiên cứu">
-                            ${getBookmarkSvg()}
+                            class="bookmark-btn inline-flex items-center text-sm font-semibold transition-all
+                            ${isSaved ? 'bookmark-active text-[#1A365D]' : 'text-slate-300 hover:text-[#1A365D]'}"
+                            data-paper-id="${pid}"
+                            aria-label="Lưu bài nghiên cứu"
+                            title="Lưu bài nghiên cứu">
+                            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                            </svg>
+                            <span>Lưu</span>
                         </button>
+
                         <a href="/read/${pid}"
                             class="px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
                             Đọc bài
