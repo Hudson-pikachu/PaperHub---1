@@ -98,12 +98,17 @@
 
                     var displayTitle = useEn ? (p.title_en || p.title) : p.title;
                     var displayAbstract = useEn ? (p.abstract_en || p.abstract) : (p.abstract || p.abstract_en || '');
+                    var authors = p.authors || '';
+                    var maxAuthorLen = 80;
+                    if (authors.length > maxAuthorLen) {
+                        authors = authors.substring(0, maxAuthorLen) + '...';
+                    }
 
                     html += '<a href="/read/' + p.id + '" class="search-result-item block px-5 py-4 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0">' +
                         '<div class="flex items-start gap-3">' +
                         '<div class="flex-1 min-w-0">' +
-                        '<p class="text-sm leading-snug font-semibold text-[#1A365D] line-clamp-2">' + highlight(displayTitle, q) + '</p>' +
-                        '<p class="text-xs text-slate-400 mt-1">' + escapeHtml(p.authors || '') + ' • ' + escapeHtml(p.category || '') + ' • ' + formatDate(p.published_date) + '</p>' +
+                        '<p class="text-sm leading-snug font-semibold text-[#1A365D]">' + highlight(displayTitle, q) + '</p>' +
+                        '<p class="text-xs text-slate-400 mt-1">' + escapeHtml(authors) + ' • ' + escapeHtml(p.category || '') + ' • ' + formatDate(p.published_date) + '</p>' +
                         '<p class="text-xs text-slate-500 mt-1 line-clamp-2">' + highlight(displayAbstract, q) + '</p>' +
                         '</div>' +
                         '</div>' +
