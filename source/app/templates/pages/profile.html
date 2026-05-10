@@ -6,85 +6,83 @@ PaperHub | Your Profile
 
 {% block content %}
 
-<main>
-    <!-- Profile + Following Topics -->
-    <section class="static-card rounded-2xl p-6 md:p-8 shadow-sm mb-8 mt-6 md:mt-8">
-        <!-- Profile Info -->
-        <div class="flex flex-col items-center text-center">
-            <!-- Avatar -->
-            <div
-                class="w-32 h-32 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-4xl font-bold shadow-sm ring-2 ring-slate-100">
-                Q
-            </div>
+<!-- Profile + Following Topics -->
+<section class="static-card rounded-2xl p-6 md:p-8 shadow-sm mb-8 mt-6 md:mt-8">
+    <!-- Profile Info -->
+    <div class="flex flex-col items-center text-center">
+        <!-- Avatar -->
+        <div
+            class="w-32 h-32 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-4xl font-bold shadow-sm ring-2 ring-slate-100">
+            Q
+        </div>
 
-            <!-- Username -->
-            <h1 class="mt-6 text-3xl md:text-4xl font-semibold tracking-tight text-[#1A365D]">
-                tranvanquy
-            </h1>
+        <!-- Username -->
+        <h1 class="mt-6 text-3xl md:text-4xl font-semibold tracking-tight text-[#1A365D]">
+            tranvanquy
+        </h1>
 
-            <!-- Email -->
-            <p class="mt-3 text-sm md:text-base text-slate-400">
-                tranvanquy@example.com
+        <!-- Email -->
+        <p class="mt-3 text-sm md:text-base text-slate-400">
+            tranvanquy@example.com
+        </p>
+    </div>
+
+    <!-- Divider -->
+    <div class="max-w-3xl mx-auto h-px bg-slate-200 my-10"></div>
+
+    <!-- Following Topics -->
+    <div>
+        <!-- Section Header -->
+        <div class="text-center mb-6">
+            <h2 class="text-xl md:text-2xl font-bold text-[#1A365D]">
+                Chủ đề theo dõi
+            </h2>
+            <p class="text-sm text-slate-400 mt-2">
+                6 chủ đề
             </p>
         </div>
 
-        <!-- Divider -->
-        <div class="max-w-3xl mx-auto h-px bg-slate-200 my-10"></div>
+        <!-- Topic Tags -->
+        <div class="flex flex-wrap justify-center gap-3">
 
-        <!-- Following Topics -->
-        <div>
-            <!-- Section Header -->
-            <div class="text-center mb-6">
-                <h2 class="text-xl md:text-2xl font-bold text-[#1A365D]">
-                    Chủ đề theo dõi
-                </h2>
-                <p class="text-sm text-slate-400 mt-2">
-                    6 chủ đề
-                </p>
-            </div>
+            <!-- Selected -->
+            <span
+                class="px-4 py-2 rounded-full bg-[#1A365D] text-white text-sm font-semibold shadow-sm hover:bg-[#2C5282] hover:shadow-md transition-all duration-200 cursor-pointer">
+                AI Agents
+            </span>
 
-            <!-- Topic Tags -->
-            <div class="flex flex-wrap justify-center gap-3">
+            <!-- Selected -->
+            <span
+                class="px-4 py-2 rounded-full bg-[#1A365D] text-white text-sm font-semibold shadow-sm hover:bg-[#2C5282] hover:shadow-md transition-all duration-200 cursor-pointer">
+                Machine Learning
+            </span>
 
-                <!-- Selected -->
-                <span
-                    class="px-4 py-2 rounded-full bg-[#1A365D] text-white text-sm font-semibold shadow-sm hover:bg-[#2C5282] hover:shadow-md transition-all duration-200 cursor-pointer">
-                    AI Agents
-                </span>
+            <!-- Unselected -->
+            <span
+                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
+                NLP
+            </span>
 
-                <!-- Selected -->
-                <span
-                    class="px-4 py-2 rounded-full bg-[#1A365D] text-white text-sm font-semibold shadow-sm hover:bg-[#2C5282] hover:shadow-md transition-all duration-200 cursor-pointer">
-                    Machine Learning
-                </span>
+            <!-- Unselected -->
+            <span
+                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
+                RAG Systems
+            </span>
 
-                <!-- Unselected -->
-                <span
-                    class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
-                    NLP
-                </span>
+            <!-- Unselected -->
+            <span
+                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
+                Data Science
+            </span>
 
-                <!-- Unselected -->
-                <span
-                    class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
-                    RAG Systems
-                </span>
+            <!-- Unselected -->
+            <span
+                class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
+                Research AI
+            </span>
 
-                <!-- Unselected -->
-                <span
-                    class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
-                    Data Science
-                </span>
-
-                <!-- Unselected -->
-                <span
-                    class="px-4 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer">
-                    Research AI
-                </span>
-
-            </div>
         </div>
-    </section>
-</main>
+    </div>
+</section>
 
 {% endblock %}

@@ -6,64 +6,61 @@ PaperHub | AI-Powered Research Feed
 
 {% block content %}
 
-<main>
-    <!-- Filter -->
-    <div class="pt-5 pb-6 flex justify-center">
-        <div class="inline-flex items-center gap-1.5 bg-slate-100 rounded-full p-1 backdrop-blur-sm">
+<!-- Filter -->
+<div class="pt-5 pb-6 flex justify-center">
+    <div class="inline-flex items-center gap-1.5 bg-slate-100 rounded-full p-1 backdrop-blur-sm">
 
-            <!-- Active -->
-            <button
-                class="px-6 py-2 bg-white text-slate-800 text-sm font-semibold rounded-full shadow-sm transition-all">
-                Show all
-            </button>
+        <!-- Active -->
+        <button class="px-6 py-2 bg-white text-slate-800 text-sm font-semibold rounded-full shadow-sm transition-all">
+            Show all
+        </button>
 
-            <!-- Favorite -->
-            <button
-                class="px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all">
-                Favorite
-            </button>
+        <!-- Favorite -->
+        <button
+            class="px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all">
+            Favorite
+        </button>
 
-            <!-- Daily -->
-            <button
-                class="px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all">
-                Daily
-            </button>
+        <!-- Daily -->
+        <button
+            class="px-6 py-2 text-sm text-slate-500 font-medium rounded-full hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all">
+            Daily
+        </button>
+    </div>
+</div>
+
+<!-- Paper Feed -->
+<section id="paper-feed" class="space-y-6">
+    {% for paper in papers %}
+    <!-- Paper Card -->
+    {% include 'components/paper_card.html' %}
+    {% endfor %}
+</section>
+
+<!-- Feed Footer-->
+<section id="feed-footer" class="mt-10 text-center">
+    <div id="loading" class="text-center py-8 hidden">
+        <div class="flex flex-col items-center gap-3">
+            <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#1A365D]">
+            </div>
+            <p class="text-sm text-slate-400">
+                Đang tải thêm bài viết...
+            </p>
         </div>
     </div>
-
-    <!-- Paper Feed -->
-    <section id="paper-feed" class="space-y-6">
-        {% for paper in papers %}
-        <!-- Paper Card -->
-        {% include 'components/paper_card.html' %}
-        {% endfor %}
-    </section>
-
-    <!-- Feed Footer-->
-    <section id="feed-footer" class="mt-10 text-center">
-        <div id="loading" class="text-center py-8 hidden">
-            <div class="flex flex-col items-center gap-3">
-                <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[#1A365D]">
-                </div>
-                <p class="text-sm text-slate-400">
-                    Đang tải thêm bài viết...
-                </p>
-            </div>
-        </div>
-        <p id="display-count" class="text-sm text-slate-500 mb-4">
-            Đang hiển thị {{ papers|length }} bài
-        </p>
-        <button id="load-more-btn"
-            class="inline-flex items-center justify-center px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] hover:scale-[1.02] transition-all tracking-wide">
-            Xem thêm bài viết
-        </button>
-    </section>
-</main>
+    <p id="display-count" class="text-sm text-slate-500 mb-4">
+        Đang hiển thị {{ papers|length }} bài
+    </p>
+    <button id="load-more-btn"
+        class="inline-flex items-center justify-center px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] hover:scale-[1.02] transition-all tracking-wide">
+        Xem thêm bài viết
+    </button>
+</section>
 
 {% endblock %}
 
 {% block extra_js %}
-<!-- Load thêm bài -->
+<!-- Nút load thêm bài -->
 <script>
     const feed = document.getElementById('paper-feed');
     const displayCount = document.getElementById('display-count');

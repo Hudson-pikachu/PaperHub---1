@@ -16,8 +16,9 @@
 
 <body class="px-4 py-8 md:px-8 md:py-10">
     <div class="max-w-5xl mx-auto">
-        <!-- User Header -->
+        <!-- Header -->
         {% include 'components/header/user_header.html' %}
+        {% include 'components/header/guest_header.html' %}
 
         {% block content %}
         {% endblock %}
@@ -25,12 +26,6 @@
         <!-- Footer -->
         {% include 'components/footer.html' %}
     </div>
-
-    <!-- Login Modal -->
-    {% include 'components/auth/login_modal.html' %}
-
-    <!-- Register Modal -->
-    {% include 'components/auth/register_modal.html' %}
 
     <!-- Back To Top -->
     <button id="back-to-top"
@@ -46,6 +41,9 @@
     <script src="{{ url_for('static', filename='js/back-to-top.js') }}"></script>
     <script src="{{ url_for('static', filename='js/paper-expand.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    {% block extra_js %}
+    {% endblock %}
 </body>
 
 </html>

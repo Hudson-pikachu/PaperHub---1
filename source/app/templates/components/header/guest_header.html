@@ -5,8 +5,8 @@
             <!-- TOP ROW -->
             <div class="flex items-center justify-between gap-4">
                 <!-- Logo -->
-                <a href="./index.html" class="shrink-0">
-                    <img src="../../static/images/logo/logo.png" alt="PaperHub Logo"
+                <a href="/" class="shrink-0">
+                    <img src="{{ url_for('static', filename='images/logo/logo.png') }}" alt="PaperHub Logo"
                         class="h-10 md:h-14 w-auto object-contain">
                 </a>
 
@@ -94,3 +94,9 @@
         </div>
     </div>
 </header>
+
+<!-- Login Modal -->
+{% include 'components/auth/login_modal.html' %}
+
+<!-- Register Modal -->
+{% include 'components/auth/register_modal.html' %}
