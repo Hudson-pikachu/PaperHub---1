@@ -46,8 +46,21 @@
                         <!-- Dropdown -->
                         <div id="notif-dropdown"
                             class="hidden absolute right-0 z-50 mt-3 w-96 max-h-[70vh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl">
+                            <!-- Header -->
+                            <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                                <h3 class="text-sm font-semibold text-[#1A365D]">
+                                    Thông báo
+                                </h3>
+                                <span id="notif-count-text" class="text-xs text-slate-400">
+                                    0 bài viết mới
+                                </span>
+                            </div>
+
+                            <!-- List -->
                             <div id="notif-list" class="divide-y divide-slate-100">
-                                <div class="px-5 py-8 text-center text-sm text-slate-400">Đang tải...</div>
+                                <div class="px-5 py-8 text-center text-sm text-slate-400">
+                                    Đang tải...
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -110,148 +123,156 @@
 
 <!-- Notification Bell JS -->
 <script>
-(function() {
-    const bellBtn = document.getElementById('notif-bell-btn');
-    const dropdown = document.getElementById('notif-dropdown');
-    const notifList = document.getElementById('notif-list');
-    const notifDot = document.getElementById('notif-dot');
+    (function () {
+        const bellBtn = document.getElementById('notif-bell-btn');
+        const dropdown = document.getElementById('notif-dropdown');
+        const notifList = document.getElementById('notif-list');
+        const notifDot = document.getElementById('notif-dot');
+        const notifCountText = document.getElementById('notif-count-text');
 
-    if (!bellBtn || !dropdown || !notifList) return;
+        if (!bellBtn || !dropdown || !notifList) return;
 
-    let isOpen = false;
-    let hasLoaded = false;
+        let isOpen = false;
+        let hasLoaded = false;
 
-    // ── Load badge count ngay khi trang load ──
-    (async function initBadge() {
-        try {
-            const resp = await fetch('/unread-count');
-            const data = await resp.json();
-            if (data.success) {
-                updateBadge(data.unread_count || 0);
+        // ── Load badge count ngay khi trang load ──
+        (async function initBadge() {
+            try {
+                const resp = await fetch('/unread-count');
+                const data = await resp.json();
+                if (data.success) {
+                    updateBadge(data.unread_count || 0);
+                }
+            } catch (e) {
+                // silently fail
             }
-        } catch (e) {
-            // silently fail
+        })();
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
-    })();
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function formatDate(dateStr) {
-        if (!dateStr) return '';
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    }
-
-    function updateBadge(count) {
-        if (!notifDot) return;
-        if (count > 0) {
-            notifDot.classList.remove('hidden');
-            notifDot.textContent = count > 99 ? '99+' : count;
-            notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
-            notifDot.style.minWidth = count > 9 ? '18px' : '16px';
-            notifDot.style.height = count > 9 ? '18px' : '16px';
-            notifDot.style.top = '-2px';
-            notifDot.style.right = '-4px';
-            notifDot.style.padding = '0 2px';
-        } else {
-            notifDot.classList.add('hidden');
-            notifDot.textContent = '';
-            notifDot.classList.remove('flex', 'items-center', 'justify-center');
-            notifDot.style = '';
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
         }
-    }
 
-    async function loadNotifications() {
-        if (hasLoaded) return;
-        try {
-            const resp = await fetch('/new-papers');
-            const data = await resp.json();
-            const papers = data.papers || [];
-            const count = data.count || 0;
+        function updateBadge(count) {
+            if (notifCountText) {
+                notifCountText.textContent =
+                    count === 0
+                        ? 'Không có bài viết mới'
+                        : `${count} bài viết mới`;
+            }
 
-            updateBadge(count);
-
-            if (papers.length === 0) {
-                notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-slate-400">Chưa có bài nghiên cứu mới.</div>';
+            if (!notifDot) return;
+            if (count > 0) {
+                notifDot.classList.remove('hidden');
+                notifDot.textContent = count > 99 ? '99+' : count;
+                notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
+                notifDot.style.minWidth = count > 9 ? '18px' : '16px';
+                notifDot.style.height = count > 9 ? '18px' : '16px';
+                notifDot.style.top = '-2px';
+                notifDot.style.right = '-4px';
+                notifDot.style.padding = '0 2px';
             } else {
-                notifList.innerHTML = papers.map(function(p) {
-                    return `
-                    <a href="/read/${p.id}" class="notif-item block px-5 py-3 hover:bg-slate-50 transition-colors" data-paper-id="${p.id}">
+                notifDot.classList.add('hidden');
+                notifDot.textContent = '';
+                notifDot.classList.remove('flex', 'items-center', 'justify-center');
+                notifDot.style = '';
+            }
+        }
+
+        async function loadNotifications() {
+            if (hasLoaded) return;
+            try {
+                const resp = await fetch('/new-papers');
+                const data = await resp.json();
+                const papers = data.papers || [];
+                const count = data.count || 0;
+
+                updateBadge(count);
+
+                if (papers.length === 0) {
+                    notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-slate-400">Chưa có bài nghiên cứu mới.</div>';
+                } else {
+                    notifList.innerHTML = papers.map(function (p) {
+                        return `
+                    <a href="/read/${p.id}" class="notif-item block px-5 py-4 hover:bg-slate-50 transition-colors" data-paper-id="${p.id}">
                         <p class="text-sm leading-snug">
-                            <span class="text-[10px] bg-[#1A365D] text-white px-2 py-0.5 rounded-full font-semibold mr-2">${escapeHtml(p.category)}</span>
+                            <span class="text-[9px] bg-[#1A365D] text-white px-1.5 py-[2px] rounded-full font-semibold mr-2">${escapeHtml(p.category)}</span>
                             <span class="font-semibold text-[#1A365D]">${escapeHtml(p.title.length > 60 ? p.title.substring(0, 60) + '...' : p.title)}</span>
                         </p>
-                        <p class="text-xs text-slate-300 mt-1">${formatDate(p.published_date)}</p>
+                        <p class="text-xs text-slate-400 mt-1">${formatDate(p.published_date)}</p>
                     </a>`;
-                }).join('');
+                    }).join('');
 
-                // Mark paper as read when clicked
-                notifList.querySelectorAll('.notif-item').forEach(function(item) {
-                    item.addEventListener('click', function(e) {
-                        const paperId = parseInt(item.getAttribute('data-paper-id'));
-                        if (paperId) {
-                            fetch('/mark-paper-read', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ paper_id: paperId })
-                            }).then(function(r) { return r.json(); })
-                              .then(function(d) {
-                                if (d.success) {
-                                    updateBadge(d.unread_count || 0);
-                                    // Remove item with animation
-                                    item.style.transition = 'opacity 0.3s';
-                                    item.style.opacity = '0';
-                                    setTimeout(function() { item.remove(); }, 300);
-                                }
-                              })
-                              .catch(function() {});
-                        }
+                    // Mark paper as read when clicked
+                    notifList.querySelectorAll('.notif-item').forEach(function (item) {
+                        item.addEventListener('click', function (e) {
+                            const paperId = parseInt(item.getAttribute('data-paper-id'));
+                            if (paperId) {
+                                fetch('/mark-paper-read', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ paper_id: paperId })
+                                }).then(function (r) { return r.json(); })
+                                    .then(function (d) {
+                                        if (d.success) {
+                                            updateBadge(d.unread_count || 0);
+                                            // Remove item with animation
+                                            item.style.transition = 'opacity 0.3s';
+                                            item.style.opacity = '0';
+                                            setTimeout(function () { item.remove(); }, 300);
+                                        }
+                                    })
+                                    .catch(function () { });
+                            }
+                        });
                     });
-                });
+                }
+                hasLoaded = true;
+            } catch (err) {
+                notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-red-400">Lỗi tải thông báo.</div>';
             }
-            hasLoaded = true;
-        } catch (err) {
-            notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-red-400">Lỗi tải thông báo.</div>';
         }
-    }
 
-    function openDropdown() {
-        dropdown.classList.remove('hidden');
-        isOpen = true;
-        loadNotifications();
-    }
-
-    function closeDropdown() {
-        dropdown.classList.add('hidden');
-        isOpen = false;
-    }
-
-    bellBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (isOpen) {
-            closeDropdown();
-        } else {
-            openDropdown();
+        function openDropdown() {
+            dropdown.classList.remove('hidden');
+            isOpen = true;
+            loadNotifications();
         }
-    });
 
-    // Close on outside click
-    document.addEventListener('click', function(e) {
-        if (isOpen && !dropdown.contains(e.target) && e.target !== bellBtn) {
-            closeDropdown();
+        function closeDropdown() {
+            dropdown.classList.add('hidden');
+            isOpen = false;
         }
-    });
 
-    // Close on Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && isOpen) {
-            closeDropdown();
-        }
-    });
-})();
+        bellBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+
+        // Close on outside click
+        document.addEventListener('click', function (e) {
+            if (isOpen && !dropdown.contains(e.target) && e.target !== bellBtn) {
+                closeDropdown();
+            }
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isOpen) {
+                closeDropdown();
+            }
+        });
+    })();
 </script>
