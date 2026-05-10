@@ -7,11 +7,15 @@ const registerModal = document.getElementById('register-modal');
 //Bấm Esc đế đóng modal ()
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        loginModal.classList.add('hidden');
-        registerModal.classList.add('hidden');
+        if (loginModal) {
+            loginModal.classList.add('hidden');
+            loginModal.classList.remove('flex');
+        }
 
-        loginModal.classList.remove('flex');
-        registerModal.classList.remove('flex');
+        if (registerModal) {
+            registerModal.classList.add('hidden');
+            registerModal.classList.remove('flex');
+        }
     }
 });
 
@@ -26,22 +30,28 @@ if (openLoginBtn) {
 }
 
 //Khi bấm nút "Đóng" trong modal Login
-document.getElementById('close-login-modal')
-    .addEventListener('click', () => {
+const closeLoginBtn = document.getElementById('close-login-modal');
+
+if (closeLoginBtn) {
+    closeLoginBtn.addEventListener('click', () => {
         //Ẩn modal Login
         loginModal.classList.add('hidden');
 
         //Xóa class flex
         loginModal.classList.remove('flex');
     });
+}
 
 //Click backdrop để đóng modal login
-loginModal.addEventListener('click', (e) => {
-    if (e.target === loginModal) {
-        loginModal.classList.add('hidden');
-        loginModal.classList.remove('flex');
-    }
-});
+if (loginModal) {
+
+    loginModal.addEventListener('click', (e) => {
+        if (e.target === loginModal) {
+            loginModal.classList.add('hidden');
+            loginModal.classList.remove('flex');
+        }
+    });
+}
 
 //REGISTER MODAL
 const openRegisterBtn = document.getElementById('open-register-modal');
@@ -54,8 +64,10 @@ if (openRegisterBtn) {
 }
 
 //Khi bấm nút "Đóng" trong modal Register
-document.getElementById('close-register-modal')
-    .addEventListener('click', () => {
+const closeRegisterBtn = document.getElementById('close-register-modal');
+
+if (closeRegisterBtn) {
+    closeRegisterBtn.addEventListener('click', () => {
         //Ẩn modal Register
         registerModal.classList.add('hidden');
 
@@ -63,32 +75,47 @@ document.getElementById('close-register-modal')
         registerModal.classList.remove('flex');
     });
 
-//Click backdrop để đóng modal register
-registerModal.addEventListener('click', (e) => {
-    if (e.target === registerModal) {
-        registerModal.classList.add('hidden');
-        registerModal.classList.remove('flex');
+    //Click backdrop để đóng modal register
+    if (registerModal) {
+        registerModal.addEventListener('click', (e) => {
+            if (e.target === registerModal) {
+                registerModal.classList.add('hidden');
+                registerModal.classList.remove('flex');
+            }
+        });
     }
-});
 
-//Switch Login -> Register
-document.getElementById('switch-to-register-modal')
-    .addEventListener('click', () => {
+    //Switch Login -> Register
+    const switchToRegisterBtn = document.getElementById('switch-to-register-modal');
 
-        loginModal.classList.add('hidden');
-        loginModal.classList.remove('flex');
+    if (switchToRegisterBtn) {
 
-        registerModal.classList.remove('hidden');
-        registerModal.classList.add('flex');
-    });
+        switchToRegisterBtn.addEventListener('click', () => {
 
-//Switch Register -> Login
-document.getElementById('switch-to-login-modal')
-    .addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+            loginModal.classList.remove('flex');
 
-        registerModal.classList.add('hidden');
-        registerModal.classList.remove('flex');
+            registerModal.classList.remove('hidden');
+            registerModal.classList.add('flex');
 
-        loginModal.classList.remove('hidden');
-        loginModal.classList.add('flex');
-    });
+        });
+
+    }
+
+    //Switch Register -> Login
+    const switchToLoginBtn = document.getElementById('switch-to-login-modal');
+
+    if (switchToLoginBtn) {
+
+        switchToLoginBtn.addEventListener('click', () => {
+
+            registerModal.classList.add('hidden');
+            registerModal.classList.remove('flex');
+
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+
+        });
+
+    }
+}
