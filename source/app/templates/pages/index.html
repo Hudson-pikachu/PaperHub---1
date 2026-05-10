@@ -89,7 +89,8 @@ PaperHub
 <!-- Load more papers functionality -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const IS_AUTHENTICATED = {{ 'true' if current_user.is_authenticated else 'false' }};
+        //const IS_AUTHENTICATED = {{ 'true' if current_user.is_authenticated else 'false' }};
+        const IS_AUTHENTICATED = "{{ current_user.is_authenticated | lower }}" === "true";
         const LIMIT = 5;
         const feed = document.getElementById('paper-feed');
         const displayCount = document.getElementById('display-count');
@@ -251,7 +252,7 @@ PaperHub
             });
         }
 
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             var link = e.target.closest('a[href^="/read/"]');
             if (!link) return;
             var match = link.getAttribute('href').match(/^\/read\/(\d+)$/);
@@ -264,29 +265,29 @@ PaperHub
                 keepalive: true,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paper_id: paperId })
-            }).then(function(r) { return r.json(); })
-              .then(function(d) {
-                if (d.success && d.unread_count !== undefined) {
-                    var notifDot = document.getElementById('notif-dot');
-                    if (notifDot) {
-                        if (d.unread_count > 0) {
-                            notifDot.classList.remove('hidden');
-                            notifDot.textContent = d.unread_count > 99 ? '99+' : d.unread_count;
-                            notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
-                            notifDot.style.minWidth = d.unread_count > 9 ? '18px' : '16px';
-                            notifDot.style.height = d.unread_count > 9 ? '18px' : '16px';
-                            notifDot.style.top = '-2px';
-                            notifDot.style.right = '-4px';
-                            notifDot.style.padding = '0 2px';
-                        } else {
-                            notifDot.classList.add('hidden');
-                            notifDot.textContent = '';
-                            notifDot.classList.remove('flex', 'items-center', 'justify-center');
-                            notifDot.style = '';
+            }).then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d.success && d.unread_count !== undefined) {
+                        var notifDot = document.getElementById('notif-dot');
+                        if (notifDot) {
+                            if (d.unread_count > 0) {
+                                notifDot.classList.remove('hidden');
+                                notifDot.textContent = d.unread_count > 99 ? '99+' : d.unread_count;
+                                notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
+                                notifDot.style.minWidth = d.unread_count > 9 ? '18px' : '16px';
+                                notifDot.style.height = d.unread_count > 9 ? '18px' : '16px';
+                                notifDot.style.top = '-2px';
+                                notifDot.style.right = '-4px';
+                                notifDot.style.padding = '0 2px';
+                            } else {
+                                notifDot.classList.add('hidden');
+                                notifDot.textContent = '';
+                                notifDot.classList.remove('flex', 'items-center', 'justify-center');
+                                notifDot.style = '';
+                            }
                         }
                     }
-                }
-              }).catch(function() {});
+                }).catch(function () { });
         });
 
         feed.addEventListener('click', async function (e) {
