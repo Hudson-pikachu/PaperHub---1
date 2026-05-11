@@ -156,9 +156,9 @@ async function loadHistory() {
     tbody.innerHTML = d.records.map(function(r) {
         var aiCell = '';
         if (r.ai_error) {
-            aiCell = '<span class="text-red-500" title="' + escapeHtml(r.ai_error) + '">✅ ' + (r.ai_processed || 0) + ' bai</span>';
+            aiCell = '<span class="text-red-500" title="' + escapeHtml(r.ai_error) + '">' + (r.ai_processed || 0) + '</span>';
         } else if (r.ai_processed > 0) {
-            aiCell = '<span class="text-green-600">✅ ' + r.ai_processed + ' bài</span>';
+            aiCell = '<span class="text-green-600">' + r.ai_processed + '</span>';
         } else {
             aiCell = '<span class="text-gray-400">-</span>';
         }
