@@ -111,6 +111,12 @@
                                     class="block px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
                                     {{ 'Profile' if session.get('lang', 'vi') == 'en' else 'Hồ sơ' }}
                                 </a>
+                                {% if current_user.is_admin %}
+                                <a href="/dev?secret={{ config.get('ADMIN_SECRET', '') }}"
+                                    class="block px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors border-t border-slate-100">
+                                    🔧 {{ 'Admin' if session.get('lang', 'vi') == 'en' else 'Quản trị' }}
+                                </a>
+                                {% endif %}
                                 <a href="{{ url_for('auth.logout') }}"
                                     class="block px-5 py-3 text-sm text-red-500 border-t border-slate-100 hover:bg-red-50 transition-colors">
                                     {{ 'Logout' if session.get('lang', 'vi') == 'en' else 'Đăng xuất' }}

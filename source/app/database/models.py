@@ -31,6 +31,35 @@ class SchedulerState(db.Model):
     def __repr__(self):
         return f'<SchedulerState last_run={self.last_run}>'
 
+
+class FetchHistory(db.Model):
+    """Lịch sử các lần fetch arXiv."""
+    __tablename__ = 'fetch_history'
+
+    id = db.Column(db.Integer, primary_key=True)
+    started_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    finished_at = db.Column(db.DateTime, default=datetime.utcnow)
+    duration_seconds = db.Column(db.Integer, default=0)
+    saved_count = db.Column(db.Integer, default=0)
+    per_category = db.Column(db.Integer, default=2)
+    error_message = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f'<FetchHistory id={self.id} saved={self.saved_count}>'
+
+
+class FetchConfig(db.Model):
+    """Cấu hình fetch arXiv (dùng cho scheduler nội bộ)."""
+    __tablename__ = 'fetch_config'
+
+    id = db.Column(db.Integer, primary_key=True)
+    interval_hours = db.Column(db.Integer, default=6, nullable=False)
+    per_category = db.Column(db.Integer, default=2, nullable=False)
+    enabled = db.Column(db.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f'<FetchConfig interval={self.interval_hours}h per_cat={self.per_category}>'
+
 class Paper(db.Model):
     # 1. ID tự tăng (Khóa chính)
     id = db.Column(db.Integer, primary_key=True)
@@ -88,6 +117,8 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     # Trạng thái tài khoản (UserMixin dùng is_active)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    # Quyền admin (True = có quyền truy cập trang quản trị)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
     def __init__(self, username: str, email: str, **kwargs):
         super().__init__(**kwargs)

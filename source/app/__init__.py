@@ -56,6 +56,10 @@ def create_app():
     # ── Thiết lập Logging ra file ──
     setup_logging(app)
 
+    # ── Expose ADMIN_SECRET cho template (dùng trong link admin) ──
+    from .admin import ADMIN_SECRET as _admin_secret
+    app.config['ADMIN_SECRET'] = _admin_secret
+
     # ── Khởi tạo DB ──
     db.init_app(app)
     _ensure_db_schema(app)
@@ -96,12 +100,14 @@ def create_app():
         if error is not None:
             _log.error(f"Teardown error [{type(error).__name__}]: {error}", exc_info=True)
 
-    # ── Cấu hình định kỳ fetch arXiv mỗi 6 tiếng ──
+    # ── Cấu hình scheduler nội bộ (CHỈ dùng cho debug/dev local) ──
+    # Trên host shared: dùng cron job gọi HTTP endpoint /dev/run-fetch
+    # Trên local: chạy script: python scripts/fetch_papers.py
     scheduler = APScheduler()
     scheduler.init_app(app)
 
     def scheduled_fetch():
-        """Job chạy mỗi 6 tiếng: lấy bài mới từ arXiv và dịch bằng AI."""
+        """Job chạy định kỳ: lấy bài mới từ arXiv và dịch bằng AI."""
         with app.app_context():
             try:
                 _log.warning(f"[Scheduler] Bắt đầu fetch arXiv lúc {datetime.utcnow().isoformat()}")
@@ -116,11 +122,9 @@ def create_app():
 
     if last_run:
         next_run = last_run + timedelta(hours=6)
-        # Nếu đã quá hạn, chạy sau 60 giây (để app kịp khởi động xong)
         if next_run < datetime.utcnow():
             next_run = datetime.utcnow() + timedelta(seconds=60)
     else:
-        # Lần đầu tiên: chạy sau 60 giây
         next_run = datetime.utcnow() + timedelta(seconds=60)
 
     scheduler.add_job(
@@ -129,40 +133,20 @@ def create_app():
         trigger='interval',
         hours=6,
         next_run_time=next_run,
-        max_instances=1,   # Không cho chạy chồng lên nhau
-        coalesce=True,     # Gộp các lần bị bỏ lỡ thành 1 lần chạy duy nhất
+        max_instances=1,
+        coalesce=True,
         replace_existing=True,
     )
 
-    # TODO: TẠM THỜI ép scheduler luôn chạy để test trên host.
-    # Sau khi test xong, xóa dòng force=True và bỏ comment đoạn logic bên dưới.
-    #
-    # ── Cấu hình scheduler ──
-    #   - ENABLE_SCHEDULER=true   → bắt buộc bật (host chính production)
-    #   - ENABLE_SCHEDULER=false  → bắt buộc tắt (các worker phụ)
-    #   - Không set (None)        → tự động bật nếu debug=True, tắt nếu debug=False
-    force_scheduler = False  # ← TẠM THỜI: true = ép luôn chạy, bỏ qua env var, false = như bình thường
-
-    if force_scheduler:
-        enable_scheduler = True
-    else:
-        enable_scheduler_env = os.environ.get('ENABLE_SCHEDULER', None)
-        if enable_scheduler_env is not None:
-            enable_scheduler = enable_scheduler_env.lower() == 'true'
-        else:
-            enable_scheduler = app.debug
-
-    if enable_scheduler:
-        if app.debug:
-            if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-                scheduler.start()
-                print("[Scheduler] STARTED (debug mode, force=True).")
-            else:
-                print("[Scheduler] Waiting for reloader child process...")
-        else:
+    # Bật scheduler nội bộ CHỈ khi debug=True (dev local)
+    # Production / host shared: dùng cron job HTTP hoặc script CLI
+    if app.debug:
+        if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
             scheduler.start()
-            print("[Scheduler] STARTED (production mode, force=True).")
+            print("[Scheduler] STARTED (debug mode, chỉ dùng cho dev local).")
+        else:
+            print("[Scheduler] Waiting for reloader child process...")
     else:
-        print("[Scheduler] DISABLED. Set ENABLE_SCHEDULER=true to enable.")
+        print("[Scheduler] DISABLED (production mode). Dùng cron job HTTP hoặc 'python scripts/fetch_papers.py'")
 
     return app
