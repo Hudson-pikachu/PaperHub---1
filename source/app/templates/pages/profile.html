@@ -50,7 +50,7 @@ PaperHub | {{ current_user.username }}
         </div>
 
         <!-- Topic Tags (danh mục từ hệ thống) -->
-        <div id="category-tags" class="flex flex-wrap justify-center gap-3">
+        <div id="category-tags" class="flex flex-wrap justify-center gap-3 mb-8">
             {% for cat in categories %}
             <button type="button"
                 class="follow-btn px-4 py-2 rounded-full border font-semibold text-sm transition-all duration-200 cursor-pointer bg-slate-100 border-slate-200 text-slate-500"
@@ -60,6 +60,17 @@ PaperHub | {{ current_user.username }}
             {% else %}
             <p class="text-slate-400 text-sm">{{ 'No topics available.' if lang == 'en' else 'Chưa có chủ đề nào.' }}</p>
             {% endfor %}
+        </div>
+
+        <!-- Nút quay lại index filter following -->
+        <div class="text-center mt-8">
+            <a href="/?filter=following"
+                class="inline-flex items-center gap-2 px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] hover:scale-[1.02] transition-all tracking-wide shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                {{ 'View Your Topics' if lang == 'en' else 'Xem Chủ đề của bạn' }}
+            </a>
         </div>
     </div>
 </section>

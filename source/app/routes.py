@@ -328,6 +328,31 @@ def mark_paper_read():
 
     return jsonify({'success': True, 'unread_count': unread_count})
 
+
+@main_bp.route('/mark-all-read', methods=['POST'])
+@login_required
+def mark_all_read():
+    """Đánh dấu tất cả bài viết mới là đã xem."""
+    since = current_user.created_at or datetime.utcnow()
+    all_new_paper_ids = [
+        p.id for p in
+        Paper.query.filter(
+            Paper.status == 'posted',
+            Paper.date_added > since
+        ).all()
+    ]
+    existing_read_ids = {
+        rp.paper_id for rp in
+        UserPaperRead.query.filter_by(user_id=current_user.id).all()
+    }
+    added = 0
+    for pid in all_new_paper_ids:
+        if pid not in existing_read_ids:
+            db.session.add(UserPaperRead(user_id=current_user.id, paper_id=pid))
+            added += 1
+    db.session.commit()
+    return jsonify({'success': True, 'unread_count': 0, 'marked': added})
+
 @main_bp.route('/search')
 def search():
     """Tìm kiếm bài nghiên cứu theo keyword (tiếng Việt + tiếng Anh), trả về tối đa 5 kết quả."""

@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 from .database.models import db, SchedulerState, FetchHistory, SiteSettings, Paper
 from .services.arxiv_service import fetch_arxiv_for_all_categories
 from .services.ai_service import check_ai_status, process_pending_papers
-from .logger import get_last_lines, get_log_stats
+from .logger import get_last_lines, get_log_stats, read_log_file, read_log_file_stats
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/dev')
 
@@ -148,7 +148,7 @@ def process_pending():
             db.session.rollback()
         except Exception:
             pass
-        ai_error_msg = None if saved >= pending_count else f'Chỉ xử lý được {saved}/{pending_count} bài'
+        ai_error_msg = None if saved >= pending_count else f'Only processed {saved}/{pending_count} papers'
         _log_fetch_history(
             saved_count=0, per_category=0, duration_seconds=elapsed,
             ai_processed=saved, ai_error=ai_error_msg,
@@ -282,6 +282,34 @@ def status():
     return jsonify({
         'last_run': _format_vn(last_run) if last_run else None,
         'pending_count': pending_count,
+    })
+
+
+@admin_bp.route('/cron-log', methods=['GET'])
+def view_cron_log():
+    """Đọc N dòng cuối của file cron.log (cron job output)."""
+    if not _check_secret():
+        return jsonify({'success': False, 'message': '401 Unauthorized'}), 401
+
+    lines_count = min(request.args.get('lines', 50, type=int), 500)
+    cron_log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'logs', 'cron.log')
+    cron_log_path = os.path.normpath(cron_log_path)
+
+    stats = read_log_file_stats(cron_log_path)
+    if not stats['exists']:
+        return jsonify({
+            'success': True,
+            'message': 'Chưa có file cron.log nào.',
+            'stats': stats,
+            'lines': [],
+        })
+
+    raw_lines = read_log_file(cron_log_path, lines_count)
+    return jsonify({
+        'success': True,
+        'stats': stats,
+        'showing': len(raw_lines),
+        'lines': raw_lines,
     })
 
 

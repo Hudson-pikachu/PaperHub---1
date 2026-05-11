@@ -70,6 +70,17 @@ PaperHub - Admin
         </table>
     </div>
 </div>
+
+<!-- Cron Log -->
+<div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-slate-100">
+    <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold text-[#1A365D]">📜 Cron Log (50 dòng cuối)</h2>
+        <button onclick="loadCronLog()" class="text-xs text-[#1A365D] underline hover:text-[#2C5282]">Tải lại</button>
+    </div>
+    <div id="cron-log-content" class="bg-slate-900 text-green-400 p-4 rounded-xl text-xs font-mono max-h-80 overflow-y-auto whitespace-pre-wrap">
+        <p class="text-slate-500">Đang tải...</p>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -145,16 +156,21 @@ async function loadHistory() {
     tbody.innerHTML = d.records.map(function(r) {
         var aiCell = '';
         if (r.ai_error) {
-            aiCell = '<span class="text-red-500" title="' + escapeHtml(r.ai_error) + '">❌ ' + (r.ai_processed || 0) + '/' + r.saved_count + '</span>';
+            aiCell = '<span class="text-red-500" title="' + escapeHtml(r.ai_error) + '">✅ ' + (r.ai_processed || 0) + ' bai</span>';
         } else if (r.ai_processed > 0) {
-            aiCell = '<span class="text-green-600">✅ ' + r.ai_processed + '/' + r.saved_count + '</span>';
+            aiCell = '<span class="text-green-600">✅ ' + r.ai_processed + ' bài</span>';
         } else {
             aiCell = '<span class="text-gray-400">-</span>';
         }
-        var statusCell = r.error_message
-            ? '<span class="text-red-500" title="' + escapeHtml(r.error_message) + '">❌</span>'
-            : '✅';
-        if (r.ai_error && !r.error_message) statusCell = '⚠️';
+        var statusCell = '✅';
+        var errorTooltip = '';
+        if (r.error_message) {
+            errorTooltip = escapeHtml(r.error_message);
+            statusCell = '<span class="text-red-500" title="' + errorTooltip + '">❌</span>';
+        }
+        if (r.ai_error && !r.error_message) {
+            statusCell = '<span class="text-yellow-500" title="' + escapeHtml(r.ai_error) + '">⚠️</span>';
+        }
         var rowBg = (r.error_message || r.ai_error) ? 'bg-red-50/50' : '';
         return '<tr class="border-t border-slate-100 ' + rowBg + '">' +
             '<td class="p-3 text-slate-600">' + r.id + '</td>' +
@@ -201,9 +217,21 @@ async function processPending() {
     loadHistory();
 }
 
+async function loadCronLog() {
+    const el = document.getElementById('cron-log-content');
+    el.innerHTML = '<p class="text-slate-500">Đang tải...</p>';
+    const d = await api('/cron-log?lines=50');
+    if (!d.lines || d.lines.length === 0) {
+        el.innerHTML = '<p class="text-slate-500">Chưa có cron log.</p>';
+        return;
+    }
+    el.innerHTML = d.lines.map(function(l) { return escapeHtml(l); }).join('\n');
+}
+
 loadStatus();
 checkAI();
 loadSettings();
 loadHistory();
+loadCronLog();
 </script>
 {% endblock %}

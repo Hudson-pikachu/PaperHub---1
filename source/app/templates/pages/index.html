@@ -92,7 +92,7 @@ PaperHub
     document.addEventListener('DOMContentLoaded', function () {
         const IS_AUTHENTICATED = "{{ current_user.is_authenticated | lower }}" === "true";
         const CURRENT_LANG = "{{ session.get('lang', 'vi') }}";
-        let GUEST_LOAD_MORE = true;  // mặc định cho phép
+        let GUEST_LOAD_MORE = true;
 
         // Đọc cấu hình từ server
         fetch('/site-settings').then(function(r) { return r.json(); }).then(function(d) {
@@ -100,6 +100,13 @@ PaperHub
         }).catch(function() {
             GUEST_LOAD_MORE = true;
         });
+
+        // Đọc query param ?filter= để tự động chuyển tab
+        function getQueryParam(param) {
+            var urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+        var initialFilter = getQueryParam('filter');
         const LIMIT = 5;
         const feed = document.getElementById('paper-feed');
         const displayCount = document.getElementById('display-count');
@@ -486,6 +493,14 @@ PaperHub
                     showLoginRequired();
                     return;
                 }
+                loadFollowingPapers();
+            });
+        }
+
+        // ── Auto-trigger tab from query param ?filter=following ──
+        if (initialFilter === 'following' && IS_AUTHENTICATED) {
+            requestAnimationFrame(function() {
+                setActiveFilter('following');
                 loadFollowingPapers();
             });
         }

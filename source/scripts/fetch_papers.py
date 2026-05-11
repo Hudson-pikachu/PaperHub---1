@@ -25,7 +25,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
 sys.path.insert(0, PROJECT_ROOT)
 
 from app import create_app
-from app.database.models import db, SchedulerState
+from app.database.models import db, SchedulerState, FetchHistory
 from app.services.arxiv_service import fetch_arxiv_for_all_categories, fetch_arxiv_papers
 
 
@@ -86,9 +86,36 @@ def main():
 
             _set_last_run(datetime.utcnow())
             elapsed = (datetime.utcnow() - started_at).seconds
+
+            # Ghi lich su vao FetchHistory (de xem tren admin dashboard)
+            ai_processed_val = ai_processed if 'ai_processed' in dir() else 0
+            ai_error_val = ai_error if 'ai_error' in dir() else None
+            try:
+                entry = FetchHistory()
+                entry.saved_count = total
+                entry.per_category = args.per_category if not args.category else args.per_category
+                entry.duration_seconds = elapsed
+                entry.ai_processed = ai_processed_val
+                entry.ai_error = ai_error_val
+                db.session.add(entry)
+                db.session.commit()
+            except Exception as log_err:
+                print(f"[{datetime.utcnow().isoformat()}] WARNING: Failed to log history: {log_err}")
+
             print(f"[{datetime.utcnow().isoformat()}] Hoan tat. Da luu {total} bai moi. ({elapsed}s)")
         except Exception as e:
             print(f"[{datetime.utcnow().isoformat()}] LOI: {e}", file=sys.stderr)
+            # Log error to FetchHistory too
+            try:
+                entry = FetchHistory()
+                entry.saved_count = 0
+                entry.per_category = args.per_category if not args.category else args.per_category
+                entry.duration_seconds = 0
+                entry.error_message = str(e)
+                db.session.add(entry)
+                db.session.commit()
+            except Exception:
+                pass
             sys.exit(1)
 
 

@@ -83,6 +83,30 @@ def get_last_lines(n: int = 100) -> list[str]:
     return [line.rstrip() for line in lines[-n:]]
 
 
+def read_log_file(filepath: str, n: int = 100) -> list[str]:
+    """Đọc n dòng cuối của một file log bất kỳ."""
+    if not os.path.exists(filepath):
+        return []
+    with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+        lines = f.readlines()
+    return [line.rstrip() for line in lines[-n:]]
+
+
+def read_log_file_stats(filepath: str) -> dict:
+    """Trả về thông tin cơ bản về một file log bất kỳ."""
+    if not os.path.exists(filepath):
+        return {'exists': False, 'size_kb': 0, 'total_lines': 0, 'path': filepath}
+    size = os.path.getsize(filepath)
+    with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+        total = sum(1 for _ in f)
+    return {
+        'exists': True,
+        'size_kb': round(size / 1024, 2),
+        'total_lines': total,
+        'path': filepath,
+    }
+
+
 def get_log_stats() -> dict:
     """Trả về thông tin cơ bản về file log."""
     if not os.path.exists(LOG_FILE):
