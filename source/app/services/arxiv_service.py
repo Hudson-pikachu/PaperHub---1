@@ -1,3 +1,4 @@
+import re
 import arxiv
 from datetime import datetime
 from ..database.models import Paper, Category, db
@@ -11,6 +12,21 @@ ARXIV_CATEGORY_MAP = {
     "Kiến Trúc Máy Tính": "cs.AR",
     "Tối Ưu Hóa": "cs.DS",
 }
+
+
+def _clean_text(text: str) -> str:
+    """Loại bỏ ký hiệu LaTeX/HTML khỏi text trước khi lưu."""
+    if not text:
+        return ''
+    # Xóa các lệnh LaTeX: \frac{...}{...}, \sum, \mathbf{}, ...
+    text = re.sub(r'\\[a-zA-Z]+\{.*?\}(\{.*?\})?', '', text)
+    # Xóa math mode: $...$ và $$...$$
+    text = re.sub(r'\$\$?[^$]+\$\$?', '', text)
+    # Xóa các dấu { } còn sót
+    text = re.sub(r'[{}\\]', ' ', text)
+    # Thu gọn khoảng trắng thừa
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
 
 
 def _resolve_arxiv_query(query: str) -> str:
@@ -48,14 +64,18 @@ def fetch_arxiv_papers(query: str = "Học Máy", max_results: int = 20) -> tupl
         if Paper.query.filter_by(link=result.pdf_url).first():
             continue
 
+        # Làm sạch text trước khi lưu
+        clean_title = _clean_text(result.title)
+        clean_abstract = _clean_text(result.summary or '')
+
         paper = Paper()
-        paper.title = result.title
-        paper.title_en = result.title
+        paper.title = clean_title if clean_title else result.title
+        paper.title_en = result.title  # Giữ nguyên bản gốc tiếng Anh
         paper.published_date = result.published.strftime("%Y-%m-%d")
         paper.authors = ", ".join(author.name for author in result.authors)
         paper.publisher = result.primary_category
-        paper.abstract = result.summary
-        paper.abstract_en = result.summary
+        paper.abstract = clean_abstract if clean_abstract else (result.summary or '')
+        paper.abstract_en = result.summary or ''
         paper.link = result.pdf_url
         paper.category_id = category_id
         paper.cited_count = 0

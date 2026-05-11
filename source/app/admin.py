@@ -84,15 +84,27 @@ def _set_last_run(run_time: datetime):
 def _log_fetch_history(saved_count: int, per_category: int, duration_seconds: int = 0,
                        ai_processed: int = 0, ai_error: str | None = None,
                        error_message: str | None = None):
-    entry = FetchHistory()
-    entry.saved_count = saved_count
-    entry.per_category = per_category
-    entry.duration_seconds = duration_seconds
-    entry.ai_processed = ai_processed
-    entry.ai_error = ai_error
-    entry.error_message = error_message
-    db.session.add(entry)
-    db.session.commit()
+    """Ghi lịch sử với session riêng, chịu lỗi nếu DB bị ngắt."""
+    try:
+        db.session.rollback()  # Xóa transaction cũ nếu có lỗi trước đó
+    except Exception:
+        pass
+    try:
+        entry = FetchHistory()
+        entry.saved_count = saved_count
+        entry.per_category = per_category
+        entry.duration_seconds = duration_seconds
+        entry.ai_processed = ai_processed
+        entry.ai_error = ai_error
+        entry.error_message = error_message
+        db.session.add(entry)
+        db.session.commit()
+    except Exception as e:
+        print(f"[Admin] Failed to save fetch history: {e}")
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
 
 
 def _get_or_create_settings() -> SiteSettings:
@@ -119,15 +131,40 @@ def process_pending():
         return jsonify({'success': False, 'message': '401 Unauthorized'}), 401
 
     count = request.args.get('count', 12, type=int) or 12
+    pending_count = Paper.query.filter_by(status='pending').count()
+    if pending_count == 0:
+        return jsonify({'success': True, 'message': 'Không có bài pending.', 'processed': 0})
+
+    started_at = _now_vn()
+    print(f"[Admin] process-pending triggered at {started_at.isoformat()}, limit={count}, pending={pending_count}")
+
     try:
         saved = process_pending_papers(limit=count)
+        _set_last_run(_now_vn())
+        elapsed = (_now_vn() - started_at).seconds
+
+        # Ghi lịch sử: rollback transaction AI cũ trước
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        ai_error_msg = None if saved >= pending_count else f'Chỉ xử lý được {saved}/{pending_count} bài'
+        _log_fetch_history(
+            saved_count=0, per_category=0, duration_seconds=elapsed,
+            ai_processed=saved, ai_error=ai_error_msg,
+        )
+        print(f"[Admin] process-pending done: AI processed {saved}/{pending_count}, {elapsed}s")
         return jsonify({
             'success': True,
-            'message': f'Đã xử lý {saved} bài pending.',
+            'message': f'Đã xử lý {saved}/{pending_count} bài pending.',
             'processed': saved,
+            'elapsed_seconds': elapsed,
         })
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        error_msg = str(e)
+        print(f"[Admin] process-pending error: {error_msg}")
+        _log_fetch_history(saved_count=0, per_category=0, ai_processed=0, ai_error=error_msg)
+        return jsonify({'success': False, 'message': error_msg}), 500
 
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])

@@ -111,8 +111,8 @@ QUY TẮC BẮT BUỘC:
 Dưới đây là danh sách {len(papers)} bài nghiên cứu. Với MỖI bài, bạn cần:
 1. Dịch tiêu đề sang tiếng Việt chuẩn thuật ngữ, tự nhiên, hấp dẫn.
 2. Dịch abstract sang tiếng Việt tự nhiên, hấp dẫn, dễ đọc, giữ đúng nội dung khoa học.
-3. Tóm tắt ý quan trọng nhất của abstract bằng một đoạn văn ngắn gọn, thiên về kết quả và đóng góp (tiếng Việt).
-4. Cung cấp phiên bản tiếng Anh: title_en giữ nguyên gốc (chỉ làm sạch LaTeX), abstract_en giữ nguyên gốc (chỉ làm sạch LaTeX), summary_en là bản tóm tắt ngắn gọn bằng tiếng Anh.
+3. Tóm tắt kết quả và đóng góp chính của nghiên cứu bằng ĐÚNG 2-3 CÂU tiếng Việt ngắn gọn, súc tích. KHÔNG dài hơn 3 câu. Chỉ nêu kết quả đạt được và ý nghĩa của nghiên cứu, không mô tả phương pháp.
+4. Cung cấp phiên bản tiếng Anh: title_en giữ nguyên gốc (chỉ làm sạch LaTeX), abstract_en giữ nguyên gốc (chỉ làm sạch LaTeX), summary_en là bản tóm tắt ngắn gọn bằng tiếng Anh (2-3 câu).
 
 Danh sách bài viết (JSON array):
 {papers_json_array}
@@ -227,25 +227,41 @@ def check_ai_status() -> dict:
         return {"ok": False, "message": f"Lỗi khởi tạo client: {str(e)}"}
 
 
-def process_pending_papers(limit: int = 12, model: str = "gemini-2.5-flash-lite") -> int:
-    """Xử lý tối đa limit bài pending trong 1 lần gọi batch Google AI.
+def process_pending_papers(limit: int = 12, model: str = "gemini-2.5-flash-lite", chunk_size: int = 6) -> int:
+    """Xử lý tối đa limit bài pending, chia thành các batch nhỏ (chunk_size).
 
-    Gửi toàn bộ pending papers trong 1 prompt duy nhất để tiết kiệm quota.
+    Mỗi lần gọi Google AI xử lý tối đa chunk_size bài để tránh timeout.
+    Ví dụ: 12 bài pending → chia 2 lần, mỗi lần 6 bài.
     """
-    _get_client()  # Ensure client is initialized
+    _get_client()
     pending_papers = Paper.query.filter_by(status="pending").limit(limit).all()
     if not pending_papers:
         return 0
-    paper_ids = [p.id for p in pending_papers]
-    try:
-        return batch_translate_and_summarize(paper_ids, model=model)
-    except Exception:
-        # Nếu batch lỗi, fallback về xử lý từng bài để không mất hết
-        saved = 0
-        for paper in pending_papers:
-            try:
-                translate_and_summarize_paper(paper.id, model=model)
-                saved += 1
-            except Exception:
-                continue
-        return saved
+    print(f"[AI] Found {len(pending_papers)} pending papers, chunk_size={chunk_size}")
+
+    total_saved = 0
+    for i in range(0, len(pending_papers), chunk_size):
+        chunk = pending_papers[i:i + chunk_size]
+        chunk_ids = [p.id for p in chunk]
+        chunk_num = i // chunk_size + 1
+        total_chunks = (len(pending_papers) + chunk_size - 1) // chunk_size
+        print(f"[AI] Chunk {chunk_num}/{total_chunks}: {len(chunk)} papers")
+
+        try:
+            result = batch_translate_and_summarize(chunk_ids, model=model)
+            total_saved += result
+            print(f"[AI] Chunk {chunk_num}/{total_chunks} done: {result}/{len(chunk)}")
+        except Exception as e:
+            print(f"[AI] Chunk {chunk_num}/{total_chunks} batch error: {e}")
+            # Fallback: xử lý từng bài trong chunk
+            for paper in chunk:
+                try:
+                    result = batch_translate_and_summarize([paper.id], model=model)
+                    if result > 0:
+                        total_saved += result
+                except Exception as e2:
+                    print(f"[AI] Paper {paper.id} error: {e2}")
+                    continue
+
+    print(f"[AI] Total processed: {total_saved}/{len(pending_papers)}")
+    return total_saved

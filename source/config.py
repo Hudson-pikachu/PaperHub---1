@@ -85,7 +85,8 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 # Nếu host giới hạn thấp hơn, giảm pool_size xuống 1.
 SQLALCHEMY_ENGINE_OPTIONS = {
     # Tái tạo connection sau 280 giây (trước khi MySQL server đóng sau 300s idle)
-    'pool_recycle': 280,
+    # Tăng lên 600 giây (10 phút) để xử lý Google AI lâu mà không bị disconnect
+    'pool_recycle': 600,
     # Kiểm tra connection còn sống không trước mỗi lần dùng (SELECT 1)
     'pool_pre_ping': True,
     # Timeout khi chờ lấy connection từ pool
