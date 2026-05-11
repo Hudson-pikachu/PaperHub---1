@@ -138,15 +138,8 @@ def create_app():
         replace_existing=True,
     )
 
-    # Bật scheduler nội bộ CHỈ khi debug=True (dev local)
-    # Production / host shared: dùng cron job HTTP hoặc script CLI
-    if app.debug:
-        if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-            scheduler.start()
-            print("[Scheduler] STARTED (debug mode, chỉ dùng cho dev local).")
-        else:
-            print("[Scheduler] Waiting for reloader child process...")
-    else:
-        print("[Scheduler] DISABLED (production mode). Dùng cron job HTTP hoặc 'python scripts/fetch_papers.py'")
+    # ── Mặc định KHÔNG bật scheduler nội bộ ──
+    # Dùng 'python scripts/fetch_papers.py' hoặc HTTP endpoint /dev/run-fetch
+    print("[Scheduler] DISABLED (mặc định). Dùng 'python scripts/fetch_papers.py' hoặc /dev/run-fetch")
 
     return app
