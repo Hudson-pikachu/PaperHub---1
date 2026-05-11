@@ -102,15 +102,20 @@ def fetch_arxiv_for_all_categories(per_category: int = 2) -> tuple[int, int, str
         total_saved += saved
         all_new_ids.extend(new_ids)
 
-    # Gọi batch Google AI 1 lần duy nhất cho tất cả bài mới
+    # Gọi batch Google AI, chunk 6 bài/lần để tránh timeout
     # Nếu AI lỗi → giữ status= pending để retry sau
     # Nếu AI thành công → status= posted (được set trong batch_translate_and_summarize)
     ai_processed = 0
-    ai_error = None
+    ai_errors = []
+    CHUNK_SIZE = 6
     if all_new_ids:
-        try:
-            ai_processed = batch_translate_and_summarize(all_new_ids)
-        except Exception as e:
-            ai_error = str(e)
+        for i in range(0, len(all_new_ids), CHUNK_SIZE):
+            chunk_ids = all_new_ids[i:i + CHUNK_SIZE]
+            try:
+                result = batch_translate_and_summarize(chunk_ids)
+                ai_processed += result
+            except Exception as e:
+                ai_errors.append(f"Chunk {i // CHUNK_SIZE + 1}: {str(e)[:100]}")
 
+    ai_error = '; '.join(ai_errors) if ai_errors else None
     return total_saved, ai_processed, ai_error
