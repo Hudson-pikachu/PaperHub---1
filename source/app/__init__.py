@@ -140,6 +140,6 @@ def create_app():
 
     # ── Mặc định KHÔNG bật scheduler nội bộ ──
     # Dùng 'python scripts/fetch_papers.py' hoặc HTTP endpoint /dev/run-fetch
-    print("[Scheduler] DISABLED (mặc định). Dùng 'python scripts/fetch_papers.py' hoặc /dev/run-fetch")
+    print("[Scheduler] DISABLED. Use 'python scripts/fetch_papers.py' or /dev/run-fetch")
 
     return app
