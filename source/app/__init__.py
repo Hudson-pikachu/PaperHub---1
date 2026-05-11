@@ -1,10 +1,8 @@
 import os
 import logging
 from flask import Flask, jsonify
-from flask_apscheduler import APScheduler
 from flask_login import LoginManager
-from datetime import datetime, timedelta
-from .database.models import db, SchedulerState, User
+from .database.models import db, User
 from .services.arxiv_service import fetch_arxiv_for_all_categories
 from .logger import setup_logging, get_logger
 
@@ -23,28 +21,11 @@ def _ensure_db_schema(app):
         db.create_all()
 
 
-def _get_last_run():
-    state = SchedulerState.query.get(1)
-    return state.last_run if state else None
-
-
-def _set_last_run(run_time: datetime):
-    state = SchedulerState.query.get(1)
-    if not state:
-        state = SchedulerState()
-        state.id = 1
-    state.last_run = run_time
-    db.session.add(state)
-    db.session.commit()
-
-
 def create_app():
     app = Flask(__name__)
 
     # ── Cấu hình DB từ config.py (MySQL with SQLite fallback) ──
     app.config.from_object('config')
-    app.config['SCHEDULER_API_ENABLED'] = False
-    app.config['SCHEDULER_TIMEZONE'] = 'Asia/Ho_Chi_Minh'
     # Secret key cho session (Flask-Login cần session)
     if not app.config.get('SECRET_KEY'):
         app.config['SECRET_KEY'] = 'paperhub-secret-key-2026-change-in-production'
@@ -77,8 +58,9 @@ def create_app():
     from .auth import auth_bp
     app.register_blueprint(auth_bp)
 
-    from .admin import admin_bp
+    from .admin import admin_bp, public_bp
     app.register_blueprint(admin_bp)
+    app.register_blueprint(public_bp)
 
     # ── Flask error handlers — ghi lỗi 500 ra file log ──
     # Dùng get_logger() thay vì app.logger để tránh bị Gunicorn override
@@ -99,47 +81,5 @@ def create_app():
         """Lưới an toàn thứ 2: bắt lỗi thoát khỏi error handlers."""
         if error is not None:
             _log.error(f"Teardown error [{type(error).__name__}]: {error}", exc_info=True)
-
-    # ── Cấu hình scheduler nội bộ (CHỈ dùng cho debug/dev local) ──
-    # Trên host shared: dùng cron job gọi HTTP endpoint /dev/run-fetch
-    # Trên local: chạy script: python scripts/fetch_papers.py
-    scheduler = APScheduler()
-    scheduler.init_app(app)
-
-    def scheduled_fetch():
-        """Job chạy định kỳ: lấy bài mới từ arXiv và dịch bằng AI."""
-        with app.app_context():
-            try:
-                _log.warning(f"[Scheduler] Bắt đầu fetch arXiv lúc {datetime.utcnow().isoformat()}")
-                count = fetch_arxiv_for_all_categories(per_category=2)
-                _set_last_run(datetime.utcnow())
-                _log.warning(f"[Scheduler] Hoàn tất. Đã lưu {count} bài mới.")
-            except Exception as e:
-                _log.error(f"[Scheduler] Lỗi trong scheduled_fetch: {e}", exc_info=True)
-
-    with app.app_context():
-        last_run = _get_last_run()
-
-    if last_run:
-        next_run = last_run + timedelta(hours=6)
-        if next_run < datetime.utcnow():
-            next_run = datetime.utcnow() + timedelta(seconds=60)
-    else:
-        next_run = datetime.utcnow() + timedelta(seconds=60)
-
-    scheduler.add_job(
-        id='fetch_arxiv_every_6h',
-        func=scheduled_fetch,
-        trigger='interval',
-        hours=6,
-        next_run_time=next_run,
-        max_instances=1,
-        coalesce=True,
-        replace_existing=True,
-    )
-
-    # ── Mặc định KHÔNG bật scheduler nội bộ ──
-    # Dùng 'python scripts/fetch_papers.py' hoặc HTTP endpoint /dev/run-fetch
-    print("[Scheduler] DISABLED. Use 'python scripts/fetch_papers.py' or /dev/run-fetch")
 
     return app

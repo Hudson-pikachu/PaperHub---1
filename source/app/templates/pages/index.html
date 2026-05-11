@@ -92,6 +92,14 @@ PaperHub
     document.addEventListener('DOMContentLoaded', function () {
         const IS_AUTHENTICATED = "{{ current_user.is_authenticated | lower }}" === "true";
         const CURRENT_LANG = "{{ session.get('lang', 'vi') }}";
+        let GUEST_LOAD_MORE = true;  // mặc định cho phép
+
+        // Đọc cấu hình từ server
+        fetch('/site-settings').then(function(r) { return r.json(); }).then(function(d) {
+            GUEST_LOAD_MORE = d.guest_load_more;
+        }).catch(function() {
+            GUEST_LOAD_MORE = true;
+        });
         const LIMIT = 5;
         const feed = document.getElementById('paper-feed');
         const displayCount = document.getElementById('display-count');
@@ -273,7 +281,7 @@ PaperHub
         if (loadMoreBtn) {
             loadMoreBtn.addEventListener('click', function () {
                 if (currentFilter === 'newest') {
-                    if (!IS_AUTHENTICATED) {
+                    if (!IS_AUTHENTICATED && !GUEST_LOAD_MORE) {
                         openLoginModal();
                         return;
                     }

@@ -60,6 +60,17 @@ class FetchConfig(db.Model):
     def __repr__(self):
         return f'<FetchConfig interval={self.interval_hours}h per_cat={self.per_category}>'
 
+
+class SiteSettings(db.Model):
+    """Cấu hình toàn trang."""
+    __tablename__ = 'site_settings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    guest_load_more = db.Column(db.Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f'<SiteSettings guest_load_more={self.guest_load_more}>'
+
 class Paper(db.Model):
     # 1. ID tự tăng (Khóa chính)
     id = db.Column(db.Integer, primary_key=True)

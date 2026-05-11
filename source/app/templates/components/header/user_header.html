@@ -1,4 +1,4 @@
-<header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
+    <header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
     <div class="max-w-5xl mx-auto px-4 md:px-6 py-3">
         <!-- MOBILE + DESKTOP LAYOUT -->
         <div class="flex flex-col gap-3">
@@ -107,16 +107,16 @@
                             <!-- Dropdown -->
                             <div id="user-dropdown"
                                 class="hidden absolute right-0 z-[60] mt-3 w-48 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
-                                <a href="/profile"
-                                    class="block px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                                    {{ 'Profile' if session.get('lang', 'vi') == 'en' else 'Hồ sơ' }}
-                                </a>
                                 {% if current_user.is_admin %}
                                 <a href="/dev?secret={{ config.get('ADMIN_SECRET', '') }}"
-                                    class="block px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors border-t border-slate-100">
-                                    🔧 {{ 'Admin' if session.get('lang', 'vi') == 'en' else 'Quản trị' }}
+                                    class="block px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+                                    {{ 'Admin' if session.get('lang', 'vi') == 'en' else 'Quản trị' }}
                                 </a>
                                 {% endif %}
+                                <a href="/profile"
+                                    class="block px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors {% if current_user.is_admin %}border-t border-slate-100{% endif %}">
+                                    {{ 'Profile' if session.get('lang', 'vi') == 'en' else 'Hồ sơ' }}
+                                </a>
                                 <a href="{{ url_for('auth.logout') }}"
                                     class="block px-5 py-3 text-sm text-red-500 border-t border-slate-100 hover:bg-red-50 transition-colors">
                                     {{ 'Logout' if session.get('lang', 'vi') == 'en' else 'Đăng xuất' }}
