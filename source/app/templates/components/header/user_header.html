@@ -79,7 +79,8 @@
 
                             <!-- List -->
                             <div id="notif-list" class="divide-y divide-slate-100">
-                                <div class="px-5 py-8 text-center text-sm text-slate-400">{{ 'Loading...' if session.get('lang', 'vi') == 'en' else 'Đang tải...' }}</div>
+                                <div class="px-5 py-8 text-center text-sm text-slate-400">{{ 'Loading...' if
+                                    session.get('lang', 'vi') == 'en' else 'Đang tải...' }}</div>
                             </div>
                         </div>
                     </div>
@@ -165,7 +166,7 @@
         const hasNotifDropdown = bellBtn && dropdown && notifList;
         const hasUserDropdown = userBtn && userDropdown;
 
-        const CURRENT_LANG = '{{ session.get('lang', 'vi') }}';
+        const CURRENT_LANG = "{{ session.get('lang', 'vi') }}";
         let isOpen = false;
         let hasLoaded = false;
         let isUserOpen = false;
@@ -237,7 +238,7 @@
                 if (papers.length === 0) {
                     notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-slate-400">' + (CURRENT_LANG === 'en' ? 'No new research papers.' : 'Chưa có bài nghiên cứu mới.') + '</div>';
                 } else {
-                    notifList.innerHTML = papers.map(function(p) {
+                    notifList.innerHTML = papers.map(function (p) {
                         const notifTitle = (CURRENT_LANG === 'en' && p.title_en) ? p.title_en : p.title;
                         return `
                     <a href="/read/${p.id}" class="notif-item block px-5 py-4 hover:bg-slate-50 transition-colors" data-paper-id="${p.id}">
