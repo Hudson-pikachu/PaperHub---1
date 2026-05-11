@@ -1,1 +1,0 @@
-/* Load-more functionality is now in pages/index.html (extra_js block) */
