@@ -211,6 +211,22 @@ QUAN TRỌNG: Trả về ĐÚNG {len(papers)} phần tử, không thiếu, khôn
     return saved
 
 
+def check_ai_status() -> dict:
+    """Kiểm tra trạng thái Google AI API key (không gọi API, không tốn token).
+    
+    Thực tế: khi Fetch hoặc Process Pending chạy mới test thật.
+    Returns:
+        dict: {"ok": bool, "message": str}
+    """
+    if not GOOGLE_API_KEY or GOOGLE_API_KEY == "YOUR_GOOGLE_API_KEY_HERE":
+        return {"ok": False, "message": "API key chưa được cấu hình."}
+    try:
+        _get_client()  # Kiểm tra xem có lỗi tạo client không
+        return {"ok": True, "message": "API key đã được cấu hình. Test thật: bấm \"Xử lý bằng AI\"."}
+    except Exception as e:
+        return {"ok": False, "message": f"Lỗi khởi tạo client: {str(e)}"}
+
+
 def process_pending_papers(limit: int = 12, model: str = "gemini-2.5-flash-lite") -> int:
     """Xử lý tối đa limit bài pending trong 1 lần gọi batch Google AI.
 

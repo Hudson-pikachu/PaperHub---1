@@ -42,6 +42,8 @@ class FetchHistory(db.Model):
     duration_seconds = db.Column(db.Integer, default=0)
     saved_count = db.Column(db.Integer, default=0)
     per_category = db.Column(db.Integer, default=2)
+    ai_processed = db.Column(db.Integer, default=0)
+    ai_error = db.Column(db.Text, nullable=True)
     error_message = db.Column(db.Text, nullable=True)
 
     def __repr__(self):

@@ -69,7 +69,7 @@ def fetch_arxiv_papers(query: str = "Học Máy", max_results: int = 20) -> tupl
     return saved, new_paper_ids
 
 
-def fetch_arxiv_for_all_categories(per_category: int = 2) -> int:
+def fetch_arxiv_for_all_categories(per_category: int = 2) -> tuple[int, int, str | None]:
     """Lấy mỗi category trong ARXIV_CATEGORY_MAP per_category bài.
 
     Gom TẤT CẢ bài mới từ mọi category, rồi gọi batch Google AI 1 lần duy nhất.
@@ -83,10 +83,14 @@ def fetch_arxiv_for_all_categories(per_category: int = 2) -> int:
         all_new_ids.extend(new_ids)
 
     # Gọi batch Google AI 1 lần duy nhất cho tất cả bài mới
+    # Nếu AI lỗi → giữ status= pending để retry sau
+    # Nếu AI thành công → status= posted (được set trong batch_translate_and_summarize)
+    ai_processed = 0
+    ai_error = None
     if all_new_ids:
         try:
-            batch_translate_and_summarize(all_new_ids)
-        except Exception:
-            pass
+            ai_processed = batch_translate_and_summarize(all_new_ids)
+        except Exception as e:
+            ai_error = str(e)
 
-    return total_saved
+    return total_saved, ai_processed, ai_error

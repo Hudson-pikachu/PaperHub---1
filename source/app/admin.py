@@ -6,22 +6,21 @@ Routes:
    GET  /dev?secret=<SECRET>                                 — Admin dashboard HTML
    GET  /dev/run-fetch?secret=<ADMIN_SECRET>                 — Fetch thủ công
    POST /dev/run-fetch  (Header: X-Admin-Secret)             — Fetch (dùng cho cron HTTP)
+   GET  /dev/process-pending?secret=<ADMIN_SECRET>           — Xử lý bài pending bằng AI
    GET  /dev/fetch-history?secret=<ADMIN_SECRET>             — Lịch sử fetch
-   GET  /dev/status?secret=<ADMIN_SECRET>                    — Trạng thái fetch
+   GET  /dev/status?secret=<ADMIN_SECRET>                    — Trạng thái fetch + AI
    POST /dev/settings?secret=<ADMIN_SECRET>                  — Cập nhật cấu hình trang
    GET  /dev/logs?secret=<ADMIN_SECRET>                      — Xem N dòng log cuối
 
-   GET  /site-settings                                       — Public API: cấu hình trang (không cần secret)
-
-ADMIN_SECRET lấy từ env var ADMIN_SECRET.
-Nếu không set, dùng fallback (chỉ cho dev local).
+   GET  /site-settings                                       — Public API: cấu hình trang
 """
 
 import os
-from flask import Blueprint, request, jsonify, render_template_string
-from datetime import datetime, timedelta
-from .database.models import db, SchedulerState, FetchHistory, SiteSettings
+from flask import Blueprint, request, jsonify, render_template
+from datetime import datetime, timedelta, timezone
+from .database.models import db, SchedulerState, FetchHistory, SiteSettings, Paper
 from .services.arxiv_service import fetch_arxiv_for_all_categories
+from .services.ai_service import check_ai_status, process_pending_papers
 from .logger import get_last_lines, get_log_stats
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/dev')
@@ -29,142 +28,21 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/dev')
 _FALLBACK_SECRET = 'ph-dev-t0ken-2026!'
 ADMIN_SECRET = os.environ.get('ADMIN_SECRET', _FALLBACK_SECRET)
 
-# ── HTML admin dashboard ──
-_ADMIN_HTML = r'''
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PaperHub - Admin</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 p-6">
-<div class="max-w-4xl mx-auto">
-<h1 class="text-2xl font-bold mb-6">🔧 PaperHub - Quản lý</h1>
-
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-  <div class="bg-white p-4 rounded-lg shadow">
-    <h2 class="font-semibold mb-2">Trạng thái</h2>
-    <div id="status"><p class="text-gray-500">Đang tải...</p></div>
-  </div>
-  <div class="bg-white p-4 rounded-lg shadow">
-    <h2 class="font-semibold mb-2">Cấu hình trang</h2>
-    <label class="flex items-center gap-2 text-sm">
-      <input id="cfg-guest-load-more" type="checkbox" class="rounded">
-      Cho phép "Xem thêm" khi chưa đăng nhập
-    </label>
-    <button onclick="saveSettings()" class="mt-3 bg-blue-600 text-white px-4 py-1 rounded text-sm hover:bg-blue-700">Lưu</button>
-    <span id="cfg-msg" class="text-sm ml-2"></span>
-  </div>
-</div>
-
-<div class="bg-white p-4 rounded-lg shadow mb-6">
-  <div class="flex justify-between items-center mb-3">
-    <h2 class="font-semibold">🚀 Fetch thủ công</h2>
-    <div class="flex gap-2 items-center">
-      <span class="text-sm">Mỗi category:</span>
-      <input id="fetch-count" type="number" value="2" min="1" class="border p-1 w-16 rounded text-sm">
-      <button onclick="runFetch()" class="bg-green-600 text-white px-4 py-1 rounded text-sm hover:bg-green-700">Chạy</button>
-    </div>
-  </div>
-  <div id="fetch-result" class="text-sm"></div>
-</div>
-
-<div class="bg-white p-4 rounded-lg shadow mb-6">
-  <h2 class="font-semibold mb-3">📋 Lịch sử fetch (20 gần nhất)</h2>
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm">
-      <thead><tr class="bg-gray-100"><th class="p-2 text-left">#</th><th class="p-2 text-left">Thời gian</th><th class="p-2 text-left">Bài lưu</th><th class="p-2 text-left">Thời gian (s)</th><th class="p-2 text-left">Trạng thái</th></tr></thead>
-      <tbody id="history-body"><tr><td class="p-2 text-gray-500" colspan="5">Đang tải...</td></tr></tbody>
-    </table>
-  </div>
-</div>
-</div>
-
-<script>
-const SECRET = new URLSearchParams(location.search).get('secret') || '';
-const BASE = '/dev';
-function headers() { return { 'X-Admin-Secret': SECRET, 'Content-Type': 'application/json' }; }
-
-async function api(url, opts={}) {
-  const r = await fetch(BASE + url, { headers: headers(), ...opts });
-  return r.json();
-}
-
-async function loadStatus() {
-  const d = await api('/status');
-  const el = document.getElementById('status');
-  if (!d.last_run) { el.innerHTML = '<p class="text-gray-500">Chưa fetch lần nào.</p>'; return; }
-  el.innerHTML = '<p>🕐 Lần cuối: <b>' + new Date(d.last_run).toLocaleString('vi-VN') + '</b></p>';
-}
-
-async function loadSettings() {
-  const d = await api('/settings');
-  if (d.settings) {
-    document.getElementById('cfg-guest-load-more').checked = d.settings.guest_load_more;
-  }
-}
-
-async function saveSettings() {
-  const body = JSON.stringify({
-    guest_load_more: document.getElementById('cfg-guest-load-more').checked,
-  });
-  const d = await api('/settings', { method: 'POST', body });
-  const el = document.getElementById('cfg-msg');
-  if (d.success) {
-    el.textContent = '✅ Đã lưu';
-    el.className = 'text-sm ml-2 text-green-500';
-  } else {
-    el.textContent = '❌ ' + d.message;
-    el.className = 'text-sm ml-2 text-red-500';
-  }
-  setTimeout(function() { el.textContent = ''; }, 3000);
-}
-
-async function loadHistory() {
-  const d = await api('/fetch-history?limit=20');
-  const tbody = document.getElementById('history-body');
-  if (!d.records || d.records.length === 0) { tbody.innerHTML = '<tr><td class="p-2 text-gray-500" colspan="5">Chưa có lịch sử.</td></tr>'; return; }
-  tbody.innerHTML = d.records.map(function(r) {
-    return '<tr class="border-t ' + (r.status === 'error' ? 'bg-red-50' : '') + '">' +
-      '<td class="p-2">' + r.id + '</td>' +
-      '<td class="p-2">' + (r.started_at ? new Date(r.started_at).toLocaleString('vi-VN') : '-') + '</td>' +
-      '<td class="p-2">' + r.saved_count + '</td>' +
-      '<td class="p-2">' + r.duration_seconds + '</td>' +
-      '<td class="p-2">' + (r.error_message ? '<span class="text-red-500" title="' + r.error_message + '">❌</span>' : '✅') + '</td>' +
-    '</tr>';
-  }).join('');
-}
-
-async function runFetch() {
-  const perCat = document.getElementById('fetch-count').value || 2;
-  if (perCat < 1) {
-    document.getElementById('fetch-result').innerHTML = '<span class="text-red-500">Số bài phải >= 1.</span>';
-    return;
-  }
-  const el = document.getElementById('fetch-result');
-  el.innerHTML = '<span class="text-blue-500">⏳ Đang fetch...</span>';
-  const d = await api('/run-fetch?per_category=' + perCat);
-  if (d.success) {
-    el.innerHTML = '<span class="text-green-500">✅ ' + d.message + ' (' + d.elapsed_seconds + 's)</span>';
-  } else {
-    el.innerHTML = '<span class="text-red-500">❌ Lỗi: ' + d.message + '</span>';
-  }
-  loadStatus();
-  loadHistory();
-}
-
-loadStatus();
-loadSettings();
-loadHistory();
-</script>
-</body>
-</html>
-'''
+VN_TZ = timezone(timedelta(hours=7))
 
 
-# ── Public API: trả cấu hình trang cho frontend (không cần secret) ──
+def _now_vn():
+    return datetime.now(VN_TZ)
+
+
+def _format_vn(dt):
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(VN_TZ).isoformat()
+
+
 public_bp = Blueprint('public_settings', __name__)
 
 
@@ -181,7 +59,7 @@ def site_settings():
 def admin_dashboard():
     if not _check_secret():
         return jsonify({'success': False, 'message': '401 Unauthorized'}), 401
-    return render_template_string(_ADMIN_HTML)
+    return render_template('pages/admin.html')
 
 
 def _check_secret() -> bool:
@@ -203,11 +81,15 @@ def _set_last_run(run_time: datetime):
     db.session.commit()
 
 
-def _log_fetch_history(saved_count: int, per_category: int, duration_seconds: int = 0, error_message: str | None = None):
+def _log_fetch_history(saved_count: int, per_category: int, duration_seconds: int = 0,
+                       ai_processed: int = 0, ai_error: str | None = None,
+                       error_message: str | None = None):
     entry = FetchHistory()
     entry.saved_count = saved_count
     entry.per_category = per_category
     entry.duration_seconds = duration_seconds
+    entry.ai_processed = ai_processed
+    entry.ai_error = ai_error
     entry.error_message = error_message
     db.session.add(entry)
     db.session.commit()
@@ -222,6 +104,30 @@ def _get_or_create_settings() -> SiteSettings:
         db.session.add(cfg)
         db.session.commit()
     return cfg
+
+
+@admin_bp.route('/ai-status', methods=['GET'])
+def ai_status():
+    if not _check_secret():
+        return jsonify({'success': False, 'message': '401 Unauthorized'}), 401
+    return jsonify(check_ai_status())
+
+
+@admin_bp.route('/process-pending', methods=['GET', 'POST'])
+def process_pending():
+    if not _check_secret():
+        return jsonify({'success': False, 'message': '401 Unauthorized'}), 401
+
+    count = request.args.get('count', 12, type=int) or 12
+    try:
+        saved = process_pending_papers(limit=count)
+        return jsonify({
+            'success': True,
+            'message': f'Đã xử lý {saved} bài pending.',
+            'processed': saved,
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])
@@ -262,22 +168,30 @@ def run_fetch():
     if per_category < 1:
         return jsonify({'success': False, 'message': 'Số bài mỗi category phải >= 1.'}), 400
 
-    started_at = datetime.utcnow()
+    started_at = _now_vn()
     print(f"[Admin] run-fetch triggered at {started_at.isoformat()}, per_category={per_category}")
 
     try:
-        count = fetch_arxiv_for_all_categories(per_category=per_category)
-        _set_last_run(datetime.utcnow())
-        elapsed = (datetime.utcnow() - started_at).seconds
-        _log_fetch_history(saved_count=count, per_category=per_category, duration_seconds=elapsed)
-        print(f"[Admin] run-fetch done: {count} papers, {elapsed}s")
+        count, ai_processed, ai_error = fetch_arxiv_for_all_categories(per_category=per_category)
+        _set_last_run(_now_vn())
+        elapsed = (_now_vn() - started_at).seconds
+        _log_fetch_history(
+            saved_count=count, per_category=per_category, duration_seconds=elapsed,
+            ai_processed=ai_processed, ai_error=ai_error,
+        )
+        print(f"[Admin] run-fetch done: {count} papers, AI: {ai_processed}, {elapsed}s")
+        msg = f'Fetch hoàn tất. Đã lưu {count} bài mới.'
+        if ai_error:
+            msg += f' AI lỗi: {ai_error[:100]}'
         return jsonify({
             'success': True,
-            'message': f'Fetch hoàn tất. Đã lưu {count} bài mới.',
+            'message': msg,
             'saved': count,
             'per_category': per_category,
             'started_at': started_at.isoformat(),
             'elapsed_seconds': elapsed,
+            'ai_processed': ai_processed,
+            'ai_error': ai_error,
         })
     except Exception as e:
         error_msg = str(e)
@@ -304,11 +218,13 @@ def fetch_history():
         'records': [
             {
                 'id': r.id,
-                'started_at': r.started_at.isoformat() if r.started_at else None,
-                'finished_at': r.finished_at.isoformat() if r.finished_at else None,
+                'started_at': _format_vn(r.started_at),
+                'finished_at': _format_vn(r.finished_at),
                 'duration_seconds': r.duration_seconds,
                 'saved_count': r.saved_count,
                 'per_category': r.per_category,
+                'ai_processed': r.ai_processed,
+                'ai_error': r.ai_error,
                 'error_message': r.error_message,
                 'status': 'error' if r.error_message else 'success',
             }
@@ -324,9 +240,11 @@ def status():
 
     state = SchedulerState.query.get(1)
     last_run = state.last_run if state else None
+    pending_count = Paper.query.filter_by(status='pending').count()
 
     return jsonify({
-        'last_run': last_run.isoformat() if last_run else None,
+        'last_run': _format_vn(last_run) if last_run else None,
+        'pending_count': pending_count,
     })
 
 
