@@ -61,10 +61,10 @@ def create_app():
     _ensure_db_schema(app)
 
     # ── Khởi tạo Flask-Login ──
+    app.config['LOGIN_VIEW'] = 'main.home'
+    app.config['LOGIN_MESSAGE'] = 'Vui lòng đăng nhập để tiếp tục.'
+    app.config['LOGIN_MESSAGE_CATEGORY'] = 'info'
     login_manager.init_app(app)
-    login_manager.login_view = 'main.home'   # Redirect nếu chưa đăng nhập
-    login_manager.login_message = 'Vui lòng đăng nhập để tiếp tục.'
-    login_manager.login_message_category = 'info'
 
     # ── Đăng ký Blueprints ──
     from .routes import main_bp
