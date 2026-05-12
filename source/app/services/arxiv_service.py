@@ -1,5 +1,6 @@
 import re
 import arxiv
+import time
 from datetime import datetime
 from ..database.models import Paper, Category, db
 from .ai_service import batch_translate_and_summarize
@@ -12,6 +13,10 @@ ARXIV_CATEGORY_MAP = {
     "Kiến Trúc Máy Tính": "cs.AR",
     "Tối Ưu Hóa": "cs.DS",
 }
+
+# Khoảng delay tối thiểu giữa các request arXiv (giây)
+# arXiv API rate limit: ~1 request / 3 giây, 429 nếu gọi nhanh quá
+_ARXIV_REQUEST_DELAY = 3.5
 
 
 def _clean_text(text: str) -> str:
@@ -52,12 +57,20 @@ def fetch_arxiv_papers(query: str = "Học Máy", max_results: int = 20) -> tupl
     query_code = _resolve_arxiv_query(query)
     category_id = _resolve_category_id(query)
 
+    # Dùng cat: prefix để search đúng category, tránh text search gây ra
+    # kết quả không mong muốn và tránh lỗi 429 do query sai format
+    search_query = f"cat:{query_code}" if query_code else query_code
+
+    # Delay trước mỗi request để tránh arXiv rate limit (429)
+    time.sleep(_ARXIV_REQUEST_DELAY)
+
     search = arxiv.Search(
-        query=query_code,
+        query=search_query,
         max_results=max_results,
         sort_by=arxiv.SortCriterion.SubmittedDate,
         sort_order=arxiv.SortOrder.Descending,
     )
+    print(f"  [arXiv] Fetching: query='{search_query}', max_results={max_results}")
     saved = 0
     new_paper_ids = []
     for result in search.results():
@@ -93,14 +106,24 @@ def fetch_arxiv_for_all_categories(per_category: int = 2) -> tuple[int, int, str
     """Lấy mỗi category trong ARXIV_CATEGORY_MAP per_category bài.
 
     Gom TẤT CẢ bài mới từ mọi category, rồi gọi batch Google AI 1 lần duy nhất.
+    Mỗi category fetch độc lập — 1 category fail (vd: 429) không ảnh hưởng category khác.
     """
     total_saved = 0
     all_new_ids = []
+    fetch_errors = []
 
     for local_category in ARXIV_CATEGORY_MAP.keys():
-        saved, new_ids = fetch_arxiv_papers(query=local_category, max_results=per_category)
-        total_saved += saved
-        all_new_ids.extend(new_ids)
+        try:
+            saved, new_ids = fetch_arxiv_papers(query=local_category, max_results=per_category)
+            total_saved += saved
+            all_new_ids.extend(new_ids)
+            print(f"  [arXiv] Category '{local_category}': saved={saved}, new_ids={len(new_ids)}")
+        except Exception as e:
+            error_msg = f"Category '{local_category}' failed: {str(e)[:150]}"
+            print(f"  [arXiv] ERROR: {error_msg}")
+            fetch_errors.append(error_msg)
+            # Tiếp tục category tiếp theo, không throw
+            continue
 
     # Gọi batch Google AI, chunk 6 bài/lần để tránh timeout
     # Nếu AI lỗi → giữ status= pending để retry sau
@@ -117,5 +140,7 @@ def fetch_arxiv_for_all_categories(per_category: int = 2) -> tuple[int, int, str
             except Exception as e:
                 ai_errors.append(f"Chunk {i // CHUNK_SIZE + 1}: {str(e)[:100]}")
 
-    ai_error = '; '.join(ai_errors) if ai_errors else None
+    # Gộp lỗi fetch + AI
+    all_errors = fetch_errors + ai_errors
+    ai_error = '; '.join(all_errors) if all_errors else None
     return total_saved, ai_processed, ai_error

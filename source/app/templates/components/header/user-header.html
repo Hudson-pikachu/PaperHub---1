@@ -1,0 +1,50 @@
+<header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
+    <div class="max-w-5xl mx-auto px-4 md:px-6 py-3">
+        <!-- MOBILE + DESKTOP LAYOUT -->
+        <div class="flex flex-col gap-3">
+            <!-- TOP ROW -->
+            <div class="flex items-center justify-between gap-4">
+                <!-- Logo -->
+                {% include 'components/header/partials/logo.html' %}
+
+                <!-- DESKTOP SEARCH -->
+                {% include 'components/header/partials/search-bar.html' %}
+
+                <!-- RIGHT ACTIONS -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <!-- Language Switch -->
+                    {% include 'components/header/partials/lang-switch.html' %}
+
+                    <!-- Notification Bell + Dropdown -->
+                    {% include 'components/header/partials/notification-bell.html' %}
+
+                    <!-- USER -->
+                    <div class="flex items-center gap-3">
+                        <!-- Desktop User Info -->
+                        <div class="hidden lg:block text-right max-w-[160px]">
+                            <p class="text-base font-semibold text-[#1A365D] truncate">
+                                {{ current_user.username }}
+                            </p>
+                            <p class="text-sm text-slate-500 truncate">
+                                {{ current_user.email }}
+                            </p>
+                        </div>
+
+                        <!-- User Dropdown -->
+                        {% include 'components/header/partials/user-dropdown.html' %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOBILE SEARCH -->
+            {% set mobile_only = true %}
+            {% include 'components/header/partials/search-bar.html' %}
+        </div>
+    </div>
+</header>
+
+<script src="{{ url_for('static', filename='js/header/components/search-bar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/header/components/lang-switch.js') }}"></script>
+<script src="{{ url_for('static', filename='js/header/components/notification-bell.js') }}"></script>
+<script src="{{ url_for('static', filename='js/header/components/user-dropdown.js') }}"></script>
+<script src="{{ url_for('static', filename='js/header/user-header.js') }}"></script>
