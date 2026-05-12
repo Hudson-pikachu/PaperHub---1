@@ -5,10 +5,7 @@
             <!-- TOP ROW -->
             <div class="flex items-center justify-between gap-4">
                 <!-- Logo -->
-                <a href="/" class="shrink-0">
-                    <img src="{{ url_for('static', filename='images/logo/logo.png') }}" alt="PaperHub Logo"
-                        class="h-10 md:h-14 w-auto object-contain">
-                </a>
+                {% include 'components/header/partials/logo.html' %}
 
                 <!-- DESKTOP SEARCH -->
                 {% set wrapper_class = 'hidden lg:block flex-1 max-w-2xl' %}
