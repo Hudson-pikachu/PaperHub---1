@@ -2,69 +2,26 @@
 <!-- Supports multiple instances on the same page (desktop + mobile) -->
 {% set current_lang = session.get('lang', 'vi') %}
 <div class="lang-switch-container relative">
-    <button class="lang-switch-btn inline-flex items-center justify-center w-9 h-9 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md hover:scale-105 transition-all"
+    <button
+        class="lang-switch-btn inline-flex items-center justify-center w-9 h-9 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md hover:scale-105 transition-all"
         title="{{ 'Switch to English' if current_lang == 'vi' else 'Chuyển sang tiếng Việt' }}">
         <img src="{{ url_for('static', filename='images/flags/vn.svg' if current_lang == 'vi' else 'images/flags/us.svg') }}"
-             alt="{{ 'VN' if current_lang == 'vi' else 'US' }}" class="w-5 h-[15px] object-contain">
+            alt="{{ 'VN' if current_lang == 'vi' else 'US' }}" class="w-5 h-[15px] object-contain">
     </button>
 
-    <div class="lang-switch-dropdown hidden absolute right-0 z-[70] mt-2 w-36 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
+    <div
+        class="lang-switch-dropdown hidden absolute right-0 z-[70] mt-2 w-36 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
         <!-- Vietnamese option -->
         <a href="{{ '/set-language/vi' if current_lang == 'en' else '#' }}"
-           class="flex items-center gap-3 px-4 py-3 text-sm transition-colors {% if current_lang == 'vi' %}opacity-40 cursor-not-allowed pointer-events-none bg-slate-50{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
+            class="flex items-center gap-3 px-4 py-3 text-sm transition-colors {% if current_lang == 'vi' %}opacity-40 cursor-not-allowed pointer-events-none bg-slate-50{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
             <img src="{{ url_for('static', filename='images/flags/vn.svg') }}" alt="VN" class="w-5 h-4 object-contain">
             <span class="font-medium">Tiếng Việt</span>
         </a>
         <!-- English option -->
         <a href="{{ '/set-language/en' if current_lang == 'vi' else '#' }}"
-           class="flex items-center gap-3 px-4 py-3 text-sm border-t border-slate-100 transition-colors {% if current_lang == 'en' %}opacity-40 cursor-not-allowed pointer-events-none bg-slate-50{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
+            class="flex items-center gap-3 px-4 py-3 text-sm border-t border-slate-100 transition-colors {% if current_lang == 'en' %}opacity-40 cursor-not-allowed pointer-events-none bg-slate-50{% else %}text-slate-700 hover:bg-slate-50{% endif %}">
             <img src="{{ url_for('static', filename='images/flags/us.svg') }}" alt="US" class="w-5 h-4 object-contain">
             <span class="font-medium">English</span>
         </a>
     </div>
 </div>
-
-<script>
-(function() {
-    // Tìm tất cả container lang-switch chưa được khởi tạo
-    document.querySelectorAll('.lang-switch-container').forEach(function(container) {
-        if (container.dataset.initialized) return;
-        container.dataset.initialized = 'true';
-
-        var btn = container.querySelector('.lang-switch-btn');
-        var dropdown = container.querySelector('.lang-switch-dropdown');
-        if (!btn || !dropdown) return;
-
-        var isOpen = false;
-
-        function openDropdown() {
-            dropdown.classList.remove('hidden');
-            isOpen = true;
-        }
-
-        function closeDropdown() {
-            dropdown.classList.add('hidden');
-            isOpen = false;
-        }
-
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (isOpen) {
-                closeDropdown();
-            } else {
-                openDropdown();
-            }
-        });
-
-        // Close on outside click
-        document.addEventListener('click', function() {
-            if (isOpen) closeDropdown();
-        });
-
-        // Close on Escape
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && isOpen) closeDropdown();
-        });
-    });
-})();
-</script>

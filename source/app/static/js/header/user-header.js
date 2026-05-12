@@ -1,5 +1,3 @@
-/*Begin User Header Scripts*/
-
 //Begin Notification JS
 (function () {
     const bellBtn = document.getElementById('notif-bell-btn');
