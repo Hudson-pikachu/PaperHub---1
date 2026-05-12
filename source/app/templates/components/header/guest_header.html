@@ -1,99 +1,68 @@
 <header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
-    <div class="max-w-5xl mx-auto px-4 md:px-6 py-3">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 py-3">
         <!-- HEADER LAYOUT -->
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-3">
             <!-- TOP ROW -->
             <div class="flex items-center justify-between gap-4">
                 <!-- Logo -->
-                <a href="/" class="shrink-0">
-                    <img src="{{ url_for('static', filename='images/logo/logo.png') }}" alt="PaperHub Logo"
-                        class="h-10 md:h-14 w-auto object-contain">
-                </a>
+                {% include 'components/header/partials/logo.html' %}
 
                 <!-- DESKTOP SEARCH -->
-                <div class="hidden lg:block flex-1 max-w-2xl">
-                    <div class="relative">
-                        <!-- Search Icon -->
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-
-                        <!-- Search Input -->
-                        <input type="text" placeholder="Tìm kiếm bài nghiên cứu..."
-                            class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-12 pr-4 text-sm md:text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                    </div>
-                </div>
+                {% include 'components/header/partials/search_bar.html' %}
 
                 <!-- RIGHT ACTIONS -->
                 <div class="flex items-center gap-3 shrink-0">
-                    <!-- Desktop Buttons -->
+                    <!-- Desktop Button -->
                     <div class="hidden lg:flex items-center gap-3">
+                        <!-- Language Switch -->
+                        {% include 'components/header/partials/lang_switch.html' %}
+
                         <!-- Login -->
                         <button id="open-login-modal"
-                            class="px-5 py-2 text-sm font-semibold text-[#1A365D] hover:text-[#2C5282] transition-colors">
-                            Login
-                        </button>
-
-                        <!-- Register -->
-                        <button id="open-register-modal"
-                            class="px-5 py-2.5 bg-[#1A365D] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#2C5282] transition-all">
-                            Register
+                            class="px-4 py-2 bg-[#1A365D] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#2C5282] transition-all">
+                            {{ 'Login' if session.get('lang', 'vi') == 'en' else 'Đăng nhập' }}
                         </button>
                     </div>
 
-                    <!-- Mobile Guest Menu -->
-                    <div class="relative lg:hidden">
-                        <!-- Avatar Button -->
-                        <button id="guest-menu-btn"
-                            class="w-11 h-11 rounded-full bg-[#1A365D] text-white flex items-center justify-center shadow-sm hover:bg-[#2C5282] transition-all">
-                            <!-- User Icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M5.121 17.804A9 9 0 1118.88 17.8M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
+                    <!-- Mobile: Language Switch + Login -->
+                    <div class="lg:hidden flex items-center gap-2">
+                        {% include 'components/header/partials/lang_switch.html' %}
+                        <button id="mobile-open-login-modal"
+                            class="px-4 py-2 bg-[#1A365D] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#2C5282] transition-all">
+                            {{ 'Login' if session.get('lang', 'vi') == 'en' else 'Đăng nhập' }}
                         </button>
-
-                        <!-- Dropdown -->
-                        <div id="guest-dropdown"
-                            class="hidden absolute right-0 z-50 mt-3 w-48 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
-                            <button id="mobile-login-btn"
-                                class="w-full text-left px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                                Login
-                            </button>
-                            <button id="mobile-register-btn"
-                                class="w-full text-left px-5 py-3 text-sm text-[#1A365D] border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                                Register
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- MOBILE SEARCH -->
-            <div class="lg:hidden">
-                <div class="relative">
-                    <!-- Search Icon -->
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-
-                    <!-- Search Input -->
-                    <input type="text" placeholder="Tìm kiếm bài nghiên cứu..."
-                        class="w-full bg-white border border-slate-200 rounded-full py-2.5 pl-12 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-                </div>
-            </div>
+            {% set mobile_only = true %}
+            {% include 'components/header/partials/search_bar.html' %}
         </div>
     </div>
 </header>
+
+<!-- Hiện login modal box -->
+<script>
+    const mobileLoginBtn = document.getElementById('mobile-open-login-modal');
+
+    if (mobileLoginBtn) {
+
+        mobileLoginBtn.addEventListener('click', () => {
+
+            // Ẩn gate message nếu có (reset từ lần trước)
+            const gateMsg = document.getElementById('login-gate-message');
+            if (gateMsg) {
+                gateMsg.classList.add('hidden');
+            }
+
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+
+        });
+
+    }
+</script>
 
 <!-- Login Modal -->
 {% include 'components/auth/login_modal.html' %}
