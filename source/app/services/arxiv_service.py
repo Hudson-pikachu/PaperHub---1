@@ -1,9 +1,20 @@
 import re
+import sys
+import io
 import arxiv
 import time
 from datetime import datetime
 from ..database.models import Paper, Category, db
 from .ai_service import batch_translate_and_summarize
+
+# Fix UnicodeEncodeError on Windows: stdout defaults to cp1252/ascii → can't print Vietnamese
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    except Exception:
+        pass
 
 ARXIV_CATEGORY_MAP = {
     "Học Máy": "cs.LG",
@@ -113,13 +124,14 @@ def fetch_arxiv_for_all_categories(per_category: int = 2) -> tuple[int, int, str
     fetch_errors = []
 
     for local_category in ARXIV_CATEGORY_MAP.keys():
+        arxiv_code = ARXIV_CATEGORY_MAP.get(local_category, local_category)
         try:
             saved, new_ids = fetch_arxiv_papers(query=local_category, max_results=per_category)
             total_saved += saved
             all_new_ids.extend(new_ids)
-            print(f"  [arXiv] Category '{local_category}': saved={saved}, new_ids={len(new_ids)}")
+            print(f"  [arXiv] Category '{arxiv_code}': saved={saved}, new_ids={len(new_ids)}")
         except Exception as e:
-            error_msg = f"Category '{local_category}' failed: {str(e)[:150]}"
+            error_msg = f"Category '{arxiv_code}' failed: {str(e)[:150]}"
             print(f"  [arXiv] ERROR: {error_msg}")
             fetch_errors.append(error_msg)
             # Tiếp tục category tiếp theo, không throw
