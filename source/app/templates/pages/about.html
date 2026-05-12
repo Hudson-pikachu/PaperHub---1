@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}
+About - PaperHub
+{% endblock %}
+
+{% block content %}
+<div class="font-['Montserrat'] bg-slate-50 min-h-screen py-10 rounded-2xl">
+    
+    <section class="max-w-screen-xl mx-auto px-6 text-center mb-20">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-[#1e3a5f] mb-6">
+            {{ 'Kết nối Tri thức Khoa học' if session.get('lang', 'vi') == 'vi' else 'Connecting Scientific Knowledge' }}
+        </h1>
+        <p class="text-lg text-slate-500 max-w-3xl mx-auto leading-relaxed">
+            {{ 'PaperHub là nền tảng lưu trữ, tìm kiếm và chia sẻ các bài nghiên cứu khoa học. Được phát triển với mục tiêu giúp cộng đồng học thuật dễ dàng tiếp cận tri thức, chúng tôi tích hợp AI để tóm tắt thông minh, mang lại trải nghiệm tối ưu nhất cho người dùng.' if session.get('lang', 'vi') == 'vi' else 'PaperHub is a platform for storing, searching, and sharing scientific research papers. Developed with the goal of helping the academic community easily access knowledge, we integrate AI for smart summarization, providing the best user experience.' }}
+        </p>
+    </section>
+
+    <section class="max-w-screen-xl mx-auto px-6 mb-10">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-slate-800">
+                {{ 'Đội ngũ phát triển' if session.get('lang', 'vi') == 'vi' else 'Our Team' }}
+            </h2>
+            <p class="text-slate-500 mt-2 italic">Nhóm đồ án Nhập Môn Công Nghệ Phần Mềm - HCMUS</p>
+            <div class="w-20 h-1.5 bg-[#1e3a5f] mx-auto mt-4 rounded-full"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-24 h-24 mx-auto bg-slate-100 rounded-full mb-6 flex items-center justify-center text-3xl font-bold text-[#1e3a5f]">A</div>
+                <h3 class="text-xl font-bold text-slate-800">Phạm Việt Quang</h3>
+                <p class="text-slate-500 font-medium text-sm mt-1">Backend Developer</p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-24 h-24 mx-auto bg-[#1e3a5f] rounded-full mb-6 flex items-center justify-center text-3xl font-bold text-white">VQ</div>
+                <h3 class="text-xl font-bold text-slate-800">Phạm Nguyên Thủy</h3>
+                <p class="text-slate-500 font-medium text-sm mt-1">Frontend Developer</p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-24 h-24 mx-auto bg-slate-100 rounded-full mb-6 flex items-center justify-center text-3xl font-bold text-[#1e3a5f]">B</div>
+                <h3 class="text-xl font-bold text-slate-800">Trần Hải Linh</h3>
+                <p class="text-slate-500 font-medium text-sm mt-1">UI/UX Designer</p>
+            </div>
+
+            <div class="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-24 h-24 mx-auto bg-slate-100 rounded-full mb-6 flex items-center justify-center text-3xl font-bold text-[#1e3a5f]">C</div>
+                <h3 class="text-xl font-bold text-slate-800">Nguyễn Trọng Mùa</h3>
+                <p class="text-slate-500 font-medium text-sm mt-1">Quality Assurance</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
