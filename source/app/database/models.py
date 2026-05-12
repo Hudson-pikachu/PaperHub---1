@@ -98,9 +98,11 @@ class Paper(db.Model):
     ai_summary = db.Column(db.Text)
     # 9b. AI summary (English)
     ai_summary_en = db.Column(db.Text)
-    # 10. Hiện trạng nội dung
+    # 10. Điểm chất lượng (0–10) do AI chấm tự động
+    score = db.Column(db.Float, nullable=True)
+    # 11. Hiện trạng nội dung
     status = db.Column(db.String(20), default='pending', nullable=False)
-    # 11. Thể loại - khóa ngoại tới bảng Category
+    # 12. Thể loại - khóa ngoại tới bảng Category
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
     category = db.relationship('Category', backref='papers')
     
