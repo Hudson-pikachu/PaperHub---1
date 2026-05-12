@@ -1,0 +1,297 @@
+/*Begin User Header Scripts*/
+
+//Begin Notification JS
+(function () {
+    const bellBtn = document.getElementById('notif-bell-btn');
+    const dropdown = document.getElementById('notif-dropdown');
+    const notifList = document.getElementById('notif-list');
+    const notifDot = document.getElementById('notif-dot');
+    const notifCountText = document.getElementById('notif-count-text');
+    const markAllReadBtn = document.getElementById('mark-all-read-btn');
+    const userBtn = document.getElementById('user-menu-btn');
+    const userDropdown = document.getElementById('user-dropdown');
+
+    const hasNotifDropdown = bellBtn && dropdown && notifList;
+    const hasUserDropdown = userBtn && userDropdown;
+
+    const CURRENT_LANG = "{{ session.get('lang', 'vi') }}";
+    let isOpen = false;
+    let hasLoaded = false;
+    let isUserOpen = false;
+
+    // ── Load badge count ngay khi trang load ──
+    (async function initBadge() {
+        try {
+            const resp = await fetch('/unread-count');
+            const data = await resp.json();
+            if (data.success) {
+                updateBadge(data.unread_count || 0);
+            }
+        } catch (e) {
+            // silently fail
+        }
+    })();
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString(CURRENT_LANG === 'en' ? 'en-US' : 'vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    // ── Show/hide mark-all-read button based on unread count ──
+    function updateMarkAllReadBtn(count) {
+        if (markAllReadBtn) {
+            if (count > 0) {
+                markAllReadBtn.classList.remove('hidden');
+            } else {
+                markAllReadBtn.classList.add('hidden');
+            }
+        }
+    }
+
+    function updateBadge(count) {
+        updateMarkAllReadBtn(count);
+        if (notifCountText) {
+            notifCountText.textContent =
+                count === 0
+                    ? (CURRENT_LANG === 'en' ? '' : '')
+                    : (CURRENT_LANG === 'en' ? `${count} new papers` : `${count} bài viết mới`);
+        }
+
+        if (!notifDot) return;
+        if (count > 0) {
+            notifDot.classList.remove('hidden');
+            notifDot.textContent = count > 99 ? '99+' : count;
+            notifDot.classList.add('flex', 'items-center', 'justify-center', 'text-[9px]', 'font-bold', 'text-white', 'leading-none');
+            notifDot.style.minWidth = count > 9 ? '18px' : '16px';
+            notifDot.style.height = count > 9 ? '18px' : '16px';
+            notifDot.style.top = '-2px';
+            notifDot.style.right = '-4px';
+            notifDot.style.padding = '0 2px';
+        } else {
+            notifDot.classList.add('hidden');
+            notifDot.textContent = '';
+            notifDot.classList.remove('flex', 'items-center', 'justify-center');
+            notifDot.style = '';
+        }
+    }
+
+    async function loadNotifications() {
+        if (hasLoaded) return;
+        // Update loading text to current language
+        notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-slate-400">' + (CURRENT_LANG === 'en' ? 'Loading...' : 'Đang tải...') + '</div>';
+        try {
+            const resp = await fetch('/new-papers');
+            const data = await resp.json();
+            const papers = data.papers || [];
+            const count = data.count || 0;
+
+            updateBadge(count);
+
+            if (papers.length === 0) {
+                notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-slate-400">' + (CURRENT_LANG === 'en' ? 'No new research papers.' : 'Chưa có bài nghiên cứu mới.') + '</div>';
+            } else {
+                notifList.innerHTML = papers.map(function (p) {
+                    const notifTitle = (CURRENT_LANG === 'en' && p.title_en) ? p.title_en : p.title;
+                    return `
+                    <a href="/read/${p.id}" class="notif-item block px-5 py-4 hover:bg-slate-50 transition-colors" data-paper-id="${p.id}">
+                        <p class="text-sm leading-snug">
+                            <span class="text-[9px] bg-[#1A365D] text-white px-1.5 py-[2px] rounded-full font-semibold mr-2">${escapeHtml(p.category)}</span>
+                            <span class="font-semibold text-[#1A365D]">${escapeHtml(notifTitle)}</span>
+                        </p>
+                        <p class="text-xs text-slate-400 mt-1">${formatDate(p.published_date)}</p>
+                    </a>`;
+                }).join('');
+
+                // Mark paper as read when clicked
+                notifList.querySelectorAll('.notif-item').forEach(function (item) {
+                    item.addEventListener('click', function (e) {
+                        const paperId = parseInt(item.getAttribute('data-paper-id'));
+                        if (paperId) {
+                            fetch('/mark-paper-read', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ paper_id: paperId })
+                            }).then(function (r) { return r.json(); })
+                                .then(function (d) {
+                                    if (d.success) {
+                                        updateBadge(d.unread_count || 0);
+                                        // Remove item with animation
+                                        item.style.transition = 'opacity 0.3s';
+                                        item.style.opacity = '0';
+                                        setTimeout(function () { item.remove(); }, 300);
+                                    }
+                                })
+                                .catch(function () { });
+                        }
+                    });
+                });
+            }
+            hasLoaded = true;
+        } catch (err) {
+            notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-red-400">' + (CURRENT_LANG === 'en' ? 'Error loading notifications.' : 'Lỗi tải thông báo.') + '</div>';
+        }
+    }
+
+    function openDropdown() {
+
+        if (!hasNotifDropdown) return;
+
+        // chỉ đóng user dropdown nếu đang mở
+        if (isUserOpen) {
+            closeUserDropdown();
+        }
+
+        dropdown.classList.remove('hidden');
+        isOpen = true;
+        loadNotifications();
+    }
+
+    function closeDropdown() {
+
+        if (!hasNotifDropdown) return;
+
+        dropdown.classList.add('hidden');
+        isOpen = false;
+    }
+
+    function openUserDropdown() {
+
+        if (!hasUserDropdown) return;
+
+        // chỉ đóng notification nếu đang mở
+        if (isOpen) {
+            closeDropdown();
+        }
+
+        // delay 1 frame để browser render xong
+        requestAnimationFrame(() => {
+            userDropdown.classList.remove('hidden');
+            isUserOpen = true;
+        });
+    }
+
+    function closeUserDropdown() {
+
+        if (!hasUserDropdown) return;
+
+        userDropdown.classList.add('hidden');
+        isUserOpen = false;
+    }
+
+    // ── Mark all read button ──
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', async function (e) {
+            e.stopPropagation();
+            try {
+                const resp = await fetch('/mark-all-read', { method: 'POST' });
+                const data = await resp.json();
+                if (data.success) {
+                    updateBadge(0);
+                    // Xóa hết nội dung notification list
+                    notifList.innerHTML = '<div class="px-5 py-8 text-center text-sm text-slate-400">' +
+                        (CURRENT_LANG === 'en' ? 'No new research papers.' : 'Chưa có bài nghiên cứu mới.') + '</div>';
+                }
+            } catch (err) {
+                console.error('Mark all read error:', err);
+            }
+        });
+    }
+
+    if (hasNotifDropdown) {
+
+        bellBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+
+            if (isUserOpen) {
+                closeUserDropdown();
+            }
+
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        });
+    }
+
+    if (hasUserDropdown) {
+
+        userBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+
+            if (isUserOpen) {
+                closeUserDropdown();
+            } else {
+                openUserDropdown();
+            }
+        });
+    }
+
+    // Close on outside click
+    document.addEventListener('click', function (e) {
+        if (
+            isOpen &&
+            !dropdown.contains(e.target) &&
+            !bellBtn.contains(e.target)
+        ) {
+            closeDropdown();
+        }
+
+        if (
+            isUserOpen &&
+            !userDropdown.contains(e.target) &&
+            !userBtn.contains(e.target)
+        ) {
+            closeUserDropdown();
+        }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+
+        if (e.key === 'Escape') {
+            if (isOpen) {
+                closeDropdown();
+            }
+            if (isUserOpen) {
+                closeUserDropdown();
+            }
+        }
+    });
+})();
+//End Notification JS
+
+/*End User Header Scripts*/
+
+/*Begin Guest Header Scripts*/
+
+//Begin show login modal box
+const mobileLoginBtn = document.getElementById('mobile-open-login-modal');
+
+if (mobileLoginBtn) {
+
+    mobileLoginBtn.addEventListener('click', () => {
+
+        // Ẩn gate message nếu có (reset từ lần trước)
+        const gateMsg = document.getElementById('login-gate-message');
+        if (gateMsg) {
+            gateMsg.classList.add('hidden');
+        }
+
+        loginModal.classList.remove('hidden');
+        loginModal.classList.add('flex');
+
+    });
+
+}
+//End show login modal box
+
+/*End Guest Header Scripts*/

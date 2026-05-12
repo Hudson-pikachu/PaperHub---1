@@ -42,28 +42,6 @@
     </div>
 </header>
 
-<!-- Hiện login modal box -->
-<script>
-    const mobileLoginBtn = document.getElementById('mobile-open-login-modal');
-
-    if (mobileLoginBtn) {
-
-        mobileLoginBtn.addEventListener('click', () => {
-
-            // Ẩn gate message nếu có (reset từ lần trước)
-            const gateMsg = document.getElementById('login-gate-message');
-            if (gateMsg) {
-                gateMsg.classList.add('hidden');
-            }
-
-            loginModal.classList.remove('hidden');
-            loginModal.classList.add('flex');
-
-        });
-
-    }
-</script>
-
 <!-- Login Modal -->
 {% include 'components/auth/login-modal.html' %}
 
