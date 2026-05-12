@@ -18,9 +18,9 @@
     <div class="max-w-5xl mx-auto">
         <!-- Header -->
         {% if current_user.is_authenticated %}
-        {% include 'components/header/user_header.html' %}
+        {% include 'components/header/user-header.html' %}
         {% else %}
-        {% include 'components/header/guest_header_q.html' %}
+        {% include 'components/header/guest-header.html' %}
         {% endif %}
 
         {% block content %}
@@ -39,11 +39,16 @@
         </svg>
     </button>
 
-    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    {% if current_user.is_authenticated %}
+    <script src="{{ url_for('static', filename='js/header/user-header.js') }}"></script>
+    {% else %}
+    <script src="{{ url_for('static', filename='js/header/guest-header.js') }}"></script>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/auth/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/back-to-top.js') }}"></script>
     <script src="{{ url_for('static', filename='js/paper-expand.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth/auth.js') }}"></script>
 
     {% block extra_js %}
     {% endblock %}

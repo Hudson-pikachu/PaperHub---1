@@ -1,0 +1,52 @@
+<header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto px-4 md:px-6 py-3">
+        <!-- HEADER LAYOUT -->
+        <div class="flex flex-col gap-3">
+            <!-- TOP ROW -->
+            <div class="flex items-center justify-between gap-4">
+                <!-- Logo -->
+                {% include 'components/header/partials/logo.html' %}
+
+                <!-- DESKTOP SEARCH -->
+                {% include 'components/header/partials/search-bar.html' %}
+
+                <!-- RIGHT ACTIONS -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <!-- Desktop Button -->
+                    <div class="hidden lg:flex items-center gap-3">
+                        <!-- Language Switch -->
+                        {% include 'components/header/partials/lang-switch.html' %}
+
+                        <!-- Login Button -->
+                        <button id="open-login-modal"
+                            class="px-4 py-2 bg-[#1A365D] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#2C5282] transition-all">
+                            {{ 'Login' if session.get('lang', 'vi') == 'en' else 'Đăng nhập' }}
+                        </button>
+                    </div>
+
+                    <!-- Mobile: Language Switch + Login -->
+                    <div class="lg:hidden flex items-center gap-2">
+                        {% include 'components/header/partials/lang-switch.html' %}
+                        <button id="mobile-open-login-modal"
+                            class="px-4 py-2 bg-[#1A365D] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#2C5282] transition-all">
+                            {{ 'Login' if session.get('lang', 'vi') == 'en' else 'Đăng nhập' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOBILE SEARCH -->
+            {% set mobile_only = true %}
+            {% include 'components/header/partials/search-bar.html' %}
+        </div>
+    </div>
+</header>
+
+<!-- Login Modal -->
+{% include 'components/auth/login-modal.html' %}
+
+<!-- Register Modal -->
+{% include 'components/auth/register-modal.html' %}
+
+<script src="{{ url_for('static', filename='js/header/components/search-bar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/header/components/lang-switch.js') }}"></script>

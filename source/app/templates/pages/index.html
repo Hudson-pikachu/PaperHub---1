@@ -59,7 +59,7 @@ PaperHub
 <section id="paper-feed" class="space-y-6">
     {% for paper in papers %}
     <!-- Paper Card -->
-    {% include 'components/paper_card.html' %}
+    {% include 'components/paper-card.html' %}
     {% endfor %}
 </section>
 
@@ -95,9 +95,9 @@ PaperHub
         let GUEST_LOAD_MORE = true;
 
         // Đọc cấu hình từ server
-        fetch('/site-settings').then(function(r) { return r.json(); }).then(function(d) {
+        fetch('/site-settings').then(function (r) { return r.json(); }).then(function (d) {
             GUEST_LOAD_MORE = d.guest_load_more;
-        }).catch(function() {
+        }).catch(function () {
             GUEST_LOAD_MORE = true;
         });
 
@@ -499,7 +499,7 @@ PaperHub
 
         // ── Auto-trigger tab from query param ?filter=following ──
         if (initialFilter === 'following' && IS_AUTHENTICATED) {
-            requestAnimationFrame(function() {
+            requestAnimationFrame(function () {
                 setActiveFilter('following');
                 loadFollowingPapers();
             });

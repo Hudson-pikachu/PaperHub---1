@@ -9,7 +9,7 @@ instance/
 # data.db  <-- Nếu bạn muốn mỗi máy tự tạo DB riêng thì bỏ dấu # ở đầu dòng này
 
 # Môi trường ảo (Virtual Environment)
-venv/
+.venv/
 env/
 ENV/
 
