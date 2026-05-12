@@ -1,4 +1,4 @@
-    <header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
+<header class="sticky top-0 z-50 bg-[#F1F5F9]/80 backdrop-blur-md">
     <div class="max-w-5xl mx-auto px-4 md:px-6 py-3">
         <!-- MOBILE + DESKTOP LAYOUT -->
         <div class="flex flex-col gap-3">
@@ -41,7 +41,7 @@
                 <!-- RIGHT ACTIONS -->
                 <div class="flex items-center gap-3 shrink-0">
                     <!-- Language Switch -->
-                    {% include 'components/lang_switch.html' %}
+                    {% include 'components/header/partials/lang_switch.html' %}
 
                     <!-- Notification Bell + Dropdown -->
                     <div class="relative">
@@ -79,7 +79,8 @@
                                         {{ 'Mark all read' if session.get('lang', 'vi') == 'en' else 'Xóa tất cả' }}
                                     </button>
                                     <span id="notif-count-text" class="text-xs text-slate-400">
-                                        {{ '0 new papers' if session.get('lang', 'vi') == 'en' else '0 nghiên cứu mới' }}
+                                        {{ '0 new papers' if session.get('lang', 'vi') == 'en' else '0 nghiên cứu mới'
+                                        }}
                                     </span>
                                 </div>
                             </div>
