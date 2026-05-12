@@ -1,5 +1,6 @@
 #Họp nhóm lần 04: Thứ 3 ngày 12/05/2026
 #Chốt hôm nay:
+Record: Link lỗi
 - Chốt các chức năng đã hoàn thành
 - Bắt đầu giai đoạn test (Chuẩn bị test case, test plan)
 - Làm thêm chức năng chấm điểm Paper - Quang
@@ -7,7 +8,9 @@
   - Giới thiệu PaperHub
   - Team phát triển
   - Cấu trúc thư mục, Phân tích nghiệp vụ
-#-----------------------------------
+
+
+#-----------------------------------#
 #Họp nhóm lần 03: Thứ 6 ngày 08/05/2026
 Record: https://youtu.be/EtO4IdXOViU
 
