@@ -17,8 +17,17 @@ Yeu cau: chay tu thu muc goc PaperHub (noi co source/).
 
 import sys
 import os
+import io
 import argparse
 from datetime import datetime
+
+# Fix UnicodeEncodeError trên Windows: 'ascii' codec can't encode Vietnamese chars
+# Python mặc định dùng cp1252/ascii cho stdout → không encode được tiếng Việt (vd: "Học Máy")
+try:
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+except Exception:
+    pass
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
