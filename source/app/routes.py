@@ -416,3 +416,11 @@ def set_language(lang):
         session['lang'] = lang
     ref = request.referrer or url_for('main.home')
     return redirect(ref)
+
+@main_bp.route('/about')
+def about():
+    return render_template('pages/about.html')
+
+@main_bp.route('/contact')
+def contact():
+    return render_template('pages/contact.html')
