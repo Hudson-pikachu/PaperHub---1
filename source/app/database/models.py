@@ -69,9 +69,10 @@ class SiteSettings(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     guest_load_more = db.Column(db.Boolean, default=True, nullable=False)
+    worthy_threshold = db.Column(db.Float, default=7.0, nullable=False)
 
     def __repr__(self):
-        return f'<SiteSettings guest_load_more={self.guest_load_more}>'
+        return f'<SiteSettings guest_load_more={self.guest_load_more} worthy_threshold={self.worthy_threshold}>'
 
 class Paper(db.Model):
     # 1. ID tự tăng (Khóa chính)

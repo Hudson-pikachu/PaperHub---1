@@ -16,12 +16,18 @@ Routes:
 """
 
 import os
+import sys
 from flask import Blueprint, request, jsonify, render_template
 from datetime import datetime, timedelta, timezone
 from .database.models import db, SchedulerState, FetchHistory, SiteSettings, Paper
 from .services.arxiv_service import fetch_arxiv_for_all_categories
 from .services.ai_service import check_ai_status, process_pending_papers
 from .logger import get_last_lines, get_log_stats, read_log_file, read_log_file_stats
+
+# Thêm thư mục scripts vào path để import được score_papers
+_scripts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts')
+if _scripts_dir not in sys.path:
+    sys.path.insert(0, _scripts_dir)
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/dev')
 
@@ -51,6 +57,7 @@ def site_settings():
     settings = SiteSettings.query.get(1)
     return jsonify({
         'guest_load_more': settings.guest_load_more if settings else True,
+        'worthy_threshold': settings.worthy_threshold if settings else 7.0,
     })
 
 
@@ -178,6 +185,7 @@ def settings():
             'success': True,
             'settings': {
                 'guest_load_more': cfg.guest_load_more,
+                'worthy_threshold': cfg.worthy_threshold,
             },
         })
 
@@ -186,6 +194,10 @@ def settings():
 
     if 'guest_load_more' in data:
         cfg.guest_load_more = bool(data['guest_load_more'])
+    if 'worthy_threshold' in data:
+        val = data['worthy_threshold']
+        if val is not None:
+            cfg.worthy_threshold = max(0.0, min(10.0, float(val)))
 
     db.session.commit()
     return jsonify({'success': True, 'message': 'Đã lưu cấu hình.'})
@@ -342,3 +354,44 @@ def view_logs():
         'showing': len(raw_lines),
         'lines': raw_lines,
     })
+
+
+@admin_bp.route('/score-papers', methods=['GET', 'POST'])
+def score_papers():
+    """Gọi Gemini API chấm điểm các bài chưa có score."""
+    if not _check_secret():
+        return jsonify({'success': False, 'message': '401 Unauthorized'}), 401
+
+    # Count unscored
+    unscored_count = Paper.query.filter(Paper.score.is_(None)).count()
+    if unscored_count == 0:
+        return jsonify({'success': True, 'message': 'Tất cả bài đã có điểm.', 'scored': 0, 'total': 0})
+
+    started_at = _now_vn()
+    print(f"[Admin] score-papers triggered at {started_at.isoformat()}, unscored={unscored_count}")
+
+    try:
+        from score_papers import run_scoring  # type: ignore[import-not-found]
+        result = run_scoring(limit=None, rescore_all=False)
+        elapsed = (_now_vn() - started_at).seconds
+
+        time_suffix = " ({elapsed}s)".format(elapsed=elapsed) if elapsed else ""
+        msg = "Đã chấm {scored}/{total} bài{time_suffix}.".format(
+            scored=result["scored"], total=result["total"], time_suffix=time_suffix
+        )
+        if result.get("errors"):
+            msg += " Lỗi: {errors} bài.".format(errors=result["errors"])
+        print(f"[Admin] score-papers done: {result}")
+
+        return jsonify({
+            'success': True,
+            'message': msg,
+            'scored': result['scored'],
+            'total': result['total'],
+            'errors': result.get('errors', 0),
+            'elapsed_seconds': elapsed,
+        })
+    except Exception as e:
+        error_msg = str(e)
+        print(f"[Admin] score-papers error: {error_msg}")
+        return jsonify({'success': False, 'message': error_msg}), 500

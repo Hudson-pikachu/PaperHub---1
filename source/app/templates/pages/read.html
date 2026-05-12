@@ -18,6 +18,52 @@ if (article) {
         }).catch(function() {});
     }
 }
+
+// ── Save/Unsave toggle ──
+(function() {
+    const saveBtn = document.getElementById('read-save-btn');
+    if (!saveBtn) return;
+
+    saveBtn.addEventListener('click', async function() {
+        const paperId = saveBtn.getAttribute('data-paper-id');
+        if (!paperId) return;
+
+        {% if not current_user.is_authenticated %}
+        const loginModal = document.getElementById('login-modal');
+        if (loginModal) {
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+        }
+        return;
+        {% endif %}
+
+        try {
+            const resp = await fetch('/save-paper', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paper_id: parseInt(paperId) })
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                const icon = saveBtn.querySelector('svg');
+                const label = saveBtn.querySelector('span');
+                if (data.saved) {
+                    saveBtn.classList.add('bookmark-active', 'text-[#1A365D]');
+                    saveBtn.classList.remove('text-slate-300');
+                    if (icon) icon.setAttribute('fill', 'currentColor');
+                    if (label) label.textContent = '{{ "Saved" if lang == "en" else "Đã lưu" }}';
+                } else {
+                    saveBtn.classList.remove('bookmark-active', 'text-[#1A365D]');
+                    saveBtn.classList.add('text-slate-300');
+                    if (label) label.textContent = '{{ "Save" if lang == "en" else "Lưu" }}';
+                }
+            }
+        } catch(err) {
+            console.error('Save error:', err);
+        }
+    });
+})();
 </script>
 {% endblock %}
 
@@ -28,6 +74,7 @@ if (article) {
 {% set display_abstract = paper.abstract_en if lang == 'en' and paper.abstract_en else paper.abstract %}
 {% set display_ai_summary = paper.ai_summary_en if lang == 'en' and paper.ai_summary_en else paper.ai_summary %}
 {% set has_summary = display_ai_summary and display_ai_summary|trim != '' %}
+{% set is_worthy = paper.score is not none and worthy_threshold is defined and paper.score >= worthy_threshold %}
 
 <!-- Back Button -->
 <div class="mb-6 mt-6 md:mt-8">
@@ -61,6 +108,16 @@ if (article) {
         <span>•</span>
         <span>{{ paper.cited_count }} {{ 'citations' if lang == 'en' else 'lượt trích dẫn' }}</span>
         {% endif %}
+        {% if is_worthy %}
+        <span>•</span>
+        <span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-[#5D4037] text-[12px] font-bold px-3 py-1.5 rounded-full border border-amber-300 shadow-md" style="font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;">
+            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="leading-none">{{ 'Worthy Read' if lang == 'en' else 'Nghiên cứu đáng đọc' }}</span>
+            <span class="inline-flex items-center justify-center bg-white/30 text-[#5D4037] text-[11px] font-bold rounded-full min-w-[20px] h-[18px] px-1 leading-none ml-0.5">{{ (paper.score | round(0, 'floor') | int) if paper.score is not none else 0 }}/10</span>
+        </span>
+        {% endif %}
     </div>
 
     <!-- Abstract -->
@@ -87,14 +144,18 @@ if (article) {
     {% endif %}
 
     <!-- Actions -->
-    <div class="flex items-center gap-3 mb-6 pt-2 border-t border-slate-100">
-        <a href="{{ paper.link }}" target="_blank"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-[#1A365D] text-white text-xs font-semibold rounded-xl hover:bg-[#2C5282] transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" />
+    <div class="flex items-center gap-4 mb-6 pt-2 border-t border-slate-100">
+        <button type="button" id="read-save-btn"
+            class="bookmark-btn inline-flex items-center text-sm font-semibold transition-all {% if is_saved %}bookmark-active text-[#1A365D]{% else %}text-slate-300 hover:text-[#1A365D]{% endif %}"
+            data-paper-id="{{ paper.id }}"
+            aria-label="{{ 'Save paper' if lang == 'en' else 'Lưu bài nghiên cứu' }}"
+            title="{{ 'Save paper' if lang == 'en' else 'Lưu bài nghiên cứu' }}">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
             </svg>
-            {{ 'Open on arXiv' if lang == 'en' else 'Mở trên arXiv' }}
-        </a>
+            <span>{% if is_saved %}{{ 'Saved' if lang == 'en' else 'Đã lưu' }}{% else %}{{ 'Save' if lang == 'en' else 'Lưu' }}{% endif %}</span>
+        </button>
+
         <span class="text-[10px] text-slate-400 font-mono">{{ 'Source: arXiv' if lang == 'en' else 'Nguồn: arXiv' }}</span>
     </div>
 

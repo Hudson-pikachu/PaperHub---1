@@ -3,6 +3,7 @@
 {% set display_abstract = paper.abstract_en if lang == 'en' and paper.abstract_en else paper.abstract %}
 {% set display_ai_summary = paper.ai_summary_en if lang == 'en' and paper.ai_summary_en else paper.ai_summary %}
 {% set has_summary = display_ai_summary and display_ai_summary|trim != '' %}
+{% set is_worthy = paper.score is not none and worthy_threshold is defined and paper.score >= worthy_threshold %}
 
 <article class="paper-card rounded-2xl p-5 md:p-6 shadow-sm relative">
     <span
@@ -22,6 +23,8 @@
             </span>
             <span>•</span>
             <span>{{ paper.published_date }}</span>
+            <span>•</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ 'Source: arXiv' if lang == 'en' else 'Nguồn: arXiv' }}</span>
         </div>
         <div class="relative">
             <span class="text-xs font-bold text-[#1A365D] uppercase tracking-wider block mb-1">{{ 'ABSTRACT' if lang ==
@@ -67,8 +70,17 @@
         {% endif %}
 
         <div class="flex justify-between items-center pt-2">
-            <span class="text-[10px] text-slate-400 font-mono">{{ 'Source: arXiv' if lang == 'en' else 'Nguồn: arXiv'
-                }}</span>
+            <div class="flex items-center gap-2">
+                {% if is_worthy %}
+                <span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-[#5D4037] text-[12px] font-bold px-3 py-1.5 rounded-full border border-amber-300 shadow-md" style="font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;">
+                    <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="leading-none">{{ 'Worthy Read' if lang == 'en' else 'Nghiên cứu đáng đọc' }}</span>
+                    <span class="inline-flex items-center justify-center bg-white/30 text-[#5D4037] text-[11px] font-bold rounded-full min-w-[20px] h-[18px] px-1 leading-none ml-0.5">{{ (paper.score | round(0, 'floor') | int) if paper.score is not none else 0 }}/10</span>
+                </span>
+                {% endif %}
+            </div>
             <div class="flex items-center gap-4">
                 <button type="button"
                     class="bookmark-btn inline-flex items-center text-sm font-semibold transition-all {% if paper.id in saved_paper_ids %}bookmark-active text-[#1A365D]{% else %}text-slate-300 hover:text-[#1A365D]{% endif %}"

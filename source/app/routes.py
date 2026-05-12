@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, current_app, redirect, url_for, session
 from flask_login import login_required, current_user
-from .database.models import db, Paper, Category, SchedulerState, SavedPaper, UserCategory, UserPaperRead
+from .database.models import db, Paper, Category, SchedulerState, SavedPaper, UserCategory, UserPaperRead, SiteSettings
 from sqlalchemy import or_, case
 from datetime import datetime, timedelta
 
@@ -11,6 +11,10 @@ def home():
     is_fallback = current_app.config.get('DB_FALLBACK', False)
     latest_papers = Paper.query.filter_by(status='posted').outerjoin(Category).order_by(Paper.date_added.desc()).limit(5).all()
 
+    # Lấy ngưỡng "đáng đọc" từ SiteSettings
+    settings = SiteSettings.query.get(1)
+    worthy_threshold = settings.worthy_threshold if settings else 7.0
+
     # Lấy danh sách ID bài đã lưu của user hiện tại (nếu đã đăng nhập)
     saved_paper_ids = []
     if current_user.is_authenticated:
@@ -19,7 +23,7 @@ def home():
             SavedPaper.query.filter_by(user_id=current_user.id).all()
         ]
 
-    return render_template('pages/index.html', papers=latest_papers, db_fallback=is_fallback, saved_paper_ids=saved_paper_ids)
+    return render_template('pages/index.html', papers=latest_papers, db_fallback=is_fallback, saved_paper_ids=saved_paper_ids, worthy_threshold=worthy_threshold)
 
 @main_bp.route('/profile')
 @login_required
@@ -40,7 +44,19 @@ def read_paper(paper_id):
         else:
             pdf_url = paper.link
 
-    return render_template('pages/read.html', paper=paper, pdf_url=pdf_url)
+    # Lấy ngưỡng đáng đọc
+    settings = SiteSettings.query.get(1)
+    worthy_threshold = settings.worthy_threshold if settings else 7.0
+
+    # Kiểm tra user đã lưu bài này chưa
+    is_saved = False
+    if current_user.is_authenticated:
+        is_saved = SavedPaper.query.filter_by(
+            user_id=current_user.id, paper_id=paper_id
+        ).first() is not None
+
+    return render_template('pages/read.html', paper=paper, pdf_url=pdf_url,
+                          worthy_threshold=worthy_threshold, is_saved=is_saved)
 
 @main_bp.route('/load-more')
 def load_more():
@@ -49,6 +65,10 @@ def load_more():
     
     papers = Paper.query.filter_by(status='posted').outerjoin(Category).order_by(Paper.date_added.desc()).offset(offset).limit(limit).all()
     
+    # Lấy ngưỡng đáng đọc
+    settings = SiteSettings.query.get(1)
+    worthy_threshold = settings.worthy_threshold if settings else 7.0
+
     output = []
     for p in papers:
         output.append({
@@ -66,6 +86,7 @@ def load_more():
             "link": p.link,
             "publisher": p.publisher,
             "cited_count": p.cited_count,
+            "score": p.score,
             "is_saved": False
         })
     
@@ -75,7 +96,8 @@ def load_more():
     
     return jsonify({
         "papers": output,
-        "has_more": has_more
+        "has_more": has_more,
+        "worthy_threshold": worthy_threshold
     })
 
 @main_bp.route('/scheduler-status')
@@ -147,6 +169,7 @@ def saved_papers():
             "link": p.link,
             "publisher": p.publisher,
             "cited_count": p.cited_count,
+            "score": p.score,
         })
     return jsonify({'success': True, 'papers': papers})
 
@@ -214,6 +237,7 @@ def following_papers():
             "link": p.link,
             "publisher": p.publisher,
             "cited_count": p.cited_count,
+            "score": p.score,
         })
 
     return jsonify({
@@ -279,6 +303,10 @@ def new_papers():
         .all()
     )
     count = len(papers)
+    # Lấy ngưỡng đáng đọc
+    settings = SiteSettings.query.get(1)
+    worthy_threshold = settings.worthy_threshold if settings else 7.0
+
     output = []
     for p in papers:
         output.append({
@@ -291,8 +319,9 @@ def new_papers():
             "category": p.category_name,
             "link": p.link,
             "date_added": p.date_added.isoformat() + 'Z' if p.date_added else None,
+            "score": p.score,
         })
-    return jsonify({'success': True, 'papers': output, 'count': count})
+    return jsonify({'success': True, 'papers': output, 'count': count, 'worthy_threshold': worthy_threshold})
 
 @main_bp.route('/mark-paper-read', methods=['POST'])
 @login_required
