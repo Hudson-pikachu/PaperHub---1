@@ -31,31 +31,7 @@
                         </div>
 
                         <!-- User Dropdown -->
-                        <div class="relative">
-                            <button id="user-menu-btn"
-                                class="w-11 h-11 rounded-full bg-[#1A365D] text-white flex items-center justify-center text-lg font-bold shadow-sm hover:bg-[#2C5282] transition-all">
-                                {{ current_user.initials }}
-                            </button>
-
-                            <!-- Dropdown -->
-                            <div id="user-dropdown"
-                                class="hidden absolute right-0 z-[60] mt-3 w-48 bg-white border border-slate-200 rounded-2xl shadow-lg overflow-hidden">
-                                {% if current_user.is_admin %}
-                                <a href="/dev?secret={{ config.get('ADMIN_SECRET', '') }}"
-                                    class="block px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-                                    {{ 'Admin' if session.get('lang', 'vi') == 'en' else 'Quản trị' }}
-                                </a>
-                                {% endif %}
-                                <a href="/profile"
-                                    class="block px-5 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors {% if current_user.is_admin %}border-t border-slate-100{% endif %}">
-                                    {{ 'Profile' if session.get('lang', 'vi') == 'en' else 'Hồ sơ' }}
-                                </a>
-                                <a href="{{ url_for('auth.logout') }}"
-                                    class="block px-5 py-3 text-sm text-red-500 border-t border-slate-100 hover:bg-red-50 transition-colors">
-                                    {{ 'Logout' if session.get('lang', 'vi') == 'en' else 'Đăng xuất' }}
-                                </a>
-                            </div>
-                        </div>
+                        {% include 'components/header/partials/user_dropdown.html' %}
                     </div>
                 </div>
             </div>
