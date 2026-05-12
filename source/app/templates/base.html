@@ -39,7 +39,12 @@
         </svg>
     </button>
 
-    <script src="{{ url_for('static', filename='js/header.js') }}"></script>
+    {% if current_user.is_authenticated %}
+    <script src="{{ url_for('static', filename='js/header/user-header.js') }}"></script>
+    {% else %}
+    <script src="{{ url_for('static', filename='js/header/guest-header.js') }}"></script>
+    {% endif %}
+
     <script src="{{ url_for('static', filename='js/auth/modal.js') }}"></script>
     <script src="{{ url_for('static', filename='js/back-to-top.js') }}"></script>
     <script src="{{ url_for('static', filename='js/paper-expand.js') }}"></script>
