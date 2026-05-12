@@ -1,3 +1,10 @@
+document.addEventListener('DOMContentLoaded', () => {
+
+    initSearchBar();
+    initLangSwitch();
+
+});
+
 //Begin show login modal box
 const mobileLoginBtn = document.getElementById('mobile-open-login-modal');
 

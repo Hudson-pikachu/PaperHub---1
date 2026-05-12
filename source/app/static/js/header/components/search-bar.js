@@ -1,4 +1,4 @@
-(function () {
+function initSearchBar() {
     // Tìm tất cả search input trong page (cả desktop lẫn mobile)
     var searchInputs = document.querySelectorAll('input[data-search-input]');
     if (searchInputs.length === 0) return;
@@ -121,4 +121,4 @@
                 dropdown.innerHTML = '<div class="px-5 py-8 text-center text-sm text-red-400">' + (currentLang === 'en' ? 'Search error. Please try again.' : 'Lỗi tìm kiếm, vui lòng thử lại.') + '</div>';
             });
     }
-})();
+}

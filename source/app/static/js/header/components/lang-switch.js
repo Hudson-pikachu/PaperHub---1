@@ -1,4 +1,4 @@
-(function () {
+function initLangSwitch() {
     // Tìm tất cả container lang-switch chưa được khởi tạo
     document.querySelectorAll('.lang-switch-container').forEach(function (container) {
         if (container.dataset.initialized) return;
@@ -39,4 +39,4 @@
             if (e.key === 'Escape' && isOpen) closeDropdown();
         });
     });
-})();
+}
