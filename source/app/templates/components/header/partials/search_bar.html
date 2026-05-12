@@ -1,4 +1,5 @@
-<div class="{{ wrapper_class | default('') }}">
+<div class="{{ mobile_only | default(false) and 'lg:hidden' or 'hidden lg:block flex-1 max-w-2xl' }}">
+
     <div class="search-form relative">
 
         <!-- Search Icon -->
@@ -10,19 +11,22 @@
             </svg>
         </div>
 
-        <!-- Input -->
+        <!-- Search Input -->
         <input type="text" data-search-input
             placeholder="{{ 'Search research papers...' if session.get('lang', 'vi') == 'en' else 'Tìm kiếm bài nghiên cứu...' }}"
-            class="{{ input_class }}">
+            class="
+                w-full bg-white border border-slate-200 rounded-full pl-12 pr-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
 
-        <!-- Dropdown -->
-        <div class="search-dropdown hidden absolute z-50 left-0 right-0 mt-2
-                    bg-white/95 backdrop-blur-md
-                    border border-slate-200
-                    rounded-2xl
-                    shadow-xl
-                    max-h-[60vh]
-                    overflow-y-auto">
+                {% if mobile_only | default(false) %}
+                    py-2 text-sm
+                {% else %}
+                    py-2.5 text-sm md:text-base
+                {% endif %}
+            ">
+
+        <!-- Search Dropdown -->
+        <div
+            class="search-dropdown hidden absolute z-50 left-0 right-0 mt-2 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl shadow-xl max-h-[60vh] overflow-y-auto">
         </div>
 
     </div>
