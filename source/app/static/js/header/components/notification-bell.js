@@ -14,6 +14,8 @@ function initNotificationBell() {
     let isOpen = false;
     let hasLoaded = false;
     let worthyThreshold = 7.0;
+    // Read initial count from server-rendered HTML (data-init-count)
+    let currentCount = parseInt(notifDot ? notifDot.getAttribute('data-init-count') || '0' : '0', 10) || 0;
 
     // ─────────────────────────────────────
     // HELPERS
@@ -43,20 +45,6 @@ function initNotificationBell() {
         );
     }
 
-    // ─────────────────────────────────────
-    // INIT BADGE
-    // ─────────────────────────────────────
-
-    (async function initBadge() {
-        try {
-            const resp = await fetch('/unread-count');
-            const data = await resp.json();
-            if (data.success) {
-                updateBadge(data.unread_count || 0);
-            }
-        } catch (e) { }
-    })();
-
     function updateMarkAllReadBtn(count) {
         if (!markAllReadBtn) return;
         if (count > 0) {
@@ -67,6 +55,7 @@ function initNotificationBell() {
     }
 
     function updateBadge(count) {
+        currentCount = count;
         updateMarkAllReadBtn(count);
 
         if (notifCountText) {
@@ -97,6 +86,28 @@ function initNotificationBell() {
             notifDot.style = '';
         }
     }
+
+    // ─────────────────────────────────────
+    // INIT BADGE (read from server-rendered state, then refresh from API)
+    // ─────────────────────────────────────
+
+    // 1. Apply the server-rendered initial state immediately (no flash)
+    if (currentCount > 0) {
+        updateMarkAllReadBtn(currentCount);
+    }
+
+    // 2. Fetch fresh count from API to sync (silently, non-blocking)
+    (async function syncBadgeFromAPI() {
+        try {
+            const resp = await fetch('/unread-count');
+            const data = await resp.json();
+            if (data.success) {
+                updateBadge(data.unread_count || 0);
+            }
+        } catch (e) {
+            // fallback: keep server-rendered state
+        }
+    })();
 
     // ─────────────────────────────────────
     // LOAD NOTIFICATIONS

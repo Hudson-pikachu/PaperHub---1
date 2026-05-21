@@ -1,3 +1,5 @@
+{% set lang = session.get('lang', 'vi') %}
+{% set count = unread_count | default(0) | int %}
 <div class="relative">
     <!-- Button Notification Bell -->
     <button id="notif-bell-btn"
@@ -8,9 +10,13 @@
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
 
-        <!-- Notification Dot -->
+        <!-- Notification Dot (rendered server-side for instant display) -->
         <span id="notif-dot"
-            class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></span>
+            data-init-count="{{ count }}"
+            class="{% if count > 0 %}flex items-center justify-center text-[9px] font-bold text-white leading-none{% else %}hidden{% endif %} absolute bg-red-500 rounded-full border-2 border-white"
+            style="{% if count > 0 %}min-width:{{ '18px' if count > 9 else '16px' }};height:{{ '18px' if count > 9 else '16px' }};top:-2px;right:-4px;padding:0 2px;{% endif %}">
+            {% if count > 0 %}{{ '99+' if count > 99 else count }}{% endif %}
+        </span>
     </button>
 
     <!-- Dropdown -->
@@ -19,16 +25,21 @@
         <!-- Header -->
         <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
             <h3 class="text-sm font-semibold text-[#1A365D]">
-                {{ 'Notifications' if session.get('lang', 'vi') == 'en' else 'Thông báo' }}
+                {{ 'Notifications' if lang == 'en' else 'Thông báo' }}
             </h3>
             <div class="flex items-center gap-3">
                 <button id="mark-all-read-btn"
-                    class="hidden text-[10px] text-[#1A365D] hover:text-[#2C5282] underline transition-colors"
-                    title="{{ 'Mark all as read' if session.get('lang', 'vi') == 'en' else 'Đánh dấu tất cả đã xem' }}">
-                    {{ 'Mark all read' if session.get('lang', 'vi') == 'en' else 'Xóa tất cả' }}
+                    class="{% if count <= 0 %}hidden {% endif %}text-[10px] text-[#1A365D] hover:text-[#2C5282] underline transition-colors"
+                    title="{{ 'Mark all as read' if lang == 'en' else 'Đánh dấu tất cả đã xem' }}">
+                    {{ 'Mark all read' if lang == 'en' else 'Xóa tất cả' }}
                 </button>
-                <span id="notif-count-text" class="text-xs text-slate-400">
-                    {{ '0 new papers' if session.get('lang', 'vi') == 'en' else '0 nghiên cứu mới' }}
+                <span id="notif-count-text" class="text-xs text-slate-400"
+                      data-init-count="{{ count }}">
+                    {% if count == 0 %}
+                    {{ '0 new papers' if lang == 'en' else '0 nghiên cứu mới' }}
+                    {% else %}
+                    {{ count ~ (' new papers' if lang == 'en' else ' nghiên cứu mới') }}
+                    {% endif %}
                 </span>
             </div>
         </div>
@@ -36,7 +47,7 @@
         <!-- List -->
         <div id="notif-list" class="divide-y divide-slate-100">
             <div class="px-5 py-8 text-center text-sm text-slate-400">
-                {{ 'Loading...' if session.get('lang', 'vi') == 'en' else 'Đang tải...' }}
+                {{ 'Loading...' if lang == 'en' else 'Đang tải...' }}
             </div>
         </div>
     </div>

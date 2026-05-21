@@ -51,6 +51,29 @@ def create_app():
     app.config['LOGIN_MESSAGE_CATEGORY'] = 'info'
     login_manager.init_app(app)
 
+    # ── Context processor: inject unread_count vào tất cả templates ──
+    from .database.models import Paper, UserPaperRead
+
+    @app.context_processor
+    def inject_unread_count():
+        from flask_login import current_user
+        if current_user.is_authenticated:
+            since = current_user.created_at
+            read_ids = [
+                rp.paper_id for rp in
+                UserPaperRead.query.filter_by(user_id=current_user.id).all()
+            ]
+            query = Paper.query.filter(
+                Paper.status == 'posted',
+                Paper.date_added > since
+            )
+            if read_ids:
+                query = query.filter(~Paper.id.in_(read_ids))
+            unread_count = query.count()
+        else:
+            unread_count = 0
+        return {'unread_count': unread_count}
+
     # ── Đăng ký Blueprints ──
     from .routes import main_bp
     app.register_blueprint(main_bp)
