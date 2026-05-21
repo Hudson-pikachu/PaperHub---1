@@ -103,8 +103,6 @@ function initNotificationBell() {
     // ─────────────────────────────────────
 
     async function loadNotifications() {
-        if (hasLoaded) return;
-
         notifList.innerHTML =
             '<div class="px-5 py-8 text-center text-sm text-slate-400">' +
                 t('Đang tải...', 'Loading...') +
@@ -122,6 +120,7 @@ function initNotificationBell() {
             }
 
             updateBadge(count);
+            hasLoaded = true;
 
             if (papers.length === 0) {
                 notifList.innerHTML =
@@ -195,8 +194,6 @@ function initNotificationBell() {
                     });
             }
 
-            hasLoaded = true;
-
         } catch (err) {
             notifList.innerHTML =
                 '<div class="px-5 py-8 text-center text-sm text-red-400">' +
@@ -222,6 +219,7 @@ function initNotificationBell() {
     function closeDropdown() {
         dropdown.classList.add('hidden');
         isOpen = false;
+        hasLoaded = false;
     }
 
     // ─────────────────────────────────────

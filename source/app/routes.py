@@ -302,7 +302,7 @@ def new_papers():
         .limit(20)
         .all()
     )
-    count = len(papers)
+    total_unread = query.count()
     # Lấy ngưỡng đáng đọc
     settings = SiteSettings.query.get(1)
     worthy_threshold = settings.worthy_threshold if settings else 7.0
@@ -321,7 +321,7 @@ def new_papers():
             "date_added": p.date_added.isoformat() + 'Z' if p.date_added else None,
             "score": p.score,
         })
-    return jsonify({'success': True, 'papers': output, 'count': count, 'worthy_threshold': worthy_threshold})
+    return jsonify({'success': True, 'papers': output, 'count': total_unread, 'worthy_threshold': worthy_threshold})
 
 @main_bp.route('/mark-paper-read', methods=['POST'])
 @login_required
