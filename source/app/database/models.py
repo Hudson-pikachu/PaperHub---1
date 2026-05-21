@@ -172,6 +172,11 @@ class SavedPaper(db.Model):
         db.UniqueConstraint('user_id', 'paper_id', name='uq_user_paper_save'),
     )
 
+    def __init__(self, user_id: int, paper_id: int, **kwargs):
+        super().__init__(**kwargs)
+        self.user_id = user_id
+        self.paper_id = paper_id
+
     def __repr__(self):
         return f'<SavedPaper user={self.user_id} paper={self.paper_id}>'
 
@@ -188,6 +193,11 @@ class UserCategory(db.Model):
     __table_args__ = (
         db.UniqueConstraint('user_id', 'category_id', name='uq_user_category_follow'),
     )
+
+    def __init__(self, user_id: int, category_id: int, **kwargs):
+        super().__init__(**kwargs)
+        self.user_id = user_id
+        self.category_id = category_id
 
     def __repr__(self):
         return f'<UserCategory user={self.user_id} category={self.category_id}>'
@@ -206,6 +216,11 @@ class UserPaperRead(db.Model):
     __table_args__ = (
         db.UniqueConstraint('user_id', 'paper_id', name='uq_user_paper_read'),
     )
+
+    def __init__(self, user_id: int, paper_id: int, **kwargs):
+        super().__init__(**kwargs)
+        self.user_id = user_id
+        self.paper_id = paper_id
 
     def __repr__(self):
         return f'<UserPaperRead user={self.user_id} paper={self.paper_id}>'

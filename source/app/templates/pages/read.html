@@ -28,14 +28,14 @@ if (article) {
         const paperId = saveBtn.getAttribute('data-paper-id');
         if (!paperId) return;
 
-        {% if not current_user.is_authenticated %}
-        const loginModal = document.getElementById('login-modal');
-        if (loginModal) {
-            loginModal.classList.remove('hidden');
-            loginModal.classList.add('flex');
+        if (saveBtn.getAttribute('data-authenticated') !== 'true') {
+            var loginModal = document.getElementById('login-modal');
+            if (loginModal) {
+                loginModal.classList.remove('hidden');
+                loginModal.classList.add('flex');
+            }
+            return;
         }
-        return;
-        {% endif %}
 
         try {
             const resp = await fetch('/save-paper', {
@@ -148,6 +148,7 @@ if (article) {
         <button type="button" id="read-save-btn"
             class="bookmark-btn inline-flex items-center text-sm font-semibold transition-all {% if is_saved %}bookmark-active text-[#1A365D]{% else %}text-slate-300 hover:text-[#1A365D]{% endif %}"
             data-paper-id="{{ paper.id }}"
+            data-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}"
             aria-label="{{ 'Save paper' if lang == 'en' else 'Lưu bài nghiên cứu' }}"
             title="{{ 'Save paper' if lang == 'en' else 'Lưu bài nghiên cứu' }}">
             <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor">
