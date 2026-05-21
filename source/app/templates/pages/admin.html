@@ -14,37 +14,44 @@ PaperHub - Admin
     <button onclick="checkAI()" class="mt-2 text-xs text-[#1A365D] underline hover:text-[#2C5282]">Kiểm tra lại</button>
 </div>
 
-    <!-- Fetch & Pending -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <!-- Fetch thủ công -->
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-            <h2 class="text-lg font-semibold text-[#1A365D] mb-4">🚀 Fetch thủ công</h2>
-            <div class="flex items-center gap-3 mb-3">
-                <span class="text-sm text-slate-600">Mỗi category:</span>
-                <input id="fetch-count" type="number" value="2" min="1" class="border border-slate-200 rounded-lg px-3 py-1.5 w-20 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A365D]">
-                <button onclick="runFetch()" class="bg-[#1A365D] text-white px-5 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2C5282] transition-all">Chạy</button>
-            </div>
-            <div id="fetch-result" class="text-sm text-slate-600"></div>
+<!-- Fetch & Pending -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Fetch thủ công -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <h2 class="text-lg font-semibold text-[#1A365D] mb-4">🚀 Fetch thủ công</h2>
+        <div class="flex items-center gap-3 mb-3">
+            <span class="text-sm text-slate-600">Mỗi category:</span>
+            <input id="fetch-count" type="number" value="2" min="1"
+                class="border border-slate-200 rounded-lg px-3 py-1.5 w-20 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A365D]">
+            <button onclick="runFetch()"
+                class="bg-[#1A365D] text-white px-5 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2C5282] transition-all">Chạy</button>
         </div>
-
-        <!-- Bài pending -->
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-            <h2 class="text-lg font-semibold text-[#1A365D] mb-4">📝 Bài pending</h2>
-            <div class="flex items-center gap-3 mb-3">
-                <span class="text-sm text-slate-600"><span id="pending-count">-</span> bài</span>
-                <button onclick="processPending()" class="bg-[#1A365D] text-white px-5 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2C5282] transition-all">Xử lý bằng AI</button>
-            </div>
-            <div id="pending-result" class="text-sm text-slate-600"></div>
-        </div>
+        <div id="fetch-result" class="text-sm text-slate-600"></div>
     </div>
 
-    <!-- Chấm điểm -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-slate-100">
-        <h2 class="text-lg font-semibold text-[#1A365D] mb-4">⭐ Chấm điểm bài nghiên cứu</h2>
-        <p class="text-sm text-slate-500 mb-3">Dùng Gemini API chấm điểm tự động các bài <strong>chưa có điểm</strong> dựa trên tiêu chí: đột phá phương pháp (0-4đ), hiệu suất định lượng (0-4đ), tính kiểm chứng (0-2đ).</p>
-        <button onclick="scorePapers()" class="bg-amber-500 text-white px-5 py-1.5 rounded-lg text-sm font-semibold hover:bg-amber-600 transition-all">Gọi AI chấm điểm</button>
-        <div id="score-result" class="text-sm text-slate-600 mt-3"></div>
+    <!-- Bài pending -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+        <h2 class="text-lg font-semibold text-[#1A365D] mb-4">📝 Bài pending</h2>
+        <div class="flex items-center gap-3 mb-3">
+            <span class="text-sm text-slate-600"><span id="pending-count">-</span> bài</span>
+            <button onclick="processPending()"
+                class="bg-[#1A365D] text-white px-5 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2C5282] transition-all">Xử
+                lý bằng AI</button>
+        </div>
+        <div id="pending-result" class="text-sm text-slate-600"></div>
     </div>
+</div>
+
+<!-- Chấm điểm -->
+<div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-slate-100">
+    <h2 class="text-lg font-semibold text-[#1A365D] mb-4">⭐ Chấm điểm bài nghiên cứu</h2>
+    <p class="text-sm text-slate-500 mb-3">Dùng Gemini API chấm điểm tự động các bài <strong>chưa có điểm</strong> dựa
+        trên tiêu chí: đột phá phương pháp (0-4đ), hiệu suất định lượng (0-4đ), tính kiểm chứng (0-2đ).</p>
+    <button onclick="scorePapers()"
+        class="bg-amber-500 text-white px-5 py-1.5 rounded-lg text-sm font-semibold hover:bg-amber-600 transition-all">Gọi
+        AI chấm điểm</button>
+    <div id="score-result" class="text-sm text-slate-600 mt-3"></div>
+</div>
 
 <!-- Cấu hình -->
 <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-slate-100">
@@ -55,10 +62,12 @@ PaperHub - Admin
     </label>
     <div class="flex items-center gap-3 text-sm text-slate-700 mb-3">
         <span>Ngưỡng "Nghiên cứu đáng đọc" (điểm ≥):</span>
-        <input id="cfg-worthy-threshold" type="number" value="7.0" min="0" max="10" step="0.5" class="border border-slate-200 rounded-lg px-3 py-1.5 w-20 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A365D]">
+        <input id="cfg-worthy-threshold" type="number" value="7.0" min="0" max="10" step="0.5"
+            class="border border-slate-200 rounded-lg px-3 py-1.5 w-20 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A365D]">
         <span class="text-xs text-slate-400">(0-10)</span>
     </div>
-    <button onclick="saveSettings()" class="bg-[#1A365D] text-white px-5 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2C5282] transition-all">Lưu</button>
+    <button onclick="saveSettings()"
+        class="bg-[#1A365D] text-white px-5 py-1.5 rounded-lg text-sm font-semibold hover:bg-[#2C5282] transition-all">Lưu</button>
     <span id="cfg-msg" class="text-sm ml-3"></span>
 </div>
 
@@ -78,190 +87,170 @@ PaperHub - Admin
                 </tr>
             </thead>
             <tbody id="history-body">
-                <tr><td class="p-3 text-gray-400" colspan="6">Đang tải...</td></tr>
+                <tr>
+                    <td class="p-3 text-gray-400" colspan="6">Đang tải...</td>
+                </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Cron Log -->
-<div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-slate-100">
-    <div class="flex justify-between items-center mb-3">
-        <h2 class="text-lg font-semibold text-[#1A365D]">📜 Cron Log (50 dòng cuối)</h2>
-        <button onclick="loadCronLog()" class="text-xs text-[#1A365D] underline hover:text-[#2C5282]">Tải lại</button>
-    </div>
-    <div id="cron-log-content" class="bg-slate-900 text-green-400 p-4 rounded-xl text-xs font-mono max-h-80 overflow-y-auto whitespace-pre-wrap">
-        <p class="text-slate-500">Đang tải...</p>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-const SECRET = new URLSearchParams(location.search).get('secret') || '';
-const BASE = '/dev';
-function headers() { return { 'X-Admin-Secret': SECRET, 'Content-Type': 'application/json' }; }
+    const SECRET = new URLSearchParams(location.search).get('secret') || '';
+    const BASE = '/dev';
+    function headers() { return { 'X-Admin-Secret': SECRET, 'Content-Type': 'application/json' }; }
 
-async function api(url, opts={}) {
-    const r = await fetch(BASE + url, { headers: headers(), ...opts });
-    return r.json();
-}
-
-function formatVN(isoStr) {
-    if (!isoStr) return '-';
-    try { return new Date(isoStr).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }); }
-    catch(e) { return isoStr; }
-}
-
-function escapeHtml(t) {
-    if (!t) return '';
-    const d = document.createElement('div');
-    d.textContent = t;
-    return d.innerHTML;
-}
-
-async function loadStatus() {
-    const d = await api('/status');
-    document.getElementById('pending-count').textContent = d.pending_count || 0;
-}
-
-async function checkAI() {
-    const el = document.getElementById('ai-status');
-    el.innerHTML = '<span class="text-blue-500">Đang kiểm tra...</span>';
-    const d = await api('/ai-status');
-    if (d.ok) {
-        el.innerHTML = '<span class="text-green-600">✅ ' + d.message + '</span>';
-    } else {
-        el.innerHTML = '<span class="text-red-500">❌ ' + d.message + '</span>';
+    async function api(url, opts = {}) {
+        const r = await fetch(BASE + url, { headers: headers(), ...opts });
+        return r.json();
     }
-}
 
-async function loadSettings() {
-    const d = await api('/settings');
-    if (d.settings) {
-        document.getElementById('cfg-guest-load-more').checked = d.settings.guest_load_more;
-        document.getElementById('cfg-worthy-threshold').value = d.settings.worthy_threshold || 7.0;
+    function formatVN(isoStr) {
+        if (!isoStr) return '-';
+        try { return new Date(isoStr).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }); }
+        catch (e) { return isoStr; }
     }
-}
 
-async function saveSettings() {
-    const body = JSON.stringify({
-        guest_load_more: document.getElementById('cfg-guest-load-more').checked,
-        worthy_threshold: parseFloat(document.getElementById('cfg-worthy-threshold').value) || 7.0,
-    });
-    const d = await api('/settings', { method: 'POST', body });
-    const el = document.getElementById('cfg-msg');
-    if (d.success) {
-        el.textContent = '✅ Đã lưu';
-        el.className = 'text-sm ml-3 text-green-600';
-    } else {
-        el.textContent = '❌ ' + d.message;
-        el.className = 'text-sm ml-3 text-red-500';
+    function escapeHtml(t) {
+        if (!t) return '';
+        const d = document.createElement('div');
+        d.textContent = t;
+        return d.innerHTML;
     }
-    setTimeout(function() { el.textContent = ''; }, 3000);
-}
 
-async function loadHistory() {
-    const d = await api('/fetch-history?limit=20');
-    const tbody = document.getElementById('history-body');
-    if (!d.records || d.records.length === 0) {
-        tbody.innerHTML = '<tr><td class="p-3 text-gray-400" colspan="6">Chưa có lịch sử.</td></tr>';
-        return;
+    async function loadStatus() {
+        const d = await api('/status');
+        document.getElementById('pending-count').textContent = d.pending_count || 0;
     }
-    tbody.innerHTML = d.records.map(function(r) {
-        var aiCell = '';
-        if (r.ai_error) {
-            aiCell = '<span class="text-red-500" title="' + escapeHtml(r.ai_error) + '">' + (r.ai_processed || 0) + '</span>';
-        } else if (r.ai_processed > 0) {
-            aiCell = '<span class="text-green-600">' + r.ai_processed + '</span>';
+
+    async function checkAI() {
+        const el = document.getElementById('ai-status');
+        el.innerHTML = '<span class="text-blue-500">Đang kiểm tra...</span>';
+        const d = await api('/ai-status');
+        if (d.ok) {
+            el.innerHTML = '<span class="text-green-600">✅ ' + d.message + '</span>';
         } else {
-            aiCell = '<span class="text-gray-400">-</span>';
+            el.innerHTML = '<span class="text-red-500">❌ ' + d.message + '</span>';
         }
-        var statusCell = '✅';
-        var errorTooltip = '';
-        if (r.error_message) {
-            errorTooltip = escapeHtml(r.error_message);
-            statusCell = '<span class="text-red-500" title="' + errorTooltip + '">❌</span>';
+    }
+
+    async function loadSettings() {
+        const d = await api('/settings');
+        if (d.settings) {
+            document.getElementById('cfg-guest-load-more').checked = d.settings.guest_load_more;
+            document.getElementById('cfg-worthy-threshold').value = d.settings.worthy_threshold || 7.0;
         }
-        if (r.ai_error && !r.error_message) {
-            statusCell = '<span class="text-yellow-500" title="' + escapeHtml(r.ai_error) + '">⚠️</span>';
+    }
+
+    async function saveSettings() {
+        const body = JSON.stringify({
+            guest_load_more: document.getElementById('cfg-guest-load-more').checked,
+            worthy_threshold: parseFloat(document.getElementById('cfg-worthy-threshold').value) || 7.0,
+        });
+        const d = await api('/settings', { method: 'POST', body });
+        const el = document.getElementById('cfg-msg');
+        if (d.success) {
+            el.textContent = '✅ Đã lưu';
+            el.className = 'text-sm ml-3 text-green-600';
+        } else {
+            el.textContent = '❌ ' + d.message;
+            el.className = 'text-sm ml-3 text-red-500';
         }
-        var rowBg = (r.error_message || r.ai_error) ? 'bg-red-50/50' : '';
-        return '<tr class="border-t border-slate-100 ' + rowBg + '">' +
-            '<td class="p-3 text-slate-600">' + r.id + '</td>' +
-            '<td class="p-3 text-slate-600">' + formatVN(r.started_at) + '</td>' +
-            '<td class="p-3 font-semibold text-slate-700">' + r.saved_count + '</td>' +
-            '<td class="p-3">' + aiCell + '</td>' +
-            '<td class="p-3 text-slate-500">' + r.duration_seconds + '</td>' +
-            '<td class="p-3">' + statusCell + '</td>' +
-        '</tr>';
-    }).join('');
-}
-
-async function runFetch() {
-    const perCat = document.getElementById('fetch-count').value || 2;
-    if (perCat < 1) {
-        document.getElementById('fetch-result').innerHTML = '<span class="text-red-500">Số bài phải >= 1.</span>';
-        return;
+        setTimeout(function () { el.textContent = ''; }, 3000);
     }
-    const el = document.getElementById('fetch-result');
-    el.innerHTML = '<span class="text-[#1A365D]">⏳ Đang fetch...</span>';
-    const d = await api('/run-fetch?per_category=' + perCat);
-    if (d.success) {
-        var extra = '';
-        if (d.ai_processed !== undefined) extra = ' | AI đã xử lý: ' + d.ai_processed + ' bài';
-        if (d.ai_error) extra += ' | AI lỗi: ' + d.ai_error;
-        el.innerHTML = '<span class="text-green-600">✅ ' + d.message + ' (' + d.elapsed_seconds + 's)' + extra + '</span>';
-    } else {
-        el.innerHTML = '<span class="text-red-500">❌ Lỗi: ' + d.message + '</span>';
-    }
-    loadStatus();
-    loadHistory();
-}
 
-async function processPending() {
-    const el = document.getElementById('pending-result');
-    el.innerHTML = '<span class="text-[#1A365D]">⏳ Đang xử lý...</span>';
-    const d = await api('/process-pending');
-    if (d.success) {
-        el.innerHTML = '<span class="text-green-600">✅ ' + d.message + '</span>';
-    } else {
-        el.innerHTML = '<span class="text-red-500">❌ Lỗi: ' + d.message + '</span>';
+    async function loadHistory() {
+        const d = await api('/fetch-history?limit=20');
+        const tbody = document.getElementById('history-body');
+        if (!d.records || d.records.length === 0) {
+            tbody.innerHTML = '<tr><td class="p-3 text-gray-400" colspan="6">Chưa có lịch sử.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = d.records.map(function (r) {
+            var aiCell = '';
+            if (r.ai_error) {
+                aiCell = '<span class="text-red-500" title="' + escapeHtml(r.ai_error) + '">' + (r.ai_processed || 0) + '</span>';
+            } else if (r.ai_processed > 0) {
+                aiCell = '<span class="text-green-600">' + r.ai_processed + '</span>';
+            } else {
+                aiCell = '<span class="text-gray-400">-</span>';
+            }
+            var statusCell = '✅';
+            var errorTooltip = '';
+            if (r.error_message) {
+                errorTooltip = escapeHtml(r.error_message);
+                statusCell = '<span class="text-red-500" title="' + errorTooltip + '">❌</span>';
+            }
+            if (r.ai_error && !r.error_message) {
+                statusCell = '<span class="text-yellow-500" title="' + escapeHtml(r.ai_error) + '">⚠️</span>';
+            }
+            var rowBg = (r.error_message || r.ai_error) ? 'bg-red-50/50' : '';
+            return '<tr class="border-t border-slate-100 ' + rowBg + '">' +
+                '<td class="p-3 text-slate-600">' + r.id + '</td>' +
+                '<td class="p-3 text-slate-600">' + formatVN(r.started_at) + '</td>' +
+                '<td class="p-3 font-semibold text-slate-700">' + r.saved_count + '</td>' +
+                '<td class="p-3">' + aiCell + '</td>' +
+                '<td class="p-3 text-slate-500">' + r.duration_seconds + '</td>' +
+                '<td class="p-3">' + statusCell + '</td>' +
+                '</tr>';
+        }).join('');
     }
-    loadStatus();
-    loadHistory();
-}
 
-async function scorePapers() {
-    const el = document.getElementById('score-result');
-    el.innerHTML = '<span class="text-amber-600">⏳ Đang gọi AI chấm điểm (có thể mất vài phút)...</span>';
-    try {
-        const d = await api('/score-papers');
+    async function runFetch() {
+        const perCat = document.getElementById('fetch-count').value || 2;
+        if (perCat < 1) {
+            document.getElementById('fetch-result').innerHTML = '<span class="text-red-500">Số bài phải >= 1.</span>';
+            return;
+        }
+        const el = document.getElementById('fetch-result');
+        el.innerHTML = '<span class="text-[#1A365D]">⏳ Đang fetch...</span>';
+        const d = await api('/run-fetch?per_category=' + perCat);
+        if (d.success) {
+            var extra = '';
+            if (d.ai_processed !== undefined) extra = ' | AI đã xử lý: ' + d.ai_processed + ' bài';
+            if (d.ai_error) extra += ' | AI lỗi: ' + d.ai_error;
+            el.innerHTML = '<span class="text-green-600">✅ ' + d.message + ' (' + d.elapsed_seconds + 's)' + extra + '</span>';
+        } else {
+            el.innerHTML = '<span class="text-red-500">❌ Lỗi: ' + d.message + '</span>';
+        }
+        loadStatus();
+        loadHistory();
+    }
+
+    async function processPending() {
+        const el = document.getElementById('pending-result');
+        el.innerHTML = '<span class="text-[#1A365D]">⏳ Đang xử lý...</span>';
+        const d = await api('/process-pending');
         if (d.success) {
             el.innerHTML = '<span class="text-green-600">✅ ' + d.message + '</span>';
         } else {
             el.innerHTML = '<span class="text-red-500">❌ Lỗi: ' + d.message + '</span>';
         }
-    } catch(err) {
-        el.innerHTML = '<span class="text-red-500">❌ Lỗi kết nối.</span>';
+        loadStatus();
+        loadHistory();
     }
-}
 
-async function loadCronLog() {
-    const el = document.getElementById('cron-log-content');
-    el.innerHTML = '<p class="text-slate-500">Đang tải...</p>';
-    const d = await api('/cron-log?lines=50');
-    if (!d.lines || d.lines.length === 0) {
-        el.innerHTML = '<p class="text-slate-500">Chưa có cron log.</p>';
-        return;
+    async function scorePapers() {
+        const el = document.getElementById('score-result');
+        el.innerHTML = '<span class="text-amber-600">⏳ Đang gọi AI chấm điểm (có thể mất vài phút)...</span>';
+        try {
+            const d = await api('/score-papers');
+            if (d.success) {
+                el.innerHTML = '<span class="text-green-600">✅ ' + d.message + '</span>';
+            } else {
+                el.innerHTML = '<span class="text-red-500">❌ Lỗi: ' + d.message + '</span>';
+            }
+        } catch (err) {
+            el.innerHTML = '<span class="text-red-500">❌ Lỗi kết nối.</span>';
+        }
     }
-    el.innerHTML = d.lines.map(function(l) { return escapeHtml(l); }).join('\n');
-}
 
-loadStatus();
-checkAI();
-loadSettings();
-loadHistory();
-loadCronLog();
+    loadStatus();
+    checkAI();
+    loadSettings();
+    loadHistory();
 </script>
 {% endblock %}
