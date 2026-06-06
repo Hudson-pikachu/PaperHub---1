@@ -1,0 +1,217 @@
+@startuml PaperHub Class Diagram
+
+' ============================================================
+' PaperHub - Class Diagram
+' ============================================================
+
+title PaperHub - Sơ đồ Lớp (Class Diagram)
+
+' ── Database Models ──────────────────────────────────────────
+
+class Category {
+    +id: Integer (PK)
+    +name: String(100)
+    +name_en: String(100)
+    +description: String(500)
+    --
+    +display_name: String (property)
+}
+
+class SchedulerState {
+    +id: Integer (PK)
+    +last_run: DateTime
+}
+
+class FetchHistory {
+    +id: Integer (PK)
+    +started_at: DateTime
+    +finished_at: DateTime
+    +duration_seconds: Integer
+    +saved_count: Integer
+    +per_category: Integer
+    +ai_processed: Integer
+    +ai_error: Text
+    +error_message: Text
+}
+
+class FetchConfig {
+    +id: Integer (PK)
+    +interval_hours: Integer
+    +per_category: Integer
+    +enabled: Boolean
+}
+
+class SiteSettings {
+    +id: Integer (PK)
+    +guest_load_more: Boolean
+    +worthy_threshold: Float
+}
+
+class Paper {
+    +id: Integer (PK)
+    +title: String(500)
+    +title_en: String(500)
+    +published_date: String(100)
+    +authors: String(500)
+    +publisher: String(200)
+    +abstract: Text
+    +abstract_en: Text
+    +link: String(500) (unique)
+    +cited_count: Integer
+    +ai_summary: Text
+    +ai_summary_en: Text
+    +score: Float
+    +status: String(20)
+    +date_added: DateTime
+    +category_id: Integer (FK)
+    --
+    +category_name: String (property)
+}
+
+class User {
+    +id: Integer (PK)
+    +username: String(80) (unique)
+    +email: String(200) (unique)
+    +password_hash: String(256)
+    +created_at: DateTime
+    +is_active: Boolean
+    +is_admin: Boolean
+    --
+    +initials: String (property)
+    +set_password(password: str)
+    +check_password(password: str): bool
+}
+
+class SavedPaper {
+    +id: Integer (PK)
+    +user_id: Integer (FK)
+    +paper_id: Integer (FK)
+    +saved_at: DateTime
+}
+
+class UserCategory {
+    +id: Integer (PK)
+    +user_id: Integer (FK)
+    +category_id: Integer (FK)
+}
+
+class UserPaperRead {
+    +id: Integer (PK)
+    +user_id: Integer (FK)
+    +paper_id: Integer (FK)
+    +read_at: DateTime
+}
+
+' ── Relationships ────────────────────────────────────────────
+
+Paper "n" -- "1" Category : belongs to
+User "1" -- "n" SavedPaper : saves
+Paper "1" -- "n" SavedPaper : saved_by
+User "1" -- "n" UserCategory : follows
+Category "1" -- "n" UserCategory : followed_by
+User "1" -- "n" UserPaperRead : marks_read
+Paper "1" -- "n" UserPaperRead : read_by
+
+' ── Blueprints (Route Handlers) ──────────────────────────────
+
+class "main_bp (routes.py)" as MainBP {
+    +home()
+    +profile()
+    +read_paper(paper_id)
+    +load_more()
+    +scheduler_status()
+    +save_paper()
+    +saved_papers()
+    +toggle_follow()
+    +following_papers()
+    +followed_categories()
+    +unread_count()
+    +new_papers()
+    +mark_paper_read()
+    +mark_all_read()
+    +search()
+    +set_language(lang)
+    +about()
+    +contact()
+}
+
+class "auth_bp (auth.py)" as AuthBP {
+    +register()
+    +login()
+    +logout()
+}
+
+class "admin_bp (admin.py)" as AdminBP {
+    +admin_dashboard()
+    +site_settings()
+    +ai_status()
+    +process_pending()
+    +run_fetch()
+    +fetch_history()
+    +view_cron_log()
+    +view_logs()
+    +score_papers()
+    +settings()
+    +status()
+}
+
+' ── Services Layer ───────────────────────────────────────────
+
+class "ai_service.py" as AIService {
+    +batch_translate_and_summarize(paper_ids, model): int
+    +check_ai_status(): dict
+    +process_pending_papers(limit, model, chunk_size): int
+}
+
+class "arxiv_service.py" as ArxivService {
+    +fetch_arxiv_papers(query, max_results): tuple
+    +fetch_arxiv_for_all_categories(per_category): tuple
+}
+
+class "logger.py" as Logger {
+    +setup_logging(app): str
+    +get_logger(): Logger
+    +get_last_lines(n): list
+    +read_log_file(filepath, n): list
+    +read_log_file_stats(filepath): dict
+    +get_log_stats(): dict
+}
+
+class "utils.py" as Utils {
+    +fix_windows_unicode()
+    +parse_ai_json_response(text): list|dict
+    +safe_rollback(db)
+    +set_last_run(db, SchedulerState, run_time)
+    +log_fetch_history(db, FetchHistory, ...)
+}
+
+' ── Config ───────────────────────────────────────────────────
+
+class "config.py" as Config {
+    +DB_HOST: str
+    +DB_PORT: int
+    +DB_USER: str
+    +DB_PASSWORD: str
+    +DB_NAME: str
+    +SQLITE_PATH: str
+    +SECRET_KEY: str
+    +SQLALCHEMY_DATABASE_URI: str
+    +SQLALCHEMY_TRACK_MODIFICATIONS: bool
+    +SQLALCHEMY_ENGINE_OPTIONS: dict
+    --
+    +_test_mysql_connection(): bool
+    +get_db_uri(): str
+    +is_fallback(): bool
+}
+
+' ── Dependencies ─────────────────────────────────────────────
+
+MainBP ..> AIService : calls
+MainBP ..> ArxivService : calls
+AdminBP ..> AIService : calls
+AdminBP ..> ArxivService : calls
+AdminBP ..> Logger : calls
+AIService ..> Utils : uses
+ArxivService ..> Utils : uses
+
+@enduml

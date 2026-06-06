@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint, render_template, request, jsonify, current_app, redirect, url_for, session
 from flask_login import login_required, current_user
 from .database.models import db, Paper, Category, SchedulerState, SavedPaper, UserCategory, UserPaperRead, SiteSettings
@@ -23,7 +24,34 @@ def home():
             SavedPaper.query.filter_by(user_id=current_user.id).all()
         ]
 
-    return render_template('pages/index.html', papers=latest_papers, db_fallback=is_fallback, saved_paper_ids=saved_paper_ids, worthy_threshold=worthy_threshold)
+    # Serialize papers thành JSON cho JS hydrate (SSR-like pattern)
+    papers_json = json.dumps([
+        {
+            "id": p.id,
+            "title": p.title,
+            "title_en": p.title_en,
+            "authors": p.authors,
+            "published_date": p.published_date,
+            "abstract": p.abstract,
+            "abstract_en": p.abstract_en,
+            "ai_summary": p.ai_summary,
+            "ai_summary_en": p.ai_summary_en,
+            "status": p.status,
+            "category": p.category_name,
+            "link": p.link,
+            "publisher": p.publisher,
+            "cited_count": p.cited_count,
+            "score": p.score,
+            "is_saved": p.id in saved_paper_ids
+        }
+        for p in latest_papers
+    ], ensure_ascii=False)
+
+    return render_template('pages/index.html',
+                           db_fallback=is_fallback,
+                           worthy_threshold=worthy_threshold,
+                           papers_json=papers_json,
+                           papers_count=len(latest_papers))
 
 @main_bp.route('/profile')
 @login_required

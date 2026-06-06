@@ -1,9 +1,7 @@
-import os
 import logging
 from flask import Flask, jsonify
 from flask_login import LoginManager
 from .database.models import db, User
-from .services.arxiv_service import fetch_arxiv_for_all_categories
 from .logger import setup_logging, get_logger
 
 # Flask-Login manager (global để có thể dùng ở nơi khác nếu cần)

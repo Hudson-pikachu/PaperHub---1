@@ -1,0 +1,117 @@
+@startuml PaperHub Usecase Diagram
+title Sơ đồ Use Case - PaperHub
+
+left to right direction
+
+skinparam packageBorderColor #1A365D
+skinparam packageFontColor #1A365D
+skinparam packageFontSize 13
+skinparam packageFontStyle bold
+skinparam usecaseBorderColor #3182CE
+skinparam usecaseBackgroundColor #F0F7FF
+skinparam usecaseFontColor #1A365D
+skinparam usecaseFontSize 11
+skinparam actorFontColor #1A365D
+skinparam actorFontSize 12
+skinparam actorFontStyle bold
+skinparam arrowColor #64748B
+skinparam arrowThickness 1.5
+
+skinparam nodesep 80
+skinparam ranksep 60
+skinparam minClassWidth 120
+
+actor "Khách\n(Chưa đăng nhập)" as Guest
+actor "Người dùng\n(Đã đăng nhập)" as User
+actor "Admin" as Admin
+actor "Cron Job\n(Host Server)" as Cron
+actor "arXiv API" as ArxivAPI
+actor "Google AI\n(Gemini)" as Gemini
+
+rectangle "PaperHub" {
+
+    package "Duyệt bài nghiên cứu" as P1 {
+        usecase "Xem danh sách\nmới nhất" as ViewNewest
+        usecase "Xem thêm bài\n(Load more)" as LoadMore
+        usecase "Đọc chi tiết\nbài nghiên cứu" as ReadPaper
+        usecase "Tìm kiếm\nbài nghiên cứu" as SearchPaper
+        usecase "Chuyển đổi\nngôn ngữ VI/EN" as SwitchLang
+    }
+
+    package "Xác thực" as P2 {
+        usecase "Đăng ký tài khoản" as Register
+        usecase "Đăng nhập" as Login
+        usecase "Đăng xuất" as Logout
+    }
+
+    package "Tương tác cá nhân" as P3 {
+        usecase "Lưu / Bỏ lưu\nbài nghiên cứu" as SavePaper
+        usecase "Xem danh sách\nđã lưu" as ViewSaved
+        usecase "Theo dõi / Bỏ\ntheo dõi chủ đề" as FollowTopic
+        usecase "Xem bài theo\nchủ đề đã theo dõi" as ViewFollowing
+        usecase "Xem thông báo\nbài mới" as ViewNotifications
+        usecase "Đánh dấu 1 bài\nđã đọc" as MarkRead
+        usecase "Đánh dấu tất cả\nđã đọc" as MarkAllRead
+        usecase "Xem hồ sơ\ncá nhân" as ViewProfile
+    }
+
+    package "Vận hành hệ thống" as P4 {
+        usecase "Fetch bài mới\ntừ arXiv + AI" as FetchPapers
+        usecase "Chấm điểm\nbài nghiên cứu" as ScorePapers
+        usecase "Cấu hình\nSite Settings" as SiteSettings
+        usecase "Xem lịch sử\nFetch" as FetchHistory
+        usecase "Xem trạng thái\nhệ thống" as SystemStatus
+        usecase "Đọc log\nứng dụng" as ViewLogs
+    }
+}
+
+' ─── Guest ───
+Guest --> ViewNewest
+Guest --> LoadMore
+Guest --> ReadPaper
+Guest --> SearchPaper
+Guest --> SwitchLang
+Guest --> Register
+Guest --> Login
+
+' ─── User ───
+User --> ViewNewest
+User --> LoadMore
+User --> ReadPaper
+User --> SearchPaper
+User --> SwitchLang
+User --> Logout
+User --> SavePaper
+User --> ViewSaved
+User --> FollowTopic
+User --> ViewFollowing
+User --> ViewNotifications
+User --> MarkRead
+User --> MarkAllRead
+User --> ViewProfile
+
+' ─── Admin: thừa kế User, có thêm dashboard + trigger thủ công ───
+User <|-- Admin
+Admin --> FetchPapers
+Admin --> ScorePapers
+Admin --> SiteSettings
+Admin --> FetchHistory
+Admin --> SystemStatus
+Admin --> ViewLogs
+
+' ─── Cron Job: tự động chạy fetch + score định kỳ ───
+Cron --> FetchPapers
+Cron --> ScorePapers
+
+note right of Cron
+  Chạy định kỳ qua crontab:
+  - Mỗi 6 giờ: fetch_papers.py
+  - Hàng ngày: score_papers.py
+end note
+
+' ─── System actors ───
+FetchPapers --> ArxivAPI
+FetchPapers --> Gemini
+ScorePapers --> Gemini
+
+@enduml

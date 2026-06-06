@@ -1,0 +1,240 @@
+@startuml PaperHub Sequence Diagrams
+
+title Sơ đồ Tuần tự - PaperHub
+
+' ═══════════════════════════════════════════════════════════
+' 1. Xem trang chủ & Load More (Newest Papers)
+' ═══════════════════════════════════════════════════════════
+
+newpage Luồng 1: Xem danh sách bài mới nhất + Load More
+
+actor "Người dùng" as U1
+participant "Browser\n(index.html)" as Browser1
+participant "Flask\n(routes.py)" as Flask1
+participant "SQLAlchemy\n(models.py)" as DB1
+database "MySQL /\nSQLite" as SQL1
+
+U1 -> Browser1: Truy cập /
+Browser1 -> Flask1: GET /
+Flask1 -> DB1: Paper.query.filter_by(status='posted')\n.order_by(date_added.desc()).limit(5)
+DB1 -> SQL1: SELECT * FROM paper WHERE status='posted'\nORDER BY date_added DESC LIMIT 5
+SQL1 --> DB1: 5 papers
+DB1 --> Flask1: [Paper objects]
+Flask1 -> Flask1: Serialize thành papers_json
+Flask1 --> Browser1: render_template('index.html',\npapers_json, worthy_threshold)
+Browser1 -> Browser1: hydrateInitialPapers()\n→ createPaperCard() x 5
+Browser1 --> U1: Hiển thị 5 bài nghiên cứu
+
+note over Browser1: Người dùng cuộn xuống, bấm "Xem thêm"
+
+U1 -> Browser1: Bấm "Xem thêm bài nghiên cứu"
+Browser1 -> Flask1: GET /load-more?offset=5
+Flask1 -> DB1: Paper.query.offset(5).limit(5)
+DB1 -> SQL1: SELECT ... LIMIT 5 OFFSET 5
+SQL1 --> DB1: 5 papers
+DB1 --> Flask1: [Paper objects]
+Flask1 --> Browser1: JSON { papers, has_more, worthy_threshold }
+Browser1 -> Browser1: createPaperCard() x 5
+Browser1 --> U1: Hiển thị thêm 5 bài (hiện 10 bài)
+
+' ═══════════════════════════════════════════════════════════
+' 2. Lưu / Bỏ lưu bài nghiên cứu (Optimistic Update)
+' ═══════════════════════════════════════════════════════════
+
+newpage Luồng 2: Lưu / Bỏ lưu bài nghiên cứu
+
+actor "Người dùng" as U2
+participant "Browser\n(index.html\nbookmark-btn)" as Browser2
+participant "Flask\n(routes.py)" as Flask2
+participant "SQLAlchemy\n(models.py)" as DB2
+
+U2 -> Browser2: Bấm nút "Lưu"
+Browser2 -> Browser2: Optimistic Update\n(đổi icon NGAY LẬP TỨC)\nclassList.add('bookmark-active')
+
+Browser2 -> Flask2: POST /save-paper\n{ paper_id: 42 }
+Flask2 -> Flask2: login_required check
+
+alt Chưa đăng nhập
+    Flask2 --> Browser2: 302 Redirect → /auth/login
+    Browser2 -> Browser2: openLoginModal()
+else Đã đăng nhập
+    Flask2 -> DB2: SavedPaper.query.filter_by(\nuser_id, paper_id).first()
+
+    alt Chưa lưu
+        DB2 --> Flask2: None
+        Flask2 -> Flask2: saved = SavedPaper(user_id, paper_id)
+        Flask2 -> DB2: db.session.add(saved)
+        DB2 -> DB2: INSERT INTO saved_paper
+        Flask2 --> Browser2: JSON { success: true, saved: true }
+        Browser2 -> Browser2: Giữ icon active (đã đổi từ trước)
+    else Đã lưu rồi
+        DB2 --> Flask2: SavedPaper object
+        Flask2 -> DB2: db.session.delete(existing)
+        DB2 -> DB2: DELETE FROM saved_paper
+        Flask2 --> Browser2: JSON { success: true, saved: false }
+        Browser2 -> Browser2: classList.remove('bookmark-active')
+    end
+end
+
+note over Browser2: Nếu server lỗi hoặc mạng lỗi\n→ revert optimistic update
+
+' ═══════════════════════════════════════════════════════════
+' 3. Cron Job: fetch + score tự động (chạy định kỳ)
+' ═══════════════════════════════════════════════════════════
+
+newpage Luồng 3: Cron Job - Fetch bài từ arXiv + AI xử lý + Chấm điểm
+
+actor "Cron Job\n(Host Server)" as Cron
+participant "fetch_papers.py\n(Script CLI)" as FetchScript
+participant "score_papers.py\n(Script CLI)" as ScoreScript
+participant "arxiv_service.py" as ArxivSvc
+participant "ai_service.py" as AISvc
+participant "DB\n(SQLAlchemy)" as DB3
+actor "arXiv API" as ArxivAPI
+actor "Google AI\n(Gemini)" as Gemini
+
+' ── Bước 1: Fetch papers ──
+
+Cron -> FetchScript: python fetch_papers.py --per-category 2
+FetchScript -> FetchScript: fix_windows_unicode()
+
+FetchScript -> ArxivSvc: fetch_arxiv_for_all_categories(per_category=2)
+
+loop Mỗi category (6 categories)
+    ArxivSvc -> ArxivAPI: arxiv.Search(query="cat:cs.LG",\nmax_results=2, sort_by=SubmittedDate)
+    ArxivAPI --> ArxivSvc: 2 papers mới
+    ArxivSvc -> ArxivSvc: _clean_text(title, abstract)
+    ArxivSvc -> DB3: Paper(...) → db.session.add()
+    DB3 -> DB3: INSERT INTO paper (status='pending')
+end
+
+ArxivSvc --> FetchScript: (total_saved, all_new_ids)
+
+FetchScript -> AISvc: batch_translate_and_summarize(all_new_ids)
+
+loop Mỗi chunk 6 bài
+    AISvc -> Gemini: generate_content(model="gemini-2.5-flash-lite",\nprompt JSON array)
+    Gemini --> AISvc: JSON { title, abstract, summary, ... }
+    AISvc -> AISvc: parse_ai_json_response()
+    AISvc -> AISvc: Phân phối kết quả vào Paper
+    AISvc -> DB3: paper.status = 'posted'; db.session.commit()
+    DB3 -> DB3: UPDATE paper SET status='posted', title=..., ...
+end
+
+AISvc --> FetchScript: saved_count
+
+FetchScript -> FetchScript: set_last_run()
+FetchScript -> DB3: log_fetch_history(...)
+DB3 -> DB3: INSERT INTO fetch_history
+
+FetchScript --> Cron: Hoàn tất. Đã lưu 12 bài mới. (45s)
+
+note over Cron: Ghi output vào logs/cron.log
+
+' ── Bước 2: Score papers (chạy riêng, ví dụ hàng ngày) ──
+
+... Sau vài giờ / ngày ...
+
+Cron -> ScoreScript: python score_papers.py --limit 10
+ScoreScript -> ScoreScript: create_app() → app.app_context()
+
+ScoreScript -> AISvc: _get_client() (khởi tạo Gemini client)
+
+loop Mỗi batch 5 bài
+    ScoreScript -> ScoreScript: build_scoring_prompt(batch)
+    ScoreScript -> Gemini: generate_content(\nmodel="gemini-2.5-flash-lite",\nprompt chấm điểm, temperature=0.1)
+    Gemini --> ScoreScript: JSON array { method_score,\nperformance_score, verifiability_score, ... }
+    ScoreScript -> ScoreScript: parse_ai_json_response()
+    ScoreScript -> DB3: paper.score = total_score;\ndb.session.commit()
+    DB3 -> DB3: UPDATE paper SET score=8
+end
+
+ScoreScript --> Cron: KẾT QUẢ: Tổng 10 bài, Đã chấm 10, Lỗi 0
+
+note over Cron: Cron job hoàn tất. Bài mới đã\ncó bản dịch, tóm tắt và điểm số.
+
+' ═══════════════════════════════════════════════════════════
+' 4. Admin: Fetch thủ công qua dashboard (optional)
+' ═══════════════════════════════════════════════════════════
+
+newpage Luồng 4: Admin Fetch thủ công qua Dashboard
+
+actor "Admin" as A
+participant "Browser\n(admin.html)" as Browser4
+participant "Flask\n(admin.py)" as Flask4
+participant "arxiv_service.py" as ArxivSvc4
+participant "ai_service.py" as AISvc4
+participant "DB\n(SQLAlchemy)" as DB4
+
+A -> Browser4: Bấm "Fetch từ arXiv"
+Browser4 -> Flask4: GET /dev/run-fetch?secret=<TOKEN>
+
+Flask4 -> Flask4: _check_secret()
+
+Flask4 -> ArxivSvc4: fetch_arxiv_for_all_categories(per_category=2)
+
+loop Mỗi category (6 categories)
+    ArxivSvc4 -> ArxivAPI: arxiv.Search(...)
+    ArxivAPI --> ArxivSvc4: papers mới
+    ArxivSvc4 -> DB4: INSERT paper (status='pending')
+end
+
+ArxivSvc4 --> Flask4: (total_saved, all_new_ids)
+
+Flask4 -> AISvc4: batch_translate_and_summarize(all_new_ids)
+
+loop Mỗi chunk 6 bài
+    AISvc4 -> Gemini: generate_content(...)
+    Gemini --> AISvc4: JSON kết quả dịch & tóm tắt
+    AISvc4 -> DB4: UPDATE paper SET status='posted'
+end
+
+AISvc4 --> Flask4: saved_count
+
+Flask4 -> Flask4: set_last_run()
+Flask4 -> DB4: log_fetch_history(...)
+DB4 -> DB4: INSERT INTO fetch_history
+
+Flask4 --> Browser4: JSON { success: true, saved: 12,\nai_processed: 12, elapsed_seconds: 45 }
+Browser4 --> A: Hiển thị kết quả fetch
+
+' ═══════════════════════════════════════════════════════════
+' 5. Đăng ký tài khoản mới
+' ═══════════════════════════════════════════════════════════
+
+newpage Luồng 5: Đăng ký tài khoản mới
+
+actor "Khách" as G
+participant "Modal\nĐăng ký" as Modal
+participant "auth.js" as AuthJS
+participant "Flask\n(auth.py)" as Flask5
+participant "DB\n(SQLAlchemy)" as DB5
+
+G -> Modal: Điền form đăng ký\n(username, email, password)
+G -> Modal: Bấm "Đăng ký"
+
+Modal -> AuthJS: submit event → fetch()
+AuthJS -> Flask5: POST /auth/register\n{ username, email, password, confirm_password }
+
+Flask5 -> Flask5: Validation:\n- username >= 3 ký tự\n- password >= 6 ký tự\n- confirm match
+
+Flask5 -> DB5: User.query.filter_by(username=...).first()
+DB5 --> Flask5: None (chưa tồn tại)
+
+Flask5 -> DB5: User.query.filter_by(email=...).first()
+DB5 --> Flask5: None (chưa tồn tại)
+
+Flask5 -> Flask5: user = User(username, email)\nuser.set_password(password)
+
+Flask5 -> DB5: db.session.add(user)
+DB5 -> DB5: INSERT INTO user
+Flask5 -> DB5: db.session.commit()
+
+Flask5 -> Flask5: login_user(user, remember=True)
+
+Flask5 --> AuthJS: JSON { success: true,\nredirect: '/' }
+AuthJS -> AuthJS: window.location.href = '/'
+
+note over G: Người dùng được chuyển về trang chủ\nvới trạng thái đã đăng nhập
+
+@enduml

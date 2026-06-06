@@ -55,12 +55,8 @@ PaperHub
     </div>
 </div>
 
-<!-- Paper Feed -->
+<!-- Paper Feed (rendered by JS using createPaperCard) -->
 <section id="paper-feed" class="space-y-6">
-    {% for paper in papers %}
-    <!-- Paper Card -->
-    {% include 'components/paper-card.html' %}
-    {% endfor %}
 </section>
 
 <!-- Feed Footer-->
@@ -76,7 +72,7 @@ PaperHub
         </div>
     </div>
     <p id="display-count" class="text-sm text-slate-500 mb-4">
-        {{ ('Showing ' ~ papers|length ~ ' papers') if lang == 'en' else ('Đang hiển thị ' ~ papers|length ~ ' bài') }}
+        {{ ('Showing ' ~ papers_count ~ ' papers') if lang == 'en' else ('Đang hiển thị ' ~ papers_count ~ ' bài') }}
     </p>
     <button id="load-more-btn"
         class="inline-flex items-center justify-center px-6 py-3 bg-[#1A365D] text-white text-sm font-semibold rounded-2xl hover:bg-[#2C5282] hover:scale-[1.02] transition-all tracking-wide">
@@ -87,12 +83,16 @@ PaperHub
 {% endblock %}
 
 {% block extra_js %}
+<!-- Initial papers data (SSR hydration pattern) -->
+<script id="initial-papers" type="application/json">{{ papers_json | safe }}</script>
+
 <!-- Load more papers functionality -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const IS_AUTHENTICATED = "{{ current_user.is_authenticated | lower }}" === "true";
         const CURRENT_LANG = "{{ session.get('lang', 'vi') }}";
         let GUEST_LOAD_MORE = true;
+        let worthyThreshold = {{ worthy_threshold }};
 
         // Đọc cấu hình từ server
         fetch('/site-settings').then(function (r) { return r.json(); }).then(function (d) {
@@ -115,10 +115,7 @@ PaperHub
 
         let isLoading = false;
         let currentFilter = 'newest';
-        let worthyThreshold = 7.0;  // Will be updated from API responses
 
-        const BOOKMARK_ACTIVE_CLASS = 'text-[#1A365D] fill-[#1A365D] border-[#1A365D]';
-        const BOOKMARK_INACTIVE_CLASS = 'text-slate-300 fill-slate-300 border-slate-200';
         const FILTER_ACTIVE = 'bg-white text-slate-800 font-semibold shadow-sm';
         const FILTER_INACTIVE = 'text-slate-500 font-medium';
 
@@ -133,10 +130,6 @@ PaperHub
             return div.innerHTML;
         }
 
-        function getBookmarkSvg() {
-            return '<svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>';
-        }
-
         function t(viText, enText) {
             return CURRENT_LANG === 'en' ? enText : viText;
         }
@@ -146,6 +139,8 @@ PaperHub
             return viField;
         }
 
+        // ── SINGLE SOURCE OF TRUTH: createPaperCard() ──
+        // Tất cả các tab (Newest, Saved, Following) đều dùng chung hàm này.
         function createPaperCard(paper) {
             const displayTitle = pickField(paper.title_en, paper.title);
             const displayAbstract = pickField(paper.abstract_en, paper.abstract);
@@ -219,7 +214,7 @@ PaperHub
                     <div class="flex items-center gap-4">
                         <button type="button"
                             class="bookmark-btn inline-flex items-center text-sm font-semibold transition-all
-                            ${isSaved ? 'bookmark-active text-[#1A365D]' : 'text-slate-300 hover:text-[#1A365D]'}"
+                            ${isSaved ? 'bookmark-active' : ''}"
                             data-paper-id="${pid}"
                             aria-label="${t('Lưu bài nghiên cứu', 'Save paper')}"
                             title="${t('Lưu bài nghiên cứu', 'Save paper')}">
@@ -238,6 +233,24 @@ PaperHub
             </div>
         </article>`;
         }
+
+        // ── Hydrate: render initial papers from server-provided JSON ──
+        (function hydrateInitialPapers() {
+            var initialDataScript = document.getElementById('initial-papers');
+            if (!initialDataScript) return;
+            try {
+                var initialPapers = JSON.parse(initialDataScript.textContent);
+                if (Array.isArray(initialPapers) && initialPapers.length > 0) {
+                    initialPapers.forEach(function (paper) {
+                        feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
+                    });
+                }
+                // Clean up after hydrate
+                initialDataScript.remove();
+            } catch (e) {
+                console.error('Failed to hydrate initial papers:', e);
+            }
+        })();
 
         function getCurrentCount() {
             return feed.querySelectorAll('.paper-card').length;
@@ -353,9 +366,27 @@ PaperHub
                 }).catch(function () { });
         });
 
+        // ── Touch feedback: thay thế CSS :active bằng JS pointer events ──
+        // Dùng pointerdown/up thay vì :active để tránh mobile browser giữ trạng thái
+        feed.addEventListener('pointerdown', function (e) {
+            const btn = e.target.closest('.bookmark-btn, .follow-btn');
+            if (btn) btn.classList.add('is-pressing');
+        });
+        feed.addEventListener('pointerup', function (e) {
+            const btn = e.target.closest('.bookmark-btn, .follow-btn');
+            if (btn) btn.classList.remove('is-pressing');
+        });
+        feed.addEventListener('pointerleave', function (e) {
+            const btn = e.target.closest('.bookmark-btn, .follow-btn');
+            if (btn) btn.classList.remove('is-pressing');
+        });
+
         feed.addEventListener('click', async function (e) {
             const btn = e.target.closest('.bookmark-btn');
             if (!btn) return;
+
+            // Dọn dẹp class is-pressing (pointerup có thể chưa kịp fire)
+            btn.classList.remove('is-pressing');
 
             if (!IS_AUTHENTICATED) {
                 openLoginModal();
@@ -364,6 +395,16 @@ PaperHub
 
             const paperId = btn.getAttribute('data-paper-id');
             if (!paperId) return;
+
+            // ── Optimistic update: đổi icon NGAY LẬP TỨC ──
+            // Ép browser repaint trước khi đổi class để đảm bảo mobile thấy thay đổi
+            void btn.offsetHeight;
+            const wasSaved = btn.classList.contains('bookmark-active');
+            if (wasSaved) {
+                btn.classList.remove('bookmark-active');
+            } else {
+                btn.classList.add('bookmark-active');
+            }
 
             try {
                 const resp = await fetch('/save-paper', {
@@ -379,18 +420,21 @@ PaperHub
 
                 const data = await resp.json();
                 if (!data.success) {
+                    // Revert optimistic update on server error
+                    if (wasSaved) {
+                        btn.classList.add('bookmark-active');
+                    } else {
+                        btn.classList.remove('bookmark-active');
+                    }
                     alert(data.message || t('Có lỗi xảy ra.', 'An error occurred.'));
-                    return;
-                }
-
-                if (data.saved) {
-                    btn.classList.add('bookmark-active', 'text-[#1A365D]');
-                    btn.classList.remove('text-slate-300');
-                } else {
-                    btn.classList.remove('bookmark-active', 'text-[#1A365D]');
-                    btn.classList.add('text-slate-300');
                 }
             } catch (err) {
+                // Revert on network error
+                if (wasSaved) {
+                    btn.classList.add('bookmark-active');
+                } else {
+                    btn.classList.remove('bookmark-active');
+                }
                 console.error('Bookmark error:', err);
                 alert(t('Có lỗi kết nối, vui lòng thử lại.', 'Connection error, please try again.'));
             }
@@ -431,8 +475,7 @@ PaperHub
                         feed.insertAdjacentHTML('beforeend', createPaperCard(paper));
                     });
                     feed.querySelectorAll('.bookmark-btn').forEach(function (btn) {
-                        btn.classList.add('bookmark-active', 'text-[#1A365D]');
-                        btn.classList.remove('text-slate-300');
+                        btn.classList.add('bookmark-active');
                     });
                     displayCount.textContent = t(
                         `Hiển thị ${papers.length} bài đã lưu`,

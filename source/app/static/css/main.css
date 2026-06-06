@@ -67,13 +67,25 @@ body {
 }
 
 /* ── Active feedback cho touch devices ── */
-.bookmark-btn:active {
-    color: #1A365D !important;
-    border-color: #1A365D !important;
+/* Dùng JS pointerdown/pointerup thay vì CSS :active để tránh conflict với
+   JS classList thay đổi màu (mobile browser có thể giữ :active quá lâu). */
+/* ── Bookmark button — CSS tường minh (không phụ thuộc Tailwind CDN scan) ── */
+/* Tailwind CDN không kịp generate class động khi AJAX load → cần rule cứng */
+/* ── Bookmark màu sắc — CSS tường minh, KHÔNG phụ thuộc Tailwind CDN ── */
+/* Tailwind CDN chỉ scan DOM 1 lần khi load trang → class động từ AJAX không có CSS */
+.bookmark-btn {
+    color: #CBD5E1; /* text-slate-300 */
+}
+.bookmark-btn.bookmark-active {
+    color: #1A365D;
 }
 
-.follow-btn:active {
-    background-color: #1A365D;
-    color: #fff;
-    border-color: #1A365D;
+.bookmark-btn.is-pressing {
+    opacity: 0.6;
+    transform: scale(0.95);
+}
+
+.follow-btn.is-pressing {
+    opacity: 0.7;
+    transform: scale(0.95);
 }

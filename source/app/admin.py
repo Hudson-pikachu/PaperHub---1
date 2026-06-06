@@ -23,6 +23,7 @@ from .database.models import db, SchedulerState, FetchHistory, SiteSettings, Pap
 from .services.arxiv_service import fetch_arxiv_for_all_categories
 from .services.ai_service import check_ai_status, process_pending_papers
 from .logger import get_last_lines, get_log_stats, read_log_file, read_log_file_stats
+from .utils import set_last_run, log_fetch_history, safe_rollback
 
 # Thêm thư mục scripts vào path để import được score_papers
 _scripts_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'scripts')
@@ -78,40 +79,6 @@ def _check_secret() -> bool:
     return token == ADMIN_SECRET
 
 
-def _set_last_run(run_time: datetime):
-    state = SchedulerState.query.get(1)
-    if not state:
-        state = SchedulerState()
-        state.id = 1
-    state.last_run = run_time
-    db.session.add(state)
-    db.session.commit()
-
-
-def _log_fetch_history(saved_count: int, per_category: int, duration_seconds: int = 0,
-                       ai_processed: int = 0, ai_error: str | None = None,
-                       error_message: str | None = None):
-    """Ghi lịch sử với session riêng, chịu lỗi nếu DB bị ngắt."""
-    try:
-        db.session.rollback()  # Xóa transaction cũ nếu có lỗi trước đó
-    except Exception:
-        pass
-    try:
-        entry = FetchHistory()
-        entry.saved_count = saved_count
-        entry.per_category = per_category
-        entry.duration_seconds = duration_seconds
-        entry.ai_processed = ai_processed
-        entry.ai_error = ai_error
-        entry.error_message = error_message
-        db.session.add(entry)
-        db.session.commit()
-    except Exception as e:
-        print(f"[Admin] Failed to save fetch history: {e}")
-        try:
-            db.session.rollback()
-        except Exception:
-            pass
 
 
 def _get_or_create_settings() -> SiteSettings:
@@ -147,7 +114,7 @@ def process_pending():
 
     try:
         saved = process_pending_papers(limit=count)
-        _set_last_run(_now_vn())
+        set_last_run(db, SchedulerState, _now_vn())
         elapsed = (_now_vn() - started_at).seconds
 
         # Ghi lịch sử: rollback transaction AI cũ trước
@@ -156,7 +123,7 @@ def process_pending():
         except Exception:
             pass
         ai_error_msg = None if saved >= pending_count else f'Only processed {saved}/{pending_count} papers'
-        _log_fetch_history(
+        log_fetch_history(db, FetchHistory,
             saved_count=0, per_category=0, duration_seconds=elapsed,
             ai_processed=saved, ai_error=ai_error_msg,
         )
@@ -170,7 +137,7 @@ def process_pending():
     except Exception as e:
         error_msg = str(e)
         print(f"[Admin] process-pending error: {error_msg}")
-        _log_fetch_history(saved_count=0, per_category=0, ai_processed=0, ai_error=error_msg)
+        log_fetch_history(db, FetchHistory, saved_count=0, per_category=0, ai_processed=0, ai_error=error_msg)
         return jsonify({'success': False, 'message': error_msg}), 500
 
 
@@ -222,9 +189,9 @@ def run_fetch():
 
     try:
         count, ai_processed, ai_error = fetch_arxiv_for_all_categories(per_category=per_category)
-        _set_last_run(_now_vn())
+        set_last_run(db, SchedulerState, _now_vn())
         elapsed = (_now_vn() - started_at).seconds
-        _log_fetch_history(
+        log_fetch_history(db, FetchHistory,
             saved_count=count, per_category=per_category, duration_seconds=elapsed,
             ai_processed=ai_processed, ai_error=ai_error,
         )
@@ -245,7 +212,7 @@ def run_fetch():
     except Exception as e:
         error_msg = str(e)
         print(f"[Admin] run-fetch error: {error_msg}")
-        _log_fetch_history(saved_count=0, per_category=per_category, error_message=error_msg)
+        log_fetch_history(db, FetchHistory, saved_count=0, per_category=per_category, error_message=error_msg)
         return jsonify({'success': False, 'message': error_msg}), 500
 
 

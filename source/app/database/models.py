@@ -50,19 +50,6 @@ class FetchHistory(db.Model):
         return f'<FetchHistory id={self.id} saved={self.saved_count}>'
 
 
-class FetchConfig(db.Model):
-    """Cấu hình fetch arXiv (dùng cho scheduler nội bộ)."""
-    __tablename__ = 'fetch_config'
-
-    id = db.Column(db.Integer, primary_key=True)
-    interval_hours = db.Column(db.Integer, default=6, nullable=False)
-    per_category = db.Column(db.Integer, default=2, nullable=False)
-    enabled = db.Column(db.Boolean, default=True, nullable=False)
-
-    def __repr__(self):
-        return f'<FetchConfig interval={self.interval_hours}h per_cat={self.per_category}>'
-
-
 class SiteSettings(db.Model):
     """Cấu hình toàn trang."""
     __tablename__ = 'site_settings'

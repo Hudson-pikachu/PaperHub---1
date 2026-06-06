@@ -1,11 +1,10 @@
 """AI service module for Google AI translation and summarization."""
 
 import json
-import re
-from typing import Optional
 from google import genai
 from google.genai import types
 from ..database.models import Paper, db
+from ..utils import parse_ai_json_response
 
 # Thay thế giá trị bên dưới bằng API key của bạn.
 GOOGLE_API_KEY = "AIzaSyCy3K9OGxa7wQgPKz--Mo5esO-S1xDti_M"
@@ -21,37 +20,6 @@ def _get_client():
             raise RuntimeError("GOOGLE_API_KEY must be configured directly in source/app/services/ai_service.py for this private project.")
         _client = genai.Client(api_key=GOOGLE_API_KEY)
     return _client
-
-
-def _parse_json_response_text(text: str):
-    """Parse JSON từ response text của Google AI.
-
-    Hỗ trợ cả JSON object { ... } và JSON array [ ... ].
-    Có thể bị bọc trong markdown code fence.
-    """
-    json_text = text.strip()
-    # Remove markdown code fences around JSON
-    json_text = re.sub(r"^```(?:json)?\s*", "", json_text)
-    json_text = re.sub(r"\s*```$", "", json_text)
-    # Thử match JSON array trước, rồi đến JSON object
-    match = re.search(r"\[.*\]", json_text, re.S)
-    if not match:
-        match = re.search(r"\{.*\}", json_text, re.S)
-    if match:
-        json_text = match.group(0)
-    # Escape invalid JSON backslashes coming from LaTeX-like strings
-    json_text = re.sub(r'\\(?!["\\/bfnrtu])', r"\\\\", json_text)
-    return json.loads(json_text)
-
-
-def translate_and_summarize_paper(paper_id: int, model: str = "gemini-2.5-flash-lite") -> int:
-    """Dịch tiêu đề và abstracts, tạo AI summary, đánh dấu status thành posted.
-
-.. deprecated::
-    Hàm này gọi Google AI cho từng bài riêng lẻ, gây lãng phí quota.
-    Nên dùng :func:`batch_translate_and_summarize` để gửi nhiều bài trong 1 lần gọi API.
-    """
-    return batch_translate_and_summarize([paper_id], model=model)
 
 
 def batch_translate_and_summarize(paper_ids: list, model: str = "gemini-2.5-flash-lite") -> int:
@@ -149,7 +117,7 @@ QUAN TRỌNG: Trả về ĐÚNG {len(papers)} phần tử, không thiếu, khôn
 
     # ── Bước 4: Parse JSON array ──
     try:
-        raw_output = _parse_json_response_text(result_text)
+        raw_output = parse_ai_json_response(result_text)
     except json.JSONDecodeError:
         raise ValueError(f"Không parse được JSON từ Google AI response: {result_text}")
 

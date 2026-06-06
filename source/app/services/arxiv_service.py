@@ -1,21 +1,12 @@
 import re
-import sys
-import io
 import arxiv
 import time
 from datetime import datetime
 from ..database.models import Paper, Category, db
+from ..utils import fix_windows_unicode
 from .ai_service import batch_translate_and_summarize
 
-# Fix UnicodeEncodeError on Windows: stdout defaults to cp1252/ascii -> can't print Vietnamese
-# 'reconfigure' exists on sys.stdout at runtime (Python 3.7+) but isn't declared on TextIO stubs.
-try:
-    sys.stdout.reconfigure(encoding='utf-8')  # type: ignore[attr-defined]
-except Exception:
-    try:
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-    except Exception:
-        pass
+fix_windows_unicode()
 
 ARXIV_CATEGORY_MAP = {
     "Học Máy": "cs.LG",
