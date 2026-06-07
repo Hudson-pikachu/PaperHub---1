@@ -55,16 +55,27 @@ def create_app():
     @app.context_processor
     def inject_unread_count():
         from flask_login import current_user
+        from .database.models import UserCategory
         if current_user.is_authenticated:
             since = current_user.created_at
             read_ids = [
                 rp.paper_id for rp in
                 UserPaperRead.query.filter_by(user_id=current_user.id).all()
             ]
+            # Chỉ đếm bài thuộc chủ đề người dùng đang theo dõi
+            followed_ids = [
+                uc.category_id for uc in
+                UserCategory.query.filter_by(user_id=current_user.id).all()
+            ]
             query = Paper.query.filter(
                 Paper.status == 'posted',
                 Paper.date_added > since
             )
+            if followed_ids:
+                query = query.filter(Paper.category_id.in_(followed_ids))
+            else:
+                unread_count = 0
+                return {'unread_count': unread_count}
             if read_ids:
                 query = query.filter(~Paper.id.in_(read_ids))
             unread_count = query.count()

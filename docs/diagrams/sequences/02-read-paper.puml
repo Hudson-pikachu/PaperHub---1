@@ -1,0 +1,20 @@
+@startuml 02-Read-Paper
+title Luồng 2: Đọc chi tiết bài nghiên cứu
+
+actor "Người dùng" as U2
+participant "Browser\n(index.html)" as Browser2
+participant "Flask\n(routes.py)" as Flask2
+participant "SQLAlchemy\n(models.py)" as DB2
+
+U2 -> Browser2: Click vào tiêu đề bài
+Browser2 -> Flask2: GET /read/42
+Flask2 -> DB2: Paper.query.get_or_404(42)
+DB2 --> Flask2: Paper object
+Flask2 -> Flask2: Tạo pdf_url từ link\n(arxiv.org/abs/ → arxiv.org/pdf/)
+Flask2 -> DB2: SavedPaper.query.filter_by(\nuser_id, paper_id).first()
+DB2 --> Flask2: is_saved = true/false
+Flask2 --> Browser2: render_template('read.html', paper,\npdf_url, is_saved, worthy_threshold)
+Browser2 -> Browser2: Gửi POST /mark-paper-read\nđể backup đánh dấu đã đọc
+Browser2 --> U2: Hiển thị chi tiết bài + PDF viewer
+
+@enduml

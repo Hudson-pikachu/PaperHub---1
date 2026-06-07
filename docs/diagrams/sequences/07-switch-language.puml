@@ -1,0 +1,15 @@
+@startuml 07-Switch-Language
+title Luồng 7: Chuyển đổi ngôn ngữ VI/EN
+
+actor "Người dùng" as U7
+participant "Browser\n(lang-switch.js)" as Browser7
+participant "Flask\n(routes.py)" as Flask7
+
+U7 -> Browser7: Click nút VI/EN trên header
+Browser7 -> Flask7: GET /set-language/en (hoặc /vi)
+Flask7 -> Flask7: session['lang'] = 'en'
+Flask7 --> Browser7: 302 Redirect → referrer (trang hiện tại)
+Browser7 -> Browser7: Reload trang với lang mới
+Browser7 --> U7: Giao diện hiển thị ngôn ngữ đã chọn\n(tiêu đề, abstract, nhãn nút đều đổi)
+
+@enduml

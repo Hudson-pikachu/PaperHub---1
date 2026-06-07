@@ -1,0 +1,37 @@
+@startuml 04-Register
+title Luồng 4: Đăng ký tài khoản mới
+
+actor "Khách" as G4
+participant "Modal\nĐăng ký" as Modal4
+participant "auth.js" as AuthJS4
+participant "Flask\n(auth.py)" as Flask4
+participant "DB\n(SQLAlchemy)" as DB4
+
+G4 -> Modal4: Điền form đăng ký\n(username, email, password, confirm)
+G4 -> Modal4: Bấm "Đăng ký"
+
+Modal4 -> AuthJS4: submit event → fetch()
+AuthJS4 -> Flask4: POST /auth/register\n{ username, email, password, confirm_password }
+
+Flask4 -> Flask4: Validation:\n- username >= 3 ký tự\n- password >= 6 ký tự\n- confirm match
+
+Flask4 -> DB4: User.query.filter_by(username=...).first()
+DB4 --> Flask4: None (chưa tồn tại)
+
+Flask4 -> DB4: User.query.filter_by(email=...).first()
+DB4 --> Flask4: None (chưa tồn tại)
+
+Flask4 -> Flask4: user = User(username, email)\nuser.set_password(password)
+
+Flask4 -> DB4: db.session.add(user)
+DB4 -> DB4: INSERT INTO user
+Flask4 -> DB4: db.session.commit()
+
+Flask4 -> Flask4: login_user(user, remember=True)
+
+Flask4 --> AuthJS4: JSON { success: true, redirect: '/' }
+AuthJS4 -> AuthJS4: window.location.href = '/'
+
+note over G4: Người dùng được chuyển về trang chủ\nvới trạng thái đã đăng nhập
+
+@enduml

@@ -287,17 +287,27 @@ def followed_categories():
 @main_bp.route('/unread-count')
 @login_required
 def unread_count():
-    """Trả về số bài chưa đọc trong notification bell."""
+    """Trả về số bài chưa đọc trong notification bell (chỉ đếm bài thuộc chủ đề đang follow)."""
     since = current_user.created_at or datetime.utcnow()
     read_ids = [
         rp.paper_id for rp in
         UserPaperRead.query.filter_by(user_id=current_user.id).all()
     ]
 
+    # Chỉ đếm bài thuộc chủ đề người dùng đang theo dõi
+    followed_ids = [
+        uc.category_id for uc in
+        UserCategory.query.filter_by(user_id=current_user.id).all()
+    ]
+
     query = Paper.query.filter(
         Paper.status == 'posted',
         Paper.date_added > since
     )
+    if followed_ids:
+        query = query.filter(Paper.category_id.in_(followed_ids))
+    else:
+        return jsonify({'success': True, 'unread_count': 0})
     if read_ids:
         query = query.filter(~Paper.id.in_(read_ids))
 
@@ -307,7 +317,9 @@ def unread_count():
 @main_bp.route('/new-papers')
 @login_required
 def new_papers():
-    """Trả về bài nghiên cứu mới phát sinh sau thời điểm người dùng đăng ký, trừ các bài đã xem."""
+    """Trả về bài nghiên cứu mới phát sinh sau thời điểm người dùng đăng ký,
+        chỉ lấy các bài thuộc chủ đề người dùng đang theo dõi.
+    """
     since = current_user.created_at or datetime.utcnow()
 
     # Lấy danh sách ID bài đã đọc
@@ -316,9 +328,16 @@ def new_papers():
         UserPaperRead.query.filter_by(user_id=current_user.id).all()
     ]
 
+    # Lấy ID các category user đang theo dõi
+    followed_ids = [
+        uc.category_id for uc in
+        UserCategory.query.filter_by(user_id=current_user.id).all()
+    ]
+
     query = Paper.query.filter(
         Paper.status == 'posted',
-        Paper.date_added > since
+        Paper.date_added > since,
+        Paper.category_id.in_(followed_ids)  # Chỉ lấy bài thuộc category đã follow
     )
     if read_ids:
         query = query.filter(~Paper.id.in_(read_ids))
@@ -366,11 +385,15 @@ def mark_paper_read():
         db.session.add(read_entry)
         db.session.commit()
 
-    # Trả về số bài chưa đọc còn lại
+    # Trả về số bài chưa đọc còn lại (chỉ đếm bài thuộc chủ đề đang follow)
     since = current_user.created_at or datetime.utcnow()
     read_ids = [
         rp.paper_id for rp in
         UserPaperRead.query.filter_by(user_id=current_user.id).all()
+    ]
+    followed_ids = [
+        uc.category_id for uc in
+        UserCategory.query.filter_by(user_id=current_user.id).all()
     ]
     remaining = (
         Paper.query
@@ -379,6 +402,10 @@ def mark_paper_read():
             Paper.date_added > since
         )
     )
+    if followed_ids:
+        remaining = remaining.filter(Paper.category_id.in_(followed_ids))
+    else:
+        return jsonify({'success': True, 'unread_count': 0})
     if read_ids:
         remaining = remaining.filter(~Paper.id.in_(read_ids))
     unread_count = remaining.count()
@@ -389,15 +416,26 @@ def mark_paper_read():
 @main_bp.route('/mark-all-read', methods=['POST'])
 @login_required
 def mark_all_read():
-    """Đánh dấu tất cả bài viết mới là đã xem."""
+    """Đánh dấu tất cả bài viết mới thuộc chủ đề đang theo dõi là đã xem."""
     since = current_user.created_at or datetime.utcnow()
-    all_new_paper_ids = [
-        p.id for p in
-        Paper.query.filter(
-            Paper.status == 'posted',
-            Paper.date_added > since
-        ).all()
+
+    # Chỉ đánh dấu các bài thuộc chủ đề đang theo dõi
+    followed_ids = [
+        uc.category_id for uc in
+        UserCategory.query.filter_by(user_id=current_user.id).all()
     ]
+
+    query = Paper.query.filter(
+        Paper.status == 'posted',
+        Paper.date_added > since
+    )
+    if followed_ids:
+        query = query.filter(Paper.category_id.in_(followed_ids))
+    else:
+        return jsonify({'success': True, 'unread_count': 0, 'marked': 0})
+
+    all_new_paper_ids = [p.id for p in query.all()]
+
     existing_read_ids = {
         rp.paper_id for rp in
         UserPaperRead.query.filter_by(user_id=current_user.id).all()

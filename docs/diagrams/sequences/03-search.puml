@@ -1,0 +1,25 @@
+@startuml 03-Search
+title Luồng 3: Tìm kiếm bài nghiên cứu
+
+actor "Người dùng" as U3
+participant "Browser\n(search-bar.js)" as Browser3
+participant "Flask\n(routes.py)" as Flask3
+participant "SQLAlchemy\n(models.py)" as DB3
+
+U3 -> Browser3: Gõ keyword vào thanh tìm kiếm
+Browser3 -> Browser3: Debounce 300ms\n→ gọi search nếu length >= 1
+
+Browser3 -> Flask3: GET /search?q=neural+network
+Flask3 -> Flask3: keyword = '%neural network%'
+
+Flask3 -> DB3: Paper.query.filter_by(status='posted')\n.filter(or_(title, title_en, abstract, ...))\n.add_columns(score).order_by(match_score desc)\n.limit(5)
+DB3 --> Flask3: [(Paper, match_score), ...]
+
+Flask3 --> Browser3: JSON { papers: [{id, title, authors,\ncategory, match_score}, ...] }
+Browser3 -> Browser3: Render dropdown kết quả tìm kiếm\n(hiển thị max 5 kết quả)
+Browser3 --> U3: Hiển thị kết quả tìm kiếm dạng dropdown
+
+U3 -> Browser3: Click vào 1 kết quả
+Browser3 -> Browser3: window.location.href = '/read/<id>'
+
+@enduml

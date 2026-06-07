@@ -1,0 +1,66 @@
+@startuml 15-Admin-Monitoring
+title Luồng 15: Admin - Cấu hình + Giám sát hệ thống
+
+actor "Admin" as A15
+participant "Browser\n(admin.html)" as Browser15
+participant "Flask\n(admin.py)" as Flask15
+participant "DB\n(SQLAlchemy)" as DB15
+participant "Log Files\n(logs/)" as Logs15
+
+' Site Settings
+A15 -> Browser15: Chỉnh worthy_threshold = 8.0
+Browser15 -> Flask15: POST /dev/settings?secret=<TOKEN>\n{ guest_load_more: true, worthy_threshold: 8.0 }
+
+Flask15 -> DB15: SiteSettings.query.get(1)
+DB15 --> Flask15: SiteSettings object
+Flask15 -> DB15: cfg.guest_load_more = true\ncfg.worthy_threshold = 8.0
+DB15 -> DB15: UPDATE site_settings
+Flask15 -> DB15: db.session.commit()
+
+Flask15 --> Browser15: JSON { success: true, message: "Đã lưu cấu hình." }
+Browser15 --> A15: Hiển thị "Đã lưu cấu hình"
+
+' Fetch History
+A15 -> Browser15: Click tab "Lịch sử Fetch"
+Browser15 -> Flask15: GET /dev/fetch-history?secret=<TOKEN>&limit=20
+
+Flask15 -> DB15: FetchHistory.query\n.order_by(started_at.desc()).limit(20)
+DB15 --> Flask15: [FetchHistory records]
+
+Flask15 --> Browser15: JSON { records: [{id, started_at,\nduration, saved_count, ai_processed, status}, ...] }
+Browser15 --> A15: Hiển thị bảng lịch sử fetch
+
+' System Status
+A15 -> Browser15: Click tab "Trạng thái"
+Browser15 -> Flask15: GET /dev/status?secret=<TOKEN>
+
+Flask15 -> DB15: SchedulerState.query.get(1)
+DB15 --> Flask15: last_run = 2026-06-07T09:00:00
+Flask15 -> DB15: Paper.query.filter_by(status='pending').count()
+DB15 --> Flask15: pending_count = 3
+
+Flask15 --> Browser15: JSON { last_run, pending_count }
+Browser15 --> A15: Hiển thị trạng thái:\nLần fetch cuối + Số bài pending
+
+' View Logs
+A15 -> Browser15: Click tab "Log"
+Browser15 -> Flask15: GET /dev/logs?secret=<TOKEN>&lines=100&level=ERROR
+
+Flask15 -> Logs15: read_log_file(app.log, 100 lines)
+Logs15 --> Flask15: [log lines]
+Flask15 -> Flask15: Filter theo level ERROR
+
+Flask15 --> Browser15: JSON { stats, lines: [...], filter: "ERROR" }
+Browser15 --> A15: Hiển thị log đã lọc
+
+' Cron Log
+A15 -> Browser15: Click tab "Cron Log"
+Browser15 -> Flask15: GET /dev/cron-log?secret=<TOKEN>&lines=50
+
+Flask15 -> Logs15: read_log_file(logs/cron.log, 50 lines)
+Logs15 --> Flask15: [cron log lines]
+
+Flask15 --> Browser15: JSON { stats, lines: [...] }
+Browser15 --> A15: Hiển thị log của cron job
+
+@enduml

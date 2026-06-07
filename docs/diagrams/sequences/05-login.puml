@@ -1,0 +1,30 @@
+@startuml 05-Login
+title Luồng 5: Đăng nhập
+
+actor "Khách" as G5
+participant "Modal\nĐăng nhập" as Modal5
+participant "auth.js" as AuthJS5
+participant "Flask\n(auth.py)" as Flask5
+participant "DB\n(SQLAlchemy)" as DB5
+
+G5 -> Modal5: Điền form đăng nhập\n(email/username, password)
+G5 -> Modal5: Bấm "Đăng nhập"
+
+Modal5 -> AuthJS5: submit event → fetch()
+AuthJS5 -> Flask5: POST /auth/login\n{ identifier, password, remember }
+
+Flask5 -> DB5: User.query.filter_by(email=...).first()
+DB5 --> Flask5: None
+
+Flask5 -> DB5: User.query.filter_by(username=...).first()
+DB5 --> Flask5: User object
+
+Flask5 -> Flask5: user.check_password(password) → True
+Flask5 -> Flask5: login_user(user, remember=remember)
+
+Flask5 --> AuthJS5: JSON { success: true, redirect: '/' }
+AuthJS5 -> AuthJS5: window.location.href = '/'
+
+note over G5: Header chuyển từ guest-header\nsang user-header (có notification bell)
+
+@enduml

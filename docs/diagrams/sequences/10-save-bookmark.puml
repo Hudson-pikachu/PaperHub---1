@@ -1,0 +1,38 @@
+@startuml 10-Save-Bookmark
+title Luồng 10: Lưu / Bỏ lưu bài nghiên cứu (Optimistic Update)
+
+actor "Người dùng" as U10
+participant "Browser\n(index.html)" as Browser10
+participant "Flask\n(routes.py)" as Flask10
+participant "SQLAlchemy\n(models.py)" as DB10
+
+U10 -> Browser10: Bấm nút "Lưu"
+
+alt Chưa đăng nhập
+    Browser10 -> Browser10: openLoginModal()
+    Browser10 --> U10: Hiển thị modal đăng nhập
+else Đã đăng nhập
+    Browser10 -> Browser10: Optimistic Update\ntoggle class 'bookmark-active' NGAY LẬP TỨC
+    Browser10 -> Flask10: POST /save-paper\n{ paper_id: 42 }
+    Flask10 -> DB10: SavedPaper.query.filter_by(\nuser_id, paper_id).first()
+
+    alt Chưa lưu
+        DB10 --> Flask10: None
+        Flask10 -> DB10: SavedPaper(user_id, paper_id) → add()
+        DB10 -> DB10: INSERT INTO saved_paper
+        Flask10 -> DB10: db.session.commit()
+        Flask10 --> Browser10: JSON { success: true, saved: true }
+        Browser10 -> Browser10: Giữ icon active (đã đổi từ trước)
+    else Đã lưu rồi
+        DB10 --> Flask10: SavedPaper object
+        Flask10 -> DB10: db.session.delete(existing)
+        DB10 -> DB10: DELETE FROM saved_paper
+        Flask10 -> DB10: db.session.commit()
+        Flask10 --> Browser10: JSON { success: true, saved: false }
+        Browser10 -> Browser10: classList.remove('bookmark-active')
+    end
+
+    note over Browser10: Nếu server lỗi hoặc mạng lỗi\n→ revert optimistic update
+end
+
+@enduml

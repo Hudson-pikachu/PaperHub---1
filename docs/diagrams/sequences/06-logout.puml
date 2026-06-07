@@ -1,0 +1,19 @@
+@startuml 06-Logout
+title Luồng 6: Đăng xuất
+
+actor "Người dùng\n(Đã đăng nhập)" as U6
+participant "Browser\n(user-dropdown.js)" as Browser6
+participant "Flask\n(auth.py)" as Flask6
+
+U6 -> Browser6: Click avatar → Mở dropdown
+Browser6 --> U6: Hiển thị menu (Profile / Logout)
+U6 -> Browser6: Click "Đăng xuất"
+
+Browser6 -> Flask6: GET /auth/logout
+Flask6 -> Flask6: logout_user()
+Flask6 --> Browser6: 302 Redirect → /
+Browser6 -> Browser6: window.location = '/'
+
+note over U6: Header chuyển về guest-header\n(không còn notification bell)
+
+@enduml

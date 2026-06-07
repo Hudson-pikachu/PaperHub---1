@@ -1,0 +1,63 @@
+@startuml 13-Cron-Fetch-Score
+title Luồng 13: Cron Job - Fetch bài từ arXiv + AI xử lý + Chấm điểm
+
+actor "Cron Job\n(Host Server)" as Cron13
+participant "fetch_papers.py" as FetchScript13
+participant "score_papers.py" as ScoreScript13
+participant "arxiv_service.py" as ArxivSvc13
+participant "ai_service.py" as AISvc13
+participant "DB\n(SQLAlchemy)" as DB13
+actor "arXiv API" as ArxivAPI13
+actor "Google AI\n(Gemini)" as Gemini13
+
+Cron13 -> FetchScript13: python fetch_papers.py --per-category 2
+FetchScript13 -> FetchScript13: fix_windows_unicode()
+
+FetchScript13 -> ArxivSvc13: fetch_arxiv_for_all_categories(per_category=2)
+
+loop Mỗi category (6 categories)
+    ArxivSvc13 -> ArxivAPI13: arxiv.Search(query="cat:cs.LG",\nmax_results=2, sort_by=SubmittedDate)
+    ArxivAPI13 --> ArxivSvc13: 2 papers mới
+    ArxivSvc13 -> ArxivSvc13: _clean_text(title, abstract)
+    ArxivSvc13 -> DB13: Paper(...) → db.session.add()
+    DB13 -> DB13: INSERT INTO paper (status='pending')
+end
+
+ArxivSvc13 --> FetchScript13: (total_saved, all_new_ids)
+
+FetchScript13 -> AISvc13: batch_translate_and_summarize(all_new_ids)
+
+loop Mỗi chunk 6 bài
+    AISvc13 -> Gemini13: generate_content(model="gemini-2.5-flash-lite",\nprompt JSON array)
+    Gemini13 --> AISvc13: JSON { title, abstract, summary, ... }
+    AISvc13 -> AISvc13: parse_ai_json_response()
+    AISvc13 -> AISvc13: Phân phối kết quả vào Paper
+    AISvc13 -> DB13: paper.status = 'posted'; db.session.commit()
+    DB13 -> DB13: UPDATE paper SET status='posted', title=..., ...
+end
+
+AISvc13 --> FetchScript13: saved_count
+
+FetchScript13 -> FetchScript13: set_last_run()
+FetchScript13 -> DB13: log_fetch_history(...)
+DB13 -> DB13: INSERT INTO fetch_history
+
+FetchScript13 --> Cron13: Hoàn tất. Đã lưu 12 bài mới. (45s)
+
+Cron13 -> ScoreScript13: python score_papers.py --limit 10
+ScoreScript13 -> ScoreScript13: create_app() → app.app_context()
+
+ScoreScript13 -> AISvc13: _get_client() (khởi tạo Gemini client)
+
+loop Mỗi batch 5 bài
+    ScoreScript13 -> ScoreScript13: build_scoring_prompt(batch)
+    ScoreScript13 -> Gemini13: generate_content(\nmodel="gemini-2.5-flash-lite",\nprompt chấm điểm, temperature=0.1)
+    Gemini13 --> ScoreScript13: JSON { method_score,\nperformance_score, verifiability_score, ... }
+    ScoreScript13 -> ScoreScript13: parse_ai_json_response()
+    ScoreScript13 -> DB13: paper.score = total_score;\ndb.session.commit()
+    DB13 -> DB13: UPDATE paper SET score=8
+end
+
+ScoreScript13 --> Cron13: KẾT QUẢ: Tổng 10 bài, Đã chấm 10, Lỗi 0
+
+@enduml

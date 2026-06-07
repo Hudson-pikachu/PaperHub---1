@@ -1,0 +1,80 @@
+@startuml 14-Admin-Fetch-Score
+title Luồng 14: Admin - Fetch thủ công + Xử lý Pending + Chấm điểm
+
+actor "Admin" as A14
+participant "Browser\n(admin.html)" as Browser14
+participant "Flask\n(admin.py)" as Flask14
+participant "arxiv_service.py" as ArxivSvc14
+participant "ai_service.py" as AISvc14
+participant "DB\n(SQLAlchemy)" as DB14
+actor "arXiv API" as ArxivAPI14
+actor "Google AI\n(Gemini)" as Gemini14
+
+' Fetch
+A14 -> Browser14: Bấm "Fetch từ arXiv"
+Browser14 -> Flask14: GET /dev/run-fetch?secret=<TOKEN>
+Flask14 -> Flask14: _check_secret()
+
+Flask14 -> ArxivSvc14: fetch_arxiv_for_all_categories(per_category=2)
+
+loop Mỗi category
+    ArxivSvc14 -> ArxivAPI14: arxiv.Search(...)
+    ArxivAPI14 --> ArxivSvc14: papers mới
+    ArxivSvc14 -> DB14: INSERT paper (status='pending')
+end
+
+ArxivSvc14 --> Flask14: (total_saved, all_new_ids)
+
+Flask14 -> AISvc14: batch_translate_and_summarize(all_new_ids)
+
+loop Mỗi chunk 6 bài
+    AISvc14 -> Gemini14: generate_content(...)
+    Gemini14 --> AISvc14: JSON kết quả dịch & tóm tắt
+    AISvc14 -> DB14: UPDATE paper SET status='posted'
+end
+
+AISvc14 --> Flask14: saved_count
+
+Flask14 -> Flask14: set_last_run()
+Flask14 -> DB14: log_fetch_history(...)
+DB14 -> DB14: INSERT INTO fetch_history
+
+Flask14 --> Browser14: JSON { success, saved, ai_processed, elapsed_seconds }
+Browser14 --> A14: Hiển thị kết quả fetch
+
+' Process Pending
+A14 -> Browser14: Bấm "Xử lý Pending bằng AI"
+Browser14 -> Flask14: GET /dev/process-pending?secret=<TOKEN>&count=12
+Flask14 -> DB14: Paper.query.filter_by(status='pending').count()
+DB14 --> Flask14: pending_count = 5
+
+Flask14 -> AISvc14: process_pending_papers(limit=12)
+AISvc14 -> Gemini14: generate_content(...)
+Gemini14 --> AISvc14: JSON kết quả
+AISvc14 -> DB14: UPDATE paper SET status='posted'
+AISvc14 --> Flask14: saved = 5
+
+Flask14 -> DB14: log_fetch_history(ai_processed=5)
+Flask14 --> Browser14: JSON { success, processed: 5, elapsed_seconds }
+Browser14 --> A14: Hiển thị kết quả xử lý pending
+
+' Score
+A14 -> Browser14: Bấm "Chấm điểm bài"
+Browser14 -> Flask14: GET /dev/score-papers?secret=<TOKEN>
+Flask14 -> DB14: Paper.query.filter(score.is_(None)).count()
+DB14 --> Flask14: unscored_count = 8
+
+Flask14 -> Flask14: from score_papers import run_scoring
+Flask14 -> Flask14: run_scoring(limit=None, rescore_all=False)
+
+loop Mỗi batch 5 bài
+    Flask14 -> Gemini14: generate_content(prompt chấm điểm)
+    Gemini14 --> Flask14: JSON scores
+    Flask14 -> DB14: paper.score = total_score
+    DB14 -> DB14: UPDATE paper SET score=... 
+end
+
+Flask14 --> Browser14: JSON { success, scored: 8, total: 8, errors: 0 }
+Browser14 --> A14: Hiển thị kết quả chấm điểm
+
+@enduml

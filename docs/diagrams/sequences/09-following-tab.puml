@@ -1,0 +1,34 @@
+@startuml 09-Following-Tab
+title Luồng 9: Xem bài theo chủ đề đã theo dõi
+
+actor "Người dùng\n(Đã đăng nhập)" as U9
+participant "Browser\n(index.html)" as Browser9
+participant "Flask\n(routes.py)" as Flask9
+participant "DB\n(SQLAlchemy)" as DB9
+
+U9 -> Browser9: Click tab "Đang theo dõi"
+Browser9 -> Browser9: setActiveFilter('following')
+
+alt Chưa đăng nhập
+    Browser9 -> Browser9: showLoginRequired()
+    Browser9 --> U9: Hiển thị "Vui lòng đăng nhập"
+else Đã đăng nhập
+    Browser9 -> Flask9: GET /following-papers
+    Flask9 -> DB9: UserCategory.query.filter_by(\nuser_id=current_user.id).all()
+    DB9 --> Flask9: [category_id: 1, 3, 5]
+
+    alt Chưa follow chủ đề nào
+        Flask9 --> Browser9: JSON { papers: [], followed_topics: [] }
+        Browser9 --> U9: "Bạn chưa theo dõi chủ đề nào."
+    else Có chủ đề đã follow
+        Flask9 -> DB9: Paper.query.filter(\nstatus='posted',\ncategory_id.in_([1,3,5])).order_by(date_added.desc())
+        DB9 --> Flask9: [Paper objects]
+        Flask9 -> DB9: Category.query.filter(Category.id.in_([1,3,5]))
+        DB9 --> Flask9: [Category names]
+        Flask9 --> Browser9: JSON { papers: [...], followed_topics: ["CS.AI", ...] }
+        Browser9 -> Browser9: createPaperCard() x N → render danh sách
+        Browser9 --> U9: Hiển thị N bài trong chủ đề đã follow
+    end
+end
+
+@enduml

@@ -1,0 +1,33 @@
+@startuml 01-Home-Load-More
+title Luồng 1: Xem danh sách bài mới nhất + Load More
+
+actor "Người dùng" as U1
+participant "Browser\n(index.html)" as Browser1
+participant "Flask\n(routes.py)" as Flask1
+participant "SQLAlchemy\n(models.py)" as DB1
+database "MySQL /\nSQLite" as SQL1
+
+U1 -> Browser1: Truy cập /
+Browser1 -> Flask1: GET /
+Flask1 -> DB1: Paper.query.filter_by(status='posted')\n.order_by(date_added.desc()).limit(5)
+DB1 -> SQL1: SELECT * FROM paper WHERE status='posted'\nORDER BY date_added DESC LIMIT 5
+SQL1 --> DB1: 5 papers
+DB1 --> Flask1: [Paper objects]
+Flask1 -> Flask1: Serialize thành papers_json
+Flask1 --> Browser1: render_template('index.html',\npapers_json, worthy_threshold)
+Browser1 -> Browser1: hydrateInitialPapers()\n→ createPaperCard() x 5
+Browser1 --> U1: Hiển thị 5 bài nghiên cứu
+
+note over Browser1: Người dùng cuộn xuống, bấm "Xem thêm"
+
+U1 -> Browser1: Bấm "Xem thêm bài nghiên cứu"
+Browser1 -> Flask1: GET /load-more?offset=5
+Flask1 -> DB1: Paper.query.offset(5).limit(5)
+DB1 -> SQL1: SELECT ... LIMIT 5 OFFSET 5
+SQL1 --> DB1: 5 papers
+DB1 --> Flask1: [Paper objects]
+Flask1 --> Browser1: JSON { papers, has_more, worthy_threshold }
+Browser1 -> Browser1: createPaperCard() x 5
+Browser1 --> U1: Hiển thị thêm 5 bài (hiện 10 bài)
+
+@enduml

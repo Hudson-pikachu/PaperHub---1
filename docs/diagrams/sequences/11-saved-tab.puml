@@ -1,0 +1,30 @@
+@startuml 11-Saved-Tab
+title Luồng 11: Xem danh sách đã lưu
+
+actor "Người dùng\n(Đã đăng nhập)" as U11
+participant "Browser\n(index.html)" as Browser11
+participant "Flask\n(routes.py)" as Flask11
+participant "DB\n(SQLAlchemy)" as DB11
+
+U11 -> Browser11: Click tab "Đã lưu"
+Browser11 -> Browser11: setActiveFilter('saved')
+
+alt Chưa đăng nhập
+    Browser11 -> Browser11: showLoginRequired()
+    Browser11 --> U11: "Vui lòng đăng nhập"
+else Đã đăng nhập
+    Browser11 -> Flask11: GET /saved-papers
+    Flask11 -> DB11: SavedPaper.query.filter_by(\nuser_id=current_user.id)\n.order_by(saved_at.asc()).join(Paper)
+    DB11 --> Flask11: [SavedPaper objects with Paper]
+
+    alt Danh sách rỗng
+        Flask11 --> Browser11: JSON { papers: [] }
+        Browser11 --> U11: "Bạn chưa lưu bài viết nào."
+    else Có bài đã lưu
+        Flask11 --> Browser11: JSON { papers: [{id, title, ...}, ...] }
+        Browser11 -> Browser11: createPaperCard() x N\nvà tự động thêm class 'bookmark-active'
+        Browser11 --> U11: Hiển thị N bài đã lưu
+    end
+end
+
+@enduml

@@ -1,0 +1,62 @@
+@startuml 12-Notification-Bell
+title Luồng 12: Notification Bell - Thông báo bài mới + Đánh dấu đã đọc
+
+actor "Người dùng\n(Đã đăng nhập)" as U12
+participant "Browser\n(notification-bell.js)" as Browser12
+participant "Flask\n(routes.py)" as Flask12
+participant "DB\n(SQLAlchemy)" as DB12
+
+note over Browser12, DB12: Server render user-header.html\nvới unread_count từ context processor\n(unread_count chỉ đếm bài trong chủ đề đang follow)
+
+Browser12 -> Browser12: updateBadge(unread_count)
+Browser12 -> Flask12: GET /unread-count (silent sync)
+Flask12 -> DB12: UserCategory.query → followed_ids
+DB12 --> Flask12: [1, 3, 5]
+Flask12 -> DB12: Paper.query.filter(\nstatus='posted', date_added > user.created_at,\ncategory_id.in_([1,3,5]))\n.filter(~Paper.id.in_(read_ids)).count()
+DB12 --> Flask12: 3
+Flask12 --> Browser12: JSON { unread_count: 3 }
+Browser12 -> Browser12: Đồng bộ badge (3)
+
+U12 -> Browser12: Bấm vào chuông thông báo
+Browser12 -> Browser12: openDropdown() → hiển thị notif-dropdown
+
+Browser12 -> Flask12: GET /new-papers
+Flask12 -> DB12: UserCategory.query → followed_ids [1,3,5]
+Flask12 -> DB12: Paper.query.filter(\nstatus='posted', date_added > user.created_at,\ncategory_id.in_([1,3,5]))\n.filter(~Paper.id.in_(read_ids))\n.order_by(date_added.desc()).limit(20)
+DB12 --> Flask12: [3 papers chưa đọc]
+Flask12 --> Browser12: JSON { papers: [...], count: 3, worthy_threshold: 7.0 }
+Browser12 -> Browser12: Render danh sách 3 bài\n+ badge "Worthy Read" nếu score >= 7.0
+Browser12 --> U12: Hiển thị dropdown 3 nghiên cứu mới
+
+note over U12: Click vào 1 bài trong dropdown để đọc
+
+U12 -> Browser12: Click vào 1 bài
+Browser12 -> Flask12: POST /mark-paper-read\n{ paper_id: 42 }
+Flask12 -> DB12: UserPaperRead.query.filter_by(\nuser_id, paper_id).first()
+DB12 --> Flask12: None (chưa đọc)
+Flask12 -> DB12: UserPaperRead(user_id, paper_id) → add()
+DB12 -> DB12: INSERT INTO user_paper_read
+Flask12 -> DB12: db.session.commit()
+
+Flask12 -> DB12: Đếm lại số bài chưa đọc\n(cùng filter category_id.in_(followed_ids))
+DB12 --> Flask12: 2
+Flask12 --> Browser12: JSON { success: true, unread_count: 2 }
+Browser12 -> Browser12: Item mờ dần rồi biến mất\n→ updateBadge(2)
+Browser12 --> U12: Badge còn 2, bài đã biến mất
+
+note over U12: Bấm "Mark all read" để xóa tất cả
+
+U12 -> Browser12: Bấm nút "Đánh dấu tất cả đã đọc"
+Browser12 -> Flask12: POST /mark-all-read
+Flask12 -> DB12: UserCategory.query → followed_ids [1,3,5]
+Flask12 -> DB12: Lấy tất cả bài mới chưa đọc\n(chỉ trong chủ đề đang follow)
+loop Mỗi bài chưa đọc
+    Flask12 -> DB12: UserPaperRead(user_id, paper_id) → add()
+    DB12 -> DB12: INSERT INTO user_paper_read
+end
+Flask12 -> DB12: db.session.commit()
+Flask12 --> Browser12: JSON { success: true, unread_count: 0, marked: 2 }
+Browser12 -> Browser12: updateBadge(0) → ẩn chấm đỏ\n→ hiển thị "0 nghiên cứu mới"
+Browser12 --> U12: Badge về 0, danh sách trống
+
+@enduml
