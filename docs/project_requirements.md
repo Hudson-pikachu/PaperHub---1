@@ -16,10 +16,10 @@ Người dùng có thể thêm chủ đề muốn theo dõi. Hệ thống sẽ t
 
 #Chức năng nâng cao (+2 điểm)
     Sinh viên muốn đạt điểm tối đa có thể làm thêm một số chức năng như:
-    1*. Gợi ý paper liên quan
-    2*. Phát hiện paper trùng hoặc gần giống
+    1*. Gợi ý paper liên quan (chưa làm được)
+    2*. Phát hiện paper trùng hoặc gần giống (chưa làm được)
     3*. Gửi thông báo khi có paper mới
-    4*. Thống kê xu hướng theo chủ đề
+    4*. Thống kê xu hướng theo chủ đề (chưa làm được)
     5*. Chấm điểm paper đáng đọc
 
 #Kết quả mong muốn
